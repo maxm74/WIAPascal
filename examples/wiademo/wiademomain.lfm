@@ -1,0 +1,59 @@
+object Form1: TForm1
+  Left = 357
+  Height = 210
+  Top = 221
+  Width = 476
+  Caption = 'WIA Tests'
+  ClientHeight = 210
+  ClientWidth = 476
+  LCLVersion = '3.99.0.0'
+  OnCreate = FormCreate
+  object Memo2: TMemo
+    Left = 8
+    Height = 192
+    Top = 8
+    Width = 328
+    ScrollBars = ssAutoBoth
+    TabOrder = 0
+  end
+  object edDevTest: TEdit
+    Left = 427
+    Height = 23
+    Top = 40
+    Width = 40
+    TabOrder = 1
+    Text = '1'
+  end
+  object Label1: TLabel
+    Left = 347
+    Height = 15
+    Top = 43
+    Width = 74
+    Caption = 'Device to Use:'
+  end
+  object btIntList: TButton
+    Left = 344
+    Height = 25
+    Top = 8
+    Width = 123
+    Caption = 'List Wia'
+    TabOrder = 2
+    OnClick = btIntListClick
+  end
+  object btIntCap: TButton
+    Left = 344
+    Height = 25
+    Top = 72
+    Width = 123
+    Caption = 'List Capabilities'
+    TabOrder = 3
+  end
+  object btIntCapture: TButton
+    Left = 344
+    Height = 25
+    Top = 104
+    Width = 123
+    Caption = 'Capture'
+    TabOrder = 4
+  end
+end

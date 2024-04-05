@@ -1,0 +1,4 @@
+WIAPASCAL CHANGE LOG
+======================
+
+2024/04/05 MaxM - Initial Translation of Windows SDK files (must be completed), TLB Import 

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Package Version="5">
+    <PathDelim Value="\"/>
+    <Name Value="WIAPascal_pkg"/>
+    <Type Value="RunAndDesignTime"/>
+    <Author Value="MaxM"/>
+    <CompilerOptions>
+      <Version Value="11"/>
+      <PathDelim Value="\"/>
+      <SearchPaths>
+        <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)\"/>
+      </SearchPaths>
+    </CompilerOptions>
+    <Description Value="WIA features for Free Pascal"/>
+    <Version Release="1"/>
+    <Files>
+      <Item>
+        <Filename Value="WIA_LH.pas"/>
+        <UnitName Value="WIA_LH"/>
+      </Item>
+      <Item>
+        <Filename Value="WIA_TLB.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="WIA_TLB"/>
+      </Item>
+      <Item>
+        <Filename Value="WiaDef.pas"/>
+        <UnitName Value="WiaDef"/>
+      </Item>
+      <Item>
+        <Filename Value="WiaDevD.pas"/>
+        <UnitName Value="WiaDevD"/>
+      </Item>
+    </Files>
+    <RequiredPkgs>
+      <Item>
+        <PackageName Value="FCL"/>
+      </Item>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir)"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+      <UseFileFilters Value="True"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>
