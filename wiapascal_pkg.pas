@@ -8,13 +8,12 @@ unit WIAPascal_pkg;
 interface
 
 uses
-  wia_lh, WIA_TLB, WiaDef, WiaDevD, LazarusPackageIntf;
+  WIA_LH, WIA_TLB, WiaDef, WiaDevD, WIA_ScanProfiles_TLB, LazarusPackageIntf;
 
 implementation
 
 procedure Register;
 begin
-  RegisterUnit('WIA_TLB', @WIA_TLB.Register);
 end;
 
 initialization

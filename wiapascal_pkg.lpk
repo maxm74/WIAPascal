@@ -9,7 +9,7 @@
       <Version Value="11"/>
       <PathDelim Value="\"/>
       <SearchPaths>
-        <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)\"/>
+        <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
     </CompilerOptions>
     <Description Value="WIA features for Free Pascal"/>
@@ -21,7 +21,6 @@
       </Item>
       <Item>
         <Filename Value="WIA_TLB.pas"/>
-        <HasRegisterProc Value="True"/>
         <UnitName Value="WIA_TLB"/>
       </Item>
       <Item>
@@ -31,6 +30,10 @@
       <Item>
         <Filename Value="WiaDevD.pas"/>
         <UnitName Value="WiaDevD"/>
+      </Item>
+      <Item>
+        <Filename Value="WIA_ScanProfiles_TLB.pas"/>
+        <UnitName Value="ScanProfilesLib_TLB"/>
       </Item>
     </Files>
     <RequiredPkgs>

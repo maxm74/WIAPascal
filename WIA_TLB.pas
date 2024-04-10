@@ -12,7 +12,7 @@ unit WIA_TLB;
 // ************************************************************************ //
 
 // $Rev: 98336 $
-// File generated on 12/10/2023 09:48:58 from Type Library described below.
+// File generated on 26/03/2024 13:12:58 from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\Windows\System32\wiaaut.dll (1)
@@ -37,8 +37,7 @@ unit WIA_TLB;
 
 interface
 
-uses Windows, Classes, Variants, Graphics, OleServer, ActiveX;
-  
+uses Windows, Classes, Variants, OleServer, ActiveX;
 
 // *********************************************************************//
 // GUIDS declared in the TypeLibrary. Following prefixes are used:        
@@ -229,24 +228,6 @@ type
 const
   MinimizeSize = $00010000;
   MaximizeQuality = $00020000;
-
-
-  //Command IDs
-
-  //CommandID for Synchronize. Causes the device driver to synchronize cached items with the hardware device.
-  wiaCommandSynchronize = '{9B26B7B2-ACAD-11D2-A093-00C04F72DC3C}';
-
-  //CommandID for Take Picture. Causes a WIA device to acquire an image.
-  wiaCommandTakePicture = '{AF933CAC-ACAD-11D2-A093-00C04F72DC3C}';
-
-  //CommandID for Delete All Items. Notifies the device to delete all items that can be deleted from the device.
-  wiaCommandDeleteAllItems = '{E208C170-ACAD-11D2-A093-00C04F72DC3C}';
-
-  //CommandID for Change Document. Causes the document scanner to load the next page in its document handler. Does not apply to other device types.
-  wiaCommandChangeDocument = '{04E725B0-ACAE-11D2-A093-00C04F72DC3C}';
-
-  //CommandID for Unload Document. Notifies the document scanner to unload all remaining pages in its document handler. Does not apply to other device types.
-  wiaCommandUnloadDocument = '{1F3B3D8E-ACAE-11D2-A093-00C04F72DC3C}';
 
 type
 
@@ -1124,40 +1105,6 @@ type
     class function CreateRemote(const MachineName: string): IRational;
   end;
 
-
-// *********************************************************************//
-// OLE Server Proxy class declaration
-// Server Object    : TRational
-// Help String      : The Rational object is a container for the rational values found in Exif tags. It is a supported element type of the Vector object and may be created using "WIA.Rational" in a call to CreateObject.
-// Default Interface: IRational
-// Def. Intf. DISP? : No
-// Event   Interface: 
-// TypeFlags        : (2) CanCreate
-// *********************************************************************//
-  TRational = class(TOleServer)
-  private
-    FIntf: IRational;
-    function GetDefaultInterface: IRational;
-  protected
-    procedure InitServerData; override;
-    function Get_Value: Double;
-    function Get_Numerator: Integer;
-    procedure Set_Numerator(plResult: Integer);
-    function Get_Denominator: Integer;
-    procedure Set_Denominator(plResult: Integer);
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor  Destroy; override;
-    procedure Connect; override;
-    procedure ConnectTo(svrIntf: IRational);
-    procedure Disconnect; override;
-    property DefaultInterface: IRational read GetDefaultInterface;
-    property Value: Double read Get_Value;
-    property Numerator: Integer read Get_Numerator write Set_Numerator;
-    property Denominator: Integer read Get_Denominator write Set_Denominator;
-  published
-  end;
-
 // *********************************************************************//
 // The Class CoVector provides a Create and CreateRemote method to          
 // create instances of the default interface IVector exposed by              
@@ -1168,52 +1115,6 @@ type
   CoVector = class
     class function Create: IVector;
     class function CreateRemote(const MachineName: string): IVector;
-  end;
-
-
-// *********************************************************************//
-// OLE Server Proxy class declaration
-// Server Object    : TVector
-// Help String      : The Vector object is a collection of values of the same type. It is used throughout the library in many different ways. The Vector object may be created using "WIA.Vector" in a call to CreateObject.
-// Default Interface: IVector
-// Def. Intf. DISP? : No
-// Event   Interface: 
-// TypeFlags        : (2) CanCreate
-// *********************************************************************//
-  TVector = class(TOleServer)
-  private
-    FIntf: IVector;
-    function GetDefaultInterface: IVector;
-  protected
-    procedure InitServerData; override;
-    function Get_Item(Index: Integer): OleVariant;
-    procedure Set_Item(Index: Integer; const pResult: OleVariant);
-    procedure _Set_Item(Index: Integer; const pResult: OleVariant);
-    function Get_Count: Integer;
-    function Get_Picture(Width: Integer; Height: Integer): OleVariant;
-    function Get_ImageFile(Width: Integer; Height: Integer): IImageFile;
-    function Get_BinaryData: OleVariant;
-    procedure Set_BinaryData(const pvResult: OleVariant);
-    function Get_String_(Unicode: WordBool): WideString;
-    function Get_Date: TDateTime;
-    procedure Set_Date(pdResult: TDateTime);
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor  Destroy; override;
-    procedure Connect; override;
-    procedure ConnectTo(svrIntf: IVector);
-    procedure Disconnect; override;
-    procedure Add(const Value: OleVariant; Index: Integer);
-    function Remove(Index: Integer): OleVariant;
-    procedure Clear;
-    procedure SetFromString(const Value: WideString; Resizable: WordBool; Unicode: WordBool);
-    property DefaultInterface: IVector read GetDefaultInterface;
-    property Count: Integer read Get_Count;
-    property Picture[Width: Integer; Height: Integer]: OleVariant read Get_Picture;
-    property ImageFile[Width: Integer; Height: Integer]: IImageFile read Get_ImageFile;
-    property String_[Unicode: WordBool]: WideString read Get_String_;
-    property Date: TDateTime read Get_Date write Set_Date;
-  published
   end;
 
 // *********************************************************************//
@@ -1228,57 +1129,6 @@ type
     class function CreateRemote(const MachineName: string): IProperty;
   end;
 
-
-// *********************************************************************//
-// OLE Server Proxy class declaration
-// Server Object    : TProperty
-// Help String      : The Property object is a container for a property associated with a Device, DeviceInfo, Filter, ImageFile or Item object. See the Properties property on any of these objects for details on accessing Property objects.
-// Default Interface: IProperty
-// Def. Intf. DISP? : No
-// Event   Interface: 
-// TypeFlags        : (0)
-// *********************************************************************//
-  TProperty = class(TOleServer)
-  private
-    FIntf: IProperty;
-    function GetDefaultInterface: IProperty;
-  protected
-    procedure InitServerData; override;
-    function Get_Value: OleVariant;
-    procedure Set_Value(const pvResult: OleVariant);
-    procedure _Set_Value(const pvResult: OleVariant);
-    function Get_Name: WideString;
-    function Get_PropertyID: Integer;
-    function Get_type_: Integer;
-    function Get_IsReadOnly: WordBool;
-    function Get_IsVector: WordBool;
-    function Get_SubType: WiaSubType;
-    function Get_SubTypeDefault: OleVariant;
-    function Get_SubTypeValues: IVector;
-    function Get_SubTypeMin: Integer;
-    function Get_SubTypeMax: Integer;
-    function Get_SubTypeStep: Integer;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor  Destroy; override;
-    procedure Connect; override;
-    procedure ConnectTo(svrIntf: IProperty);
-    procedure Disconnect; override;
-    property DefaultInterface: IProperty read GetDefaultInterface;
-    property Name: WideString read Get_Name;
-    property PropertyID: Integer read Get_PropertyID;
-    property type_: Integer read Get_type_;
-    property IsReadOnly: WordBool read Get_IsReadOnly;
-    property IsVector: WordBool read Get_IsVector;
-    property SubType: WiaSubType read Get_SubType;
-    property SubTypeDefault: OleVariant read Get_SubTypeDefault;
-    property SubTypeValues: IVector read Get_SubTypeValues;
-    property SubTypeMin: Integer read Get_SubTypeMin;
-    property SubTypeMax: Integer read Get_SubTypeMax;
-    property SubTypeStep: Integer read Get_SubTypeStep;
-  published
-  end;
-
 // *********************************************************************//
 // The Class CoProperties provides a Create and CreateRemote method to          
 // create instances of the default interface IProperties exposed by              
@@ -1289,37 +1139,6 @@ type
   CoProperties = class
     class function Create: IProperties;
     class function CreateRemote(const MachineName: string): IProperties;
-  end;
-
-
-// *********************************************************************//
-// OLE Server Proxy class declaration
-// Server Object    : TProperties
-// Help String      : The Properties object is a collection of all the Property objects associated with a given Device, DeviceInfo, Filter, ImageFile or Item object. See the Properties property on any of these objects for detail on accessing the Properties object.
-// Default Interface: IProperties
-// Def. Intf. DISP? : No
-// Event   Interface: 
-// TypeFlags        : (0)
-// *********************************************************************//
-  TProperties = class(TOleServer)
-  private
-    FIntf: IProperties;
-    function GetDefaultInterface: IProperties;
-  protected
-    procedure InitServerData; override;
-    function Get_Item(const Index: OleVariant): IProperty;
-    function Get_Count: Integer;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor  Destroy; override;
-    procedure Connect; override;
-    procedure ConnectTo(svrIntf: IProperties);
-    procedure Disconnect; override;
-    function Exists(const Index: OleVariant): WordBool;
-    property DefaultInterface: IProperties read GetDefaultInterface;
-    property Item[const Index: OleVariant]: IProperty read Get_Item; default;
-    property Count: Integer read Get_Count;
-  published
   end;
 
 // *********************************************************************//
@@ -1334,67 +1153,6 @@ type
     class function CreateRemote(const MachineName: string): IImageFile;
   end;
 
-
-// *********************************************************************//
-// OLE Server Proxy class declaration
-// Server Object    : TImageFile
-// Help String      : The ImageFile object is a container for images transferred to your computer when you call Transfer or ShowTransfer. It also supports image files through LoadFile. An ImageFile object can be created using "WIA.ImageFile" in a call to CreateObject.
-// Default Interface: IImageFile
-// Def. Intf. DISP? : No
-// Event   Interface: 
-// TypeFlags        : (2) CanCreate
-// *********************************************************************//
-  TImageFile = class(TOleServer)
-  private
-    FIntf: IImageFile;
-    function GetDefaultInterface: IImageFile;
-  protected
-    procedure InitServerData; override;
-    function Get_FormatID: WideString;
-    function Get_FileExtension: WideString;
-    function Get_FileData: IVector;
-    function Get_ARGBData: IVector;
-    function Get_Height: Integer;
-    function Get_Width: Integer;
-    function Get_HorizontalResolution: Double;
-    function Get_VerticalResolution: Double;
-    function Get_PixelDepth: Integer;
-    function Get_IsIndexedPixelFormat: WordBool;
-    function Get_IsAlphaPixelFormat: WordBool;
-    function Get_IsExtendedPixelFormat: WordBool;
-    function Get_IsAnimated: WordBool;
-    function Get_FrameCount: Integer;
-    function Get_ActiveFrame: Integer;
-    procedure Set_ActiveFrame(plResult: Integer);
-    function Get_Properties: IProperties;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor  Destroy; override;
-    procedure Connect; override;
-    procedure ConnectTo(svrIntf: IImageFile);
-    procedure Disconnect; override;
-    procedure LoadFile(const Filename: WideString);
-    procedure SaveFile(const Filename: WideString);
-    property DefaultInterface: IImageFile read GetDefaultInterface;
-    property FormatID: WideString read Get_FormatID;
-    property FileExtension: WideString read Get_FileExtension;
-    property FileData: IVector read Get_FileData;
-    property ARGBData: IVector read Get_ARGBData;
-    property Height: Integer read Get_Height;
-    property Width: Integer read Get_Width;
-    property HorizontalResolution: Double read Get_HorizontalResolution;
-    property VerticalResolution: Double read Get_VerticalResolution;
-    property PixelDepth: Integer read Get_PixelDepth;
-    property IsIndexedPixelFormat: WordBool read Get_IsIndexedPixelFormat;
-    property IsAlphaPixelFormat: WordBool read Get_IsAlphaPixelFormat;
-    property IsExtendedPixelFormat: WordBool read Get_IsExtendedPixelFormat;
-    property IsAnimated: WordBool read Get_IsAnimated;
-    property FrameCount: Integer read Get_FrameCount;
-    property Properties: IProperties read Get_Properties;
-    property ActiveFrame: Integer read Get_ActiveFrame write Set_ActiveFrame;
-  published
-  end;
-
 // *********************************************************************//
 // The Class CoFilterInfo provides a Create and CreateRemote method to          
 // create instances of the default interface IFilterInfo exposed by              
@@ -1405,38 +1163,6 @@ type
   CoFilterInfo = class
     class function Create: IFilterInfo;
     class function CreateRemote(const MachineName: string): IFilterInfo;
-  end;
-
-
-// *********************************************************************//
-// OLE Server Proxy class declaration
-// Server Object    : TFilterInfo
-// Help String      : The FilterInfo object is a container that describes a Filter object without requiring a Filter to be Added to the process chain. See the FilterInfos property on the ImageProcess object for details on accessing FilterInfo objects.
-// Default Interface: IFilterInfo
-// Def. Intf. DISP? : No
-// Event   Interface: 
-// TypeFlags        : (0)
-// *********************************************************************//
-  TFilterInfo = class(TOleServer)
-  private
-    FIntf: IFilterInfo;
-    function GetDefaultInterface: IFilterInfo;
-  protected
-    procedure InitServerData; override;
-    function Get_Name: WideString;
-    function Get_Description: WideString;
-    function Get_FilterID: WideString;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor  Destroy; override;
-    procedure Connect; override;
-    procedure ConnectTo(svrIntf: IFilterInfo);
-    procedure Disconnect; override;
-    property DefaultInterface: IFilterInfo read GetDefaultInterface;
-    property Name: WideString read Get_Name;
-    property Description: WideString read Get_Description;
-    property FilterID: WideString read Get_FilterID;
-  published
   end;
 
 // *********************************************************************//
@@ -1451,36 +1177,6 @@ type
     class function CreateRemote(const MachineName: string): IFilterInfos;
   end;
 
-
-// *********************************************************************//
-// OLE Server Proxy class declaration
-// Server Object    : TFilterInfos
-// Help String      : The FilterInfos object is a collection of all the available FilterInfo objects. See the FilterInfos property on the ImageProcess object for detail on accessing the FilterInfos object.
-// Default Interface: IFilterInfos
-// Def. Intf. DISP? : No
-// Event   Interface: 
-// TypeFlags        : (0)
-// *********************************************************************//
-  TFilterInfos = class(TOleServer)
-  private
-    FIntf: IFilterInfos;
-    function GetDefaultInterface: IFilterInfos;
-  protected
-    procedure InitServerData; override;
-    function Get_Item(const Index: OleVariant): IFilterInfo;
-    function Get_Count: Integer;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor  Destroy; override;
-    procedure Connect; override;
-    procedure ConnectTo(svrIntf: IFilterInfos);
-    procedure Disconnect; override;
-    property DefaultInterface: IFilterInfos read GetDefaultInterface;
-    property Item[const Index: OleVariant]: IFilterInfo read Get_Item; default;
-    property Count: Integer read Get_Count;
-  published
-  end;
-
 // *********************************************************************//
 // The Class CoFilter provides a Create and CreateRemote method to          
 // create instances of the default interface IFilter exposed by              
@@ -1491,40 +1187,6 @@ type
   CoFilter = class
     class function Create: IFilter;
     class function CreateRemote(const MachineName: string): IFilter;
-  end;
-
-
-// *********************************************************************//
-// OLE Server Proxy class declaration
-// Server Object    : TFilter
-// Help String      : The Filter object represents a unit of modification on an ImageFile. To use a Filter, add it to the Filters collection, then set the filter's properties and finally use the Apply method of the ImageProcess object to filter an ImageFile.
-// Default Interface: IFilter
-// Def. Intf. DISP? : No
-// Event   Interface: 
-// TypeFlags        : (0)
-// *********************************************************************//
-  TFilter = class(TOleServer)
-  private
-    FIntf: IFilter;
-    function GetDefaultInterface: IFilter;
-  protected
-    procedure InitServerData; override;
-    function Get_Name: WideString;
-    function Get_Description: WideString;
-    function Get_FilterID: WideString;
-    function Get_Properties: IProperties;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor  Destroy; override;
-    procedure Connect; override;
-    procedure ConnectTo(svrIntf: IFilter);
-    procedure Disconnect; override;
-    property DefaultInterface: IFilter read GetDefaultInterface;
-    property Name: WideString read Get_Name;
-    property Description: WideString read Get_Description;
-    property FilterID: WideString read Get_FilterID;
-    property Properties: IProperties read Get_Properties;
-  published
   end;
 
 // *********************************************************************//
@@ -1539,38 +1201,6 @@ type
     class function CreateRemote(const MachineName: string): IFilters;
   end;
 
-
-// *********************************************************************//
-// OLE Server Proxy class declaration
-// Server Object    : TFilters
-// Help String      : The Filters object is a collection of the Filters that will be applied to an ImageFile when you call the Apply method on the ImageProcess object.
-// Default Interface: IFilters
-// Def. Intf. DISP? : No
-// Event   Interface: 
-// TypeFlags        : (0)
-// *********************************************************************//
-  TFilters = class(TOleServer)
-  private
-    FIntf: IFilters;
-    function GetDefaultInterface: IFilters;
-  protected
-    procedure InitServerData; override;
-    function Get_Item(Index: Integer): IFilter;
-    function Get_Count: Integer;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor  Destroy; override;
-    procedure Connect; override;
-    procedure ConnectTo(svrIntf: IFilters);
-    procedure Disconnect; override;
-    procedure Add(const FilterID: WideString; Index: Integer);
-    procedure Remove(Index: Integer);
-    property DefaultInterface: IFilters read GetDefaultInterface;
-    property Item[Index: Integer]: IFilter read Get_Item; default;
-    property Count: Integer read Get_Count;
-  published
-  end;
-
 // *********************************************************************//
 // The Class CoImageProcess provides a Create and CreateRemote method to          
 // create instances of the default interface IImageProcess exposed by              
@@ -1581,37 +1211,6 @@ type
   CoImageProcess = class
     class function Create: IImageProcess;
     class function CreateRemote(const MachineName: string): IImageProcess;
-  end;
-
-
-// *********************************************************************//
-// OLE Server Proxy class declaration
-// Server Object    : TImageProcess
-// Help String      : The ImageProcess object manages the filter chain. An ImageProcess object can be created using "WIA.ImageProcess" in a call to CreateObject.
-// Default Interface: IImageProcess
-// Def. Intf. DISP? : No
-// Event   Interface: 
-// TypeFlags        : (2) CanCreate
-// *********************************************************************//
-  TImageProcess = class(TOleServer)
-  private
-    FIntf: IImageProcess;
-    function GetDefaultInterface: IImageProcess;
-  protected
-    procedure InitServerData; override;
-    function Get_FilterInfos: IFilterInfos;
-    function Get_Filters: IFilters;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor  Destroy; override;
-    procedure Connect; override;
-    procedure ConnectTo(svrIntf: IImageProcess);
-    procedure Disconnect; override;
-    function Apply(const Source: IImageFile): IImageFile;
-    property DefaultInterface: IImageProcess read GetDefaultInterface;
-    property FilterInfos: IFilterInfos read Get_FilterInfos;
-    property Filters: IFilters read Get_Filters;
-  published
   end;
 
 // *********************************************************************//
@@ -1626,36 +1225,6 @@ type
     class function CreateRemote(const MachineName: string): IFormats;
   end;
 
-
-// *********************************************************************//
-// OLE Server Proxy class declaration
-// Server Object    : TFormats
-// Help String      : The Formats object is a collection of supported FormatIDs that you can use when calling Transfer on an Item object or ShowTransfer on a CommonDialog object for this Item.
-// Default Interface: IFormats
-// Def. Intf. DISP? : No
-// Event   Interface: 
-// TypeFlags        : (0)
-// *********************************************************************//
-  TFormats = class(TOleServer)
-  private
-    FIntf: IFormats;
-    function GetDefaultInterface: IFormats;
-  protected
-    procedure InitServerData; override;
-    function Get_Item(Index: Integer): WideString;
-    function Get_Count: Integer;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor  Destroy; override;
-    procedure Connect; override;
-    procedure ConnectTo(svrIntf: IFormats);
-    procedure Disconnect; override;
-    property DefaultInterface: IFormats read GetDefaultInterface;
-    property Item[Index: Integer]: WideString read Get_Item; default;
-    property Count: Integer read Get_Count;
-  published
-  end;
-
 // *********************************************************************//
 // The Class CoDeviceCommand provides a Create and CreateRemote method to          
 // create instances of the default interface IDeviceCommand exposed by              
@@ -1666,38 +1235,6 @@ type
   CoDeviceCommand = class
     class function Create: IDeviceCommand;
     class function CreateRemote(const MachineName: string): IDeviceCommand;
-  end;
-
-
-// *********************************************************************//
-// OLE Server Proxy class declaration
-// Server Object    : TDeviceCommand
-// Help String      : The DeviceCommand object describes a CommandID that can be used when calling ExecuteCommand on a Device or Item object.
-// Default Interface: IDeviceCommand
-// Def. Intf. DISP? : No
-// Event   Interface: 
-// TypeFlags        : (0)
-// *********************************************************************//
-  TDeviceCommand = class(TOleServer)
-  private
-    FIntf: IDeviceCommand;
-    function GetDefaultInterface: IDeviceCommand;
-  protected
-    procedure InitServerData; override;
-    function Get_CommandID: WideString;
-    function Get_Name: WideString;
-    function Get_Description: WideString;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor  Destroy; override;
-    procedure Connect; override;
-    procedure ConnectTo(svrIntf: IDeviceCommand);
-    procedure Disconnect; override;
-    property DefaultInterface: IDeviceCommand read GetDefaultInterface;
-    property CommandID: WideString read Get_CommandID;
-    property Name: WideString read Get_Name;
-    property Description: WideString read Get_Description;
-  published
   end;
 
 // *********************************************************************//
@@ -1712,36 +1249,6 @@ type
     class function CreateRemote(const MachineName: string): IDeviceCommands;
   end;
 
-
-// *********************************************************************//
-// OLE Server Proxy class declaration
-// Server Object    : TDeviceCommands
-// Help String      : The DeviceCommands object is a collection of all the supported DeviceCommands for an imaging device. See the Commands property of a Device or Item object for more details on determining the collection of supported device commands.
-// Default Interface: IDeviceCommands
-// Def. Intf. DISP? : No
-// Event   Interface: 
-// TypeFlags        : (0)
-// *********************************************************************//
-  TDeviceCommands = class(TOleServer)
-  private
-    FIntf: IDeviceCommands;
-    function GetDefaultInterface: IDeviceCommands;
-  protected
-    procedure InitServerData; override;
-    function Get_Item(Index: Integer): IDeviceCommand;
-    function Get_Count: Integer;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor  Destroy; override;
-    procedure Connect; override;
-    procedure ConnectTo(svrIntf: IDeviceCommands);
-    procedure Disconnect; override;
-    property DefaultInterface: IDeviceCommands read GetDefaultInterface;
-    property Item[Index: Integer]: IDeviceCommand read Get_Item; default;
-    property Count: Integer read Get_Count;
-  published
-  end;
-
 // *********************************************************************//
 // The Class CoItem provides a Create and CreateRemote method to          
 // create instances of the default interface IItem exposed by              
@@ -1752,46 +1259,6 @@ type
   CoItem = class
     class function Create: IItem;
     class function CreateRemote(const MachineName: string): IItem;
-  end;
-
-
-// *********************************************************************//
-// OLE Server Proxy class declaration
-// Server Object    : TItem
-// Help String      : The Item object is a container for an item on an imaging device object. See the Items property on the Device or Item object for details on accessing Item objects.
-// Default Interface: IItem
-// Def. Intf. DISP? : No
-// Event   Interface: 
-// TypeFlags        : (0)
-// *********************************************************************//
-  TItem = class(TOleServer)
-  private
-    FIntf: IItem;
-    function GetDefaultInterface: IItem;
-  protected
-    procedure InitServerData; override;
-    function Get_ItemID: WideString;
-    function Get_Properties: IProperties;
-    function Get_Items: IItems;
-    function Get_Formats: IFormats;
-    function Get_Commands: IDeviceCommands;
-    function Get_WiaItem: IUnknown;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor  Destroy; override;
-    procedure Connect; override;
-    procedure ConnectTo(svrIntf: IItem);
-    procedure Disconnect; override;
-    function Transfer(const FormatID: WideString): OleVariant;
-    function ExecuteCommand(const CommandID: WideString): IItem;
-    property DefaultInterface: IItem read GetDefaultInterface;
-    property ItemID: WideString read Get_ItemID;
-    property Properties: IProperties read Get_Properties;
-    property Items: IItems read Get_Items;
-    property Formats: IFormats read Get_Formats;
-    property Commands: IDeviceCommands read Get_Commands;
-    property WiaItem: IUnknown read Get_WiaItem;
-  published
   end;
 
 // *********************************************************************//
@@ -1806,38 +1273,6 @@ type
     class function CreateRemote(const MachineName: string): IItems;
   end;
 
-
-// *********************************************************************//
-// OLE Server Proxy class declaration
-// Server Object    : TItems
-// Help String      : The Items object contains a collection of Item objects. See the Items property on the Device or Item object for details on accessing the Items object.
-// Default Interface: IItems
-// Def. Intf. DISP? : No
-// Event   Interface: 
-// TypeFlags        : (0)
-// *********************************************************************//
-  TItems = class(TOleServer)
-  private
-    FIntf: IItems;
-    function GetDefaultInterface: IItems;
-  protected
-    procedure InitServerData; override;
-    function Get_Item(Index: Integer): IItem;
-    function Get_Count: Integer;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor  Destroy; override;
-    procedure Connect; override;
-    procedure ConnectTo(svrIntf: IItems);
-    procedure Disconnect; override;
-    procedure Add(const Name: WideString; Flags: Integer);
-    procedure Remove(Index: Integer);
-    property DefaultInterface: IItems read GetDefaultInterface;
-    property Item[Index: Integer]: IItem read Get_Item; default;
-    property Count: Integer read Get_Count;
-  published
-  end;
-
 // *********************************************************************//
 // The Class CoDeviceEvent provides a Create and CreateRemote method to          
 // create instances of the default interface IDeviceEvent exposed by              
@@ -1848,40 +1283,6 @@ type
   CoDeviceEvent = class
     class function Create: IDeviceEvent;
     class function CreateRemote(const MachineName: string): IDeviceEvent;
-  end;
-
-
-// *********************************************************************//
-// OLE Server Proxy class declaration
-// Server Object    : TDeviceEvent
-// Help String      : The DeviceEvent object describes an EventID that can be used when calling RegisterEvent or RegisterPersistentEvent on a DeviceManager object.
-// Default Interface: IDeviceEvent
-// Def. Intf. DISP? : No
-// Event   Interface: 
-// TypeFlags        : (0)
-// *********************************************************************//
-  TDeviceEvent = class(TOleServer)
-  private
-    FIntf: IDeviceEvent;
-    function GetDefaultInterface: IDeviceEvent;
-  protected
-    procedure InitServerData; override;
-    function Get_EventID: WideString;
-    function Get_type_: WiaEventFlag;
-    function Get_Name: WideString;
-    function Get_Description: WideString;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor  Destroy; override;
-    procedure Connect; override;
-    procedure ConnectTo(svrIntf: IDeviceEvent);
-    procedure Disconnect; override;
-    property DefaultInterface: IDeviceEvent read GetDefaultInterface;
-    property EventID: WideString read Get_EventID;
-    property type_: WiaEventFlag read Get_type_;
-    property Name: WideString read Get_Name;
-    property Description: WideString read Get_Description;
-  published
   end;
 
 // *********************************************************************//
@@ -1896,36 +1297,6 @@ type
     class function CreateRemote(const MachineName: string): IDeviceEvents;
   end;
 
-
-// *********************************************************************//
-// OLE Server Proxy class declaration
-// Server Object    : TDeviceEvents
-// Help String      : The DeviceEvents object is a collection of all the supported DeviceEvent for an imaging device. See the Events property of a Device object for more details on determining the collection of supported device events.
-// Default Interface: IDeviceEvents
-// Def. Intf. DISP? : No
-// Event   Interface: 
-// TypeFlags        : (0)
-// *********************************************************************//
-  TDeviceEvents = class(TOleServer)
-  private
-    FIntf: IDeviceEvents;
-    function GetDefaultInterface: IDeviceEvents;
-  protected
-    procedure InitServerData; override;
-    function Get_Item(Index: Integer): IDeviceEvent;
-    function Get_Count: Integer;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor  Destroy; override;
-    procedure Connect; override;
-    procedure ConnectTo(svrIntf: IDeviceEvents);
-    procedure Disconnect; override;
-    property DefaultInterface: IDeviceEvents read GetDefaultInterface;
-    property Item[Index: Integer]: IDeviceEvent read Get_Item; default;
-    property Count: Integer read Get_Count;
-  published
-  end;
-
 // *********************************************************************//
 // The Class CoDeviceInfo provides a Create and CreateRemote method to          
 // create instances of the default interface IDeviceInfo exposed by              
@@ -1936,39 +1307,6 @@ type
   CoDeviceInfo = class
     class function Create: IDeviceInfo;
     class function CreateRemote(const MachineName: string): IDeviceInfo;
-  end;
-
-
-// *********************************************************************//
-// OLE Server Proxy class declaration
-// Server Object    : TDeviceInfo
-// Help String      : The DeviceInfo object is a container that describes the unchanging (static) properties of an imaging device that is currently connected to the computer.
-// Default Interface: IDeviceInfo
-// Def. Intf. DISP? : No
-// Event   Interface: 
-// TypeFlags        : (0)
-// *********************************************************************//
-  TDeviceInfo = class(TOleServer)
-  private
-    FIntf: IDeviceInfo;
-    function GetDefaultInterface: IDeviceInfo;
-  protected
-    procedure InitServerData; override;
-    function Get_DeviceID: WideString;
-    function Get_type_: WiaDeviceType;
-    function Get_Properties: IProperties;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor  Destroy; override;
-    procedure Connect; override;
-    procedure ConnectTo(svrIntf: IDeviceInfo);
-    procedure Disconnect; override;
-    function Connect1: IDevice;
-    property DefaultInterface: IDeviceInfo read GetDefaultInterface;
-    property DeviceID: WideString read Get_DeviceID;
-    property type_: WiaDeviceType read Get_type_;
-    property Properties: IProperties read Get_Properties;
-  published
   end;
 
 // *********************************************************************//
@@ -1983,36 +1321,6 @@ type
     class function CreateRemote(const MachineName: string): IDeviceInfos;
   end;
 
-
-// *********************************************************************//
-// OLE Server Proxy class declaration
-// Server Object    : TDeviceInfos
-// Help String      : The DeviceInfos object is a collection of all the imaging devices currently connected to the computer. See the DeviceInfos property on the DeviceManager object for detail on accessing the DeviceInfos object.
-// Default Interface: IDeviceInfos
-// Def. Intf. DISP? : No
-// Event   Interface: 
-// TypeFlags        : (0)
-// *********************************************************************//
-  TDeviceInfos = class(TOleServer)
-  private
-    FIntf: IDeviceInfos;
-    function GetDefaultInterface: IDeviceInfos;
-  protected
-    procedure InitServerData; override;
-    function Get_Item(const Index: OleVariant): IDeviceInfo;
-    function Get_Count: Integer;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor  Destroy; override;
-    procedure Connect; override;
-    procedure ConnectTo(svrIntf: IDeviceInfos);
-    procedure Disconnect; override;
-    property DefaultInterface: IDeviceInfos read GetDefaultInterface;
-    property Item[const Index: OleVariant]: IDeviceInfo read Get_Item; default;
-    property Count: Integer read Get_Count;
-  published
-  end;
-
 // *********************************************************************//
 // The Class CoDevice provides a Create and CreateRemote method to          
 // create instances of the default interface IDevice exposed by              
@@ -2023,48 +1331,6 @@ type
   CoDevice = class
     class function Create: IDevice;
     class function CreateRemote(const MachineName: string): IDevice;
-  end;
-
-
-// *********************************************************************//
-// OLE Server Proxy class declaration
-// Server Object    : TDevice
-// Help String      : The Device object represents an active connection to an imaging device.
-// Default Interface: IDevice
-// Def. Intf. DISP? : No
-// Event   Interface: 
-// TypeFlags        : (0)
-// *********************************************************************//
-  TDevice = class(TOleServer)
-  private
-    FIntf: IDevice;
-    function GetDefaultInterface: IDevice;
-  protected
-    procedure InitServerData; override;
-    function Get_DeviceID: WideString;
-    function Get_type_: WiaDeviceType;
-    function Get_Properties: IProperties;
-    function Get_Items: IItems;
-    function Get_Commands: IDeviceCommands;
-    function Get_Events: IDeviceEvents;
-    function Get_WiaItem: IUnknown;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor  Destroy; override;
-    procedure Connect; override;
-    procedure ConnectTo(svrIntf: IDevice);
-    procedure Disconnect; override;
-    function GetItem(const ItemID: WideString): IItem;
-    function ExecuteCommand(const CommandID: WideString): IItem;
-    property DefaultInterface: IDevice read GetDefaultInterface;
-    property DeviceID: WideString read Get_DeviceID;
-    property type_: WiaDeviceType read Get_type_;
-    property Properties: IProperties read Get_Properties;
-    property Items: IItems read Get_Items;
-    property Commands: IDeviceCommands read Get_Commands;
-    property Events: IDeviceEvents read Get_Events;
-    property WiaItem: IUnknown read Get_WiaItem;
-  published
   end;
 
 // *********************************************************************//
@@ -2079,45 +1345,6 @@ type
     class function CreateRemote(const MachineName: string): ICommonDialog;
   end;
 
-
-// *********************************************************************//
-// OLE Server Proxy class declaration
-// Server Object    : TCommonDialog
-// Help String      : The CommonDialog control is an invisible-at-runtime control that contains all the methods that display a User Interface. A CommonDialog control can be created using "WIA.CommonDialog" in a call to CreateObject or by dropping a CommonDialog on a form.
-// Default Interface: ICommonDialog
-// Def. Intf. DISP? : No
-// Event   Interface: 
-// TypeFlags        : (2) CanCreate
-// *********************************************************************//
-  TCommonDialog = class(TOleServer)
-  private
-    FIntf: ICommonDialog;
-    function GetDefaultInterface: ICommonDialog;
-  protected
-    procedure InitServerData; override;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor  Destroy; override;
-    procedure Connect; override;
-    procedure ConnectTo(svrIntf: ICommonDialog);
-    procedure Disconnect; override;
-    function ShowAcquisitionWizard(const Device: IDevice): OleVariant;
-    function ShowAcquireImage(DeviceType: WiaDeviceType; Intent: WiaImageIntent; 
-                              Bias: WiaImageBias; const FormatID: WideString; 
-                              AlwaysSelectDevice: WordBool; UseCommonUI: WordBool; 
-                              CancelError: WordBool): IImageFile;
-    function ShowSelectDevice(DeviceType: WiaDeviceType; AlwaysSelectDevice: WordBool; 
-                              CancelError: WordBool): IDevice;
-    function ShowSelectItems(const Device: IDevice; Intent: WiaImageIntent; Bias: WiaImageBias; 
-                             SingleSelect: WordBool; UseCommonUI: WordBool; CancelError: WordBool): IItems;
-    procedure ShowDeviceProperties(const Device: IDevice; CancelError: WordBool);
-    procedure ShowItemProperties(const Item: IItem; CancelError: WordBool);
-    function ShowTransfer(const Item: IItem; const FormatID: WideString; CancelError: WordBool): OleVariant;
-    procedure ShowPhotoPrintingWizard(const Files: OleVariant);
-    property DefaultInterface: ICommonDialog read GetDefaultInterface;
-  published
-  end;
-
 // *********************************************************************//
 // The Class CoDeviceManager provides a Create and CreateRemote method to          
 // create instances of the default interface IDeviceManager exposed by              
@@ -2129,56 +1356,6 @@ type
     class function Create: IDeviceManager;
     class function CreateRemote(const MachineName: string): IDeviceManager;
   end;
-
-  TDeviceManagerOnEvent = procedure(ASender: TObject; const EventID: WideString; 
-                                                      const DeviceID: WideString; 
-                                                      const ItemID: WideString) of object;
-
-
-// *********************************************************************//
-// OLE Server Proxy class declaration
-// Server Object    : TDeviceManager
-// Help String      : The DeviceManager control is an invisible-at-runtime control that manages the imaging devices connected to the computer. A DeviceManager control can be created using "WIA.DeviceManager" in a call to CreateObject or by dropping a DeviceManager on a form.
-// Default Interface: IDeviceManager
-// Def. Intf. DISP? : No
-// Event   Interface: _IDeviceManagerEvents
-// TypeFlags        : (2) CanCreate
-// *********************************************************************//
-  TDeviceManager = class(TOleServer)
-  private
-    FOnEvent: TDeviceManagerOnEvent;
-    FIntf: IDeviceManager;
-    function GetDefaultInterface: IDeviceManager;
-  protected
-    procedure InitServerData; override;
-    procedure InvokeEvent(DispID: TDispID; var Params: TVariantArray); override;
-    function Get_DeviceInfos: IDeviceInfos;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor  Destroy; override;
-    procedure Connect; override;
-    procedure ConnectTo(svrIntf: IDeviceManager);
-    procedure Disconnect; override;
-    procedure RegisterEvent(const EventID: WideString; const DeviceID: WideString);
-    procedure UnregisterEvent(const EventID: WideString; const DeviceID: WideString);
-    procedure RegisterPersistentEvent(const Command: WideString; const Name: WideString; 
-                                      const Description: WideString; const Icon: WideString; 
-                                      const EventID: WideString; const DeviceID: WideString);
-    procedure UnregisterPersistentEvent(const Command: WideString; const Name: WideString; 
-                                        const Description: WideString; const Icon: WideString; 
-                                        const EventID: WideString; const DeviceID: WideString);
-    property DefaultInterface: IDeviceManager read GetDefaultInterface;
-    property DeviceInfos: IDeviceInfos read Get_DeviceInfos;
-  published
-    property OnEvent: TDeviceManagerOnEvent read FOnEvent write FOnEvent;
-  end;
-
-procedure Register;
-
-resourcestring
-  dtlServerPage = 'ActiveX';
-
-  dtlOcxPage = 'ActiveX';
 
 implementation
 
@@ -2194,86 +1371,6 @@ begin
   Result := CreateRemoteComObject(MachineName, CLASS_Rational) as IRational;
 end;
 
-procedure TRational.InitServerData;
-const
-  CServerData: TServerData = (
-    ClassID:   '{0C5672F9-3EDC-4B24-95B5-A6C54C0B79AD}';
-    IntfIID:   '{3BF1B24A-01A5-4AA3-91F9-25A60B50E49B}';
-    EventIID:  '';
-    LicenseKey: nil;
-    Version: 500);
-begin
-  ServerData := @CServerData;
-end;
-
-procedure TRational.Connect;
-var
-  punk: IUnknown;
-begin
-  if FIntf = nil then
-  begin
-    punk := GetServer;
-    Fintf:= punk as IRational;
-  end;
-end;
-
-procedure TRational.ConnectTo(svrIntf: IRational);
-begin
-  Disconnect;
-  FIntf := svrIntf;
-end;
-
-procedure TRational.DisConnect;
-begin
-  if Fintf <> nil then
-  begin
-    FIntf := nil;
-  end;
-end;
-
-function TRational.GetDefaultInterface: IRational;
-begin
-  if FIntf = nil then
-    Connect;
-  Assert(FIntf <> nil, 'DefaultInterface is NULL. Component is not connected to Server. You must call "Connect" or "ConnectTo" before this operation');
-  Result := FIntf;
-end;
-
-constructor TRational.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-end;
-
-destructor TRational.Destroy;
-begin
-  inherited Destroy;
-end;
-
-function TRational.Get_Value: Double;
-begin
-  Result := DefaultInterface.Value;
-end;
-
-function TRational.Get_Numerator: Integer;
-begin
-  Result := DefaultInterface.Numerator;
-end;
-
-procedure TRational.Set_Numerator(plResult: Integer);
-begin
-  DefaultInterface.Numerator := plResult;
-end;
-
-function TRational.Get_Denominator: Integer;
-begin
-  Result := DefaultInterface.Denominator;
-end;
-
-procedure TRational.Set_Denominator(plResult: Integer);
-begin
-  DefaultInterface.Denominator := plResult;
-end;
-
 class function CoVector.Create: IVector;
 begin
   Result := CreateComObject(CLASS_Vector) as IVector;
@@ -2282,136 +1379,6 @@ end;
 class function CoVector.CreateRemote(const MachineName: string): IVector;
 begin
   Result := CreateRemoteComObject(MachineName, CLASS_Vector) as IVector;
-end;
-
-procedure TVector.InitServerData;
-const
-  CServerData: TServerData = (
-    ClassID:   '{4DD1D1C3-B36A-4EB4-AAEF-815891A58A30}';
-    IntfIID:   '{696F2367-6619-49BD-BA96-904DC2609990}';
-    EventIID:  '';
-    LicenseKey: nil;
-    Version: 500);
-begin
-  ServerData := @CServerData;
-end;
-
-procedure TVector.Connect;
-var
-  punk: IUnknown;
-begin
-  if FIntf = nil then
-  begin
-    punk := GetServer;
-    Fintf:= punk as IVector;
-  end;
-end;
-
-procedure TVector.ConnectTo(svrIntf: IVector);
-begin
-  Disconnect;
-  FIntf := svrIntf;
-end;
-
-procedure TVector.DisConnect;
-begin
-  if Fintf <> nil then
-  begin
-    FIntf := nil;
-  end;
-end;
-
-function TVector.GetDefaultInterface: IVector;
-begin
-  if FIntf = nil then
-    Connect;
-  Assert(FIntf <> nil, 'DefaultInterface is NULL. Component is not connected to Server. You must call "Connect" or "ConnectTo" before this operation');
-  Result := FIntf;
-end;
-
-constructor TVector.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-end;
-
-destructor TVector.Destroy;
-begin
-  inherited Destroy;
-end;
-
-function TVector.Get_Item(Index: Integer): OleVariant;
-begin
-  Result := DefaultInterface.Get_Item(Index);
-end;
-
-procedure TVector.Set_Item(Index: Integer; const pResult: OleVariant);
-begin
-  DefaultInterface.Set_Item(Index, pResult);
-end;
-
-procedure TVector._Set_Item(Index: Integer; const pResult: OleVariant);
-begin
-  DefaultInterface._Set_Item(Index, pResult);
-end;
-
-function TVector.Get_Count: Integer;
-begin
-  Result := DefaultInterface.Count;
-end;
-
-function TVector.Get_Picture(Width: Integer; Height: Integer): OleVariant;
-begin
-  Result := DefaultInterface.Picture[Width, Height];
-end;
-
-function TVector.Get_ImageFile(Width: Integer; Height: Integer): IImageFile;
-begin
-  Result := DefaultInterface.ImageFile[Width, Height];
-end;
-
-function TVector.Get_BinaryData: OleVariant;
-begin
-  Result := DefaultInterface.Get_BinaryData;
-end;
-
-procedure TVector.Set_BinaryData(const pvResult: OleVariant);
-begin
-  DefaultInterface.Set_BinaryData(pvResult);
-end;
-
-function TVector.Get_String_(Unicode: WordBool): WideString;
-begin
-  Result := DefaultInterface.String_[Unicode];
-end;
-
-function TVector.Get_Date: TDateTime;
-begin
-  Result := DefaultInterface.Date;
-end;
-
-procedure TVector.Set_Date(pdResult: TDateTime);
-begin
-  DefaultInterface.Date := pdResult;
-end;
-
-procedure TVector.Add(const Value: OleVariant; Index: Integer);
-begin
-  DefaultInterface.Add(Value, Index);
-end;
-
-function TVector.Remove(Index: Integer): OleVariant;
-begin
-  Result := DefaultInterface.Remove(Index);
-end;
-
-procedure TVector.Clear;
-begin
-  DefaultInterface.Clear;
-end;
-
-procedure TVector.SetFromString(const Value: WideString; Resizable: WordBool; Unicode: WordBool);
-begin
-  DefaultInterface.SetFromString(Value, Resizable, Unicode);
 end;
 
 class function CoProperty_.Create: IProperty;
@@ -2424,131 +1391,6 @@ begin
   Result := CreateRemoteComObject(MachineName, CLASS_Property_) as IProperty;
 end;
 
-procedure TProperty.InitServerData;
-const
-  CServerData: TServerData = (
-    ClassID:   '{2014DE3F-3723-4178-8643-3317A32D4A2B}';
-    IntfIID:   '{706038DC-9F4B-4E45-88E2-5EB7D665B815}';
-    EventIID:  '';
-    LicenseKey: nil;
-    Version: 500);
-begin
-  ServerData := @CServerData;
-end;
-
-procedure TProperty.Connect;
-var
-  punk: IUnknown;
-begin
-  if FIntf = nil then
-  begin
-    punk := GetServer;
-    Fintf:= punk as IProperty;
-  end;
-end;
-
-procedure TProperty.ConnectTo(svrIntf: IProperty);
-begin
-  Disconnect;
-  FIntf := svrIntf;
-end;
-
-procedure TProperty.DisConnect;
-begin
-  if Fintf <> nil then
-  begin
-    FIntf := nil;
-  end;
-end;
-
-function TProperty.GetDefaultInterface: IProperty;
-begin
-  if FIntf = nil then
-    Connect;
-  Assert(FIntf <> nil, 'DefaultInterface is NULL. Component is not connected to Server. You must call "Connect" or "ConnectTo" before this operation');
-  Result := FIntf;
-end;
-
-constructor TProperty.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-end;
-
-destructor TProperty.Destroy;
-begin
-  inherited Destroy;
-end;
-
-function TProperty.Get_Value: OleVariant;
-begin
-  Result := DefaultInterface.Get_Value;
-end;
-
-procedure TProperty.Set_Value(const pvResult: OleVariant);
-begin
-  DefaultInterface.Set_Value(pvResult);
-end;
-
-procedure TProperty._Set_Value(const pvResult: OleVariant);
-begin
-  DefaultInterface._Set_Value(pvResult);
-end;
-
-function TProperty.Get_Name: WideString;
-begin
-  Result := DefaultInterface.Name;
-end;
-
-function TProperty.Get_PropertyID: Integer;
-begin
-  Result := DefaultInterface.PropertyID;
-end;
-
-function TProperty.Get_type_: Integer;
-begin
-  Result := DefaultInterface.type_;
-end;
-
-function TProperty.Get_IsReadOnly: WordBool;
-begin
-  Result := DefaultInterface.IsReadOnly;
-end;
-
-function TProperty.Get_IsVector: WordBool;
-begin
-  Result := DefaultInterface.IsVector;
-end;
-
-function TProperty.Get_SubType: WiaSubType;
-begin
-  Result := DefaultInterface.SubType;
-end;
-
-function TProperty.Get_SubTypeDefault: OleVariant;
-begin
-  Result := DefaultInterface.SubTypeDefault;
-end;
-
-function TProperty.Get_SubTypeValues: IVector;
-begin
-  Result := DefaultInterface.SubTypeValues;
-end;
-
-function TProperty.Get_SubTypeMin: Integer;
-begin
-  Result := DefaultInterface.SubTypeMin;
-end;
-
-function TProperty.Get_SubTypeMax: Integer;
-begin
-  Result := DefaultInterface.SubTypeMax;
-end;
-
-function TProperty.Get_SubTypeStep: Integer;
-begin
-  Result := DefaultInterface.SubTypeStep;
-end;
-
 class function CoProperties.Create: IProperties;
 begin
   Result := CreateComObject(CLASS_Properties) as IProperties;
@@ -2557,76 +1399,6 @@ end;
 class function CoProperties.CreateRemote(const MachineName: string): IProperties;
 begin
   Result := CreateRemoteComObject(MachineName, CLASS_Properties) as IProperties;
-end;
-
-procedure TProperties.InitServerData;
-const
-  CServerData: TServerData = (
-    ClassID:   '{96F887FC-08B1-4F97-A69C-75280C6A9CF8}';
-    IntfIID:   '{40571E58-A308-470A-80AA-FA10F88793A0}';
-    EventIID:  '';
-    LicenseKey: nil;
-    Version: 500);
-begin
-  ServerData := @CServerData;
-end;
-
-procedure TProperties.Connect;
-var
-  punk: IUnknown;
-begin
-  if FIntf = nil then
-  begin
-    punk := GetServer;
-    Fintf:= punk as IProperties;
-  end;
-end;
-
-procedure TProperties.ConnectTo(svrIntf: IProperties);
-begin
-  Disconnect;
-  FIntf := svrIntf;
-end;
-
-procedure TProperties.DisConnect;
-begin
-  if Fintf <> nil then
-  begin
-    FIntf := nil;
-  end;
-end;
-
-function TProperties.GetDefaultInterface: IProperties;
-begin
-  if FIntf = nil then
-    Connect;
-  Assert(FIntf <> nil, 'DefaultInterface is NULL. Component is not connected to Server. You must call "Connect" or "ConnectTo" before this operation');
-  Result := FIntf;
-end;
-
-constructor TProperties.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-end;
-
-destructor TProperties.Destroy;
-begin
-  inherited Destroy;
-end;
-
-function TProperties.Get_Item(const Index: OleVariant): IProperty;
-begin
-  Result := DefaultInterface.Item[Index];
-end;
-
-function TProperties.Get_Count: Integer;
-begin
-  Result := DefaultInterface.Count;
-end;
-
-function TProperties.Exists(const Index: OleVariant): WordBool;
-begin
-  Result := DefaultInterface.Exists(Index);
 end;
 
 class function CoImageFile.Create: IImageFile;
@@ -2639,156 +1411,6 @@ begin
   Result := CreateRemoteComObject(MachineName, CLASS_ImageFile) as IImageFile;
 end;
 
-procedure TImageFile.InitServerData;
-const
-  CServerData: TServerData = (
-    ClassID:   '{A2E6DDA0-06EF-4DF3-B7BD-5AA224BB06E8}';
-    IntfIID:   '{F4243B65-3F63-4D99-93CD-86B6D62C5EB2}';
-    EventIID:  '';
-    LicenseKey: nil;
-    Version: 500);
-begin
-  ServerData := @CServerData;
-end;
-
-procedure TImageFile.Connect;
-var
-  punk: IUnknown;
-begin
-  if FIntf = nil then
-  begin
-    punk := GetServer;
-    Fintf:= punk as IImageFile;
-  end;
-end;
-
-procedure TImageFile.ConnectTo(svrIntf: IImageFile);
-begin
-  Disconnect;
-  FIntf := svrIntf;
-end;
-
-procedure TImageFile.DisConnect;
-begin
-  if Fintf <> nil then
-  begin
-    FIntf := nil;
-  end;
-end;
-
-function TImageFile.GetDefaultInterface: IImageFile;
-begin
-  if FIntf = nil then
-    Connect;
-  Assert(FIntf <> nil, 'DefaultInterface is NULL. Component is not connected to Server. You must call "Connect" or "ConnectTo" before this operation');
-  Result := FIntf;
-end;
-
-constructor TImageFile.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-end;
-
-destructor TImageFile.Destroy;
-begin
-  inherited Destroy;
-end;
-
-function TImageFile.Get_FormatID: WideString;
-begin
-  Result := DefaultInterface.FormatID;
-end;
-
-function TImageFile.Get_FileExtension: WideString;
-begin
-  Result := DefaultInterface.FileExtension;
-end;
-
-function TImageFile.Get_FileData: IVector;
-begin
-  Result := DefaultInterface.FileData;
-end;
-
-function TImageFile.Get_ARGBData: IVector;
-begin
-  Result := DefaultInterface.ARGBData;
-end;
-
-function TImageFile.Get_Height: Integer;
-begin
-  Result := DefaultInterface.Height;
-end;
-
-function TImageFile.Get_Width: Integer;
-begin
-  Result := DefaultInterface.Width;
-end;
-
-function TImageFile.Get_HorizontalResolution: Double;
-begin
-  Result := DefaultInterface.HorizontalResolution;
-end;
-
-function TImageFile.Get_VerticalResolution: Double;
-begin
-  Result := DefaultInterface.VerticalResolution;
-end;
-
-function TImageFile.Get_PixelDepth: Integer;
-begin
-  Result := DefaultInterface.PixelDepth;
-end;
-
-function TImageFile.Get_IsIndexedPixelFormat: WordBool;
-begin
-  Result := DefaultInterface.IsIndexedPixelFormat;
-end;
-
-function TImageFile.Get_IsAlphaPixelFormat: WordBool;
-begin
-  Result := DefaultInterface.IsAlphaPixelFormat;
-end;
-
-function TImageFile.Get_IsExtendedPixelFormat: WordBool;
-begin
-  Result := DefaultInterface.IsExtendedPixelFormat;
-end;
-
-function TImageFile.Get_IsAnimated: WordBool;
-begin
-  Result := DefaultInterface.IsAnimated;
-end;
-
-function TImageFile.Get_FrameCount: Integer;
-begin
-  Result := DefaultInterface.FrameCount;
-end;
-
-function TImageFile.Get_ActiveFrame: Integer;
-begin
-  Result := DefaultInterface.ActiveFrame;
-end;
-
-procedure TImageFile.Set_ActiveFrame(plResult: Integer);
-begin
-  DefaultInterface.ActiveFrame := plResult;
-end;
-
-function TImageFile.Get_Properties: IProperties;
-begin
-  Result := DefaultInterface.Properties;
-end;
-
-procedure TImageFile.LoadFile(const Filename: WideString);
-begin
-  DefaultInterface.LoadFile(Filename);
-end;
-
-procedure TImageFile.SaveFile(const Filename: WideString);
-begin
-  DefaultInterface.SaveFile(Filename);
-end;
-
 class function CoFilterInfo.Create: IFilterInfo;
 begin
   Result := CreateComObject(CLASS_FilterInfo) as IFilterInfo;
@@ -2797,76 +1419,6 @@ end;
 class function CoFilterInfo.CreateRemote(const MachineName: string): IFilterInfo;
 begin
   Result := CreateRemoteComObject(MachineName, CLASS_FilterInfo) as IFilterInfo;
-end;
-
-procedure TFilterInfo.InitServerData;
-const
-  CServerData: TServerData = (
-    ClassID:   '{318D6B52-9B1C-4E3B-8D90-1F0E857FA9B0}';
-    IntfIID:   '{EFD1219F-8229-4B30-809D-8F6D83341569}';
-    EventIID:  '';
-    LicenseKey: nil;
-    Version: 500);
-begin
-  ServerData := @CServerData;
-end;
-
-procedure TFilterInfo.Connect;
-var
-  punk: IUnknown;
-begin
-  if FIntf = nil then
-  begin
-    punk := GetServer;
-    Fintf:= punk as IFilterInfo;
-  end;
-end;
-
-procedure TFilterInfo.ConnectTo(svrIntf: IFilterInfo);
-begin
-  Disconnect;
-  FIntf := svrIntf;
-end;
-
-procedure TFilterInfo.DisConnect;
-begin
-  if Fintf <> nil then
-  begin
-    FIntf := nil;
-  end;
-end;
-
-function TFilterInfo.GetDefaultInterface: IFilterInfo;
-begin
-  if FIntf = nil then
-    Connect;
-  Assert(FIntf <> nil, 'DefaultInterface is NULL. Component is not connected to Server. You must call "Connect" or "ConnectTo" before this operation');
-  Result := FIntf;
-end;
-
-constructor TFilterInfo.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-end;
-
-destructor TFilterInfo.Destroy;
-begin
-  inherited Destroy;
-end;
-
-function TFilterInfo.Get_Name: WideString;
-begin
-  Result := DefaultInterface.Name;
-end;
-
-function TFilterInfo.Get_Description: WideString;
-begin
-  Result := DefaultInterface.Description;
-end;
-
-function TFilterInfo.Get_FilterID: WideString;
-begin
-  Result := DefaultInterface.FilterID;
 end;
 
 class function CoFilterInfos.Create: IFilterInfos;
@@ -2879,71 +1431,6 @@ begin
   Result := CreateRemoteComObject(MachineName, CLASS_FilterInfos) as IFilterInfos;
 end;
 
-procedure TFilterInfos.InitServerData;
-const
-  CServerData: TServerData = (
-    ClassID:   '{56FA88D3-F3DA-4DE3-94E8-811040C3CCD4}';
-    IntfIID:   '{AF49723A-499C-411C-B19A-1B8244D67E44}';
-    EventIID:  '';
-    LicenseKey: nil;
-    Version: 500);
-begin
-  ServerData := @CServerData;
-end;
-
-procedure TFilterInfos.Connect;
-var
-  punk: IUnknown;
-begin
-  if FIntf = nil then
-  begin
-    punk := GetServer;
-    Fintf:= punk as IFilterInfos;
-  end;
-end;
-
-procedure TFilterInfos.ConnectTo(svrIntf: IFilterInfos);
-begin
-  Disconnect;
-  FIntf := svrIntf;
-end;
-
-procedure TFilterInfos.DisConnect;
-begin
-  if Fintf <> nil then
-  begin
-    FIntf := nil;
-  end;
-end;
-
-function TFilterInfos.GetDefaultInterface: IFilterInfos;
-begin
-  if FIntf = nil then
-    Connect;
-  Assert(FIntf <> nil, 'DefaultInterface is NULL. Component is not connected to Server. You must call "Connect" or "ConnectTo" before this operation');
-  Result := FIntf;
-end;
-
-constructor TFilterInfos.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-end;
-
-destructor TFilterInfos.Destroy;
-begin
-  inherited Destroy;
-end;
-
-function TFilterInfos.Get_Item(const Index: OleVariant): IFilterInfo;
-begin
-  Result := DefaultInterface.Item[Index];
-end;
-
-function TFilterInfos.Get_Count: Integer;
-begin
-  Result := DefaultInterface.Count;
-end;
-
 class function CoFilter.Create: IFilter;
 begin
   Result := CreateComObject(CLASS_Filter) as IFilter;
@@ -2952,81 +1439,6 @@ end;
 class function CoFilter.CreateRemote(const MachineName: string): IFilter;
 begin
   Result := CreateRemoteComObject(MachineName, CLASS_Filter) as IFilter;
-end;
-
-procedure TFilter.InitServerData;
-const
-  CServerData: TServerData = (
-    ClassID:   '{52AD8A74-F064-4F4C-8544-FF494D349F7B}';
-    IntfIID:   '{851E9802-B338-4AB3-BB6B-6AA57CC699D0}';
-    EventIID:  '';
-    LicenseKey: nil;
-    Version: 500);
-begin
-  ServerData := @CServerData;
-end;
-
-procedure TFilter.Connect;
-var
-  punk: IUnknown;
-begin
-  if FIntf = nil then
-  begin
-    punk := GetServer;
-    Fintf:= punk as IFilter;
-  end;
-end;
-
-procedure TFilter.ConnectTo(svrIntf: IFilter);
-begin
-  Disconnect;
-  FIntf := svrIntf;
-end;
-
-procedure TFilter.DisConnect;
-begin
-  if Fintf <> nil then
-  begin
-    FIntf := nil;
-  end;
-end;
-
-function TFilter.GetDefaultInterface: IFilter;
-begin
-  if FIntf = nil then
-    Connect;
-  Assert(FIntf <> nil, 'DefaultInterface is NULL. Component is not connected to Server. You must call "Connect" or "ConnectTo" before this operation');
-  Result := FIntf;
-end;
-
-constructor TFilter.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-end;
-
-destructor TFilter.Destroy;
-begin
-  inherited Destroy;
-end;
-
-function TFilter.Get_Name: WideString;
-begin
-  Result := DefaultInterface.Name;
-end;
-
-function TFilter.Get_Description: WideString;
-begin
-  Result := DefaultInterface.Description;
-end;
-
-function TFilter.Get_FilterID: WideString;
-begin
-  Result := DefaultInterface.FilterID;
-end;
-
-function TFilter.Get_Properties: IProperties;
-begin
-  Result := DefaultInterface.Properties;
 end;
 
 class function CoFilters.Create: IFilters;
@@ -3039,81 +1451,6 @@ begin
   Result := CreateRemoteComObject(MachineName, CLASS_Filters) as IFilters;
 end;
 
-procedure TFilters.InitServerData;
-const
-  CServerData: TServerData = (
-    ClassID:   '{31CDD60C-C04C-424D-95FC-36A52646D71C}';
-    IntfIID:   '{C82FFED4-0A8D-4F85-B90A-AC8E720D39C1}';
-    EventIID:  '';
-    LicenseKey: nil;
-    Version: 500);
-begin
-  ServerData := @CServerData;
-end;
-
-procedure TFilters.Connect;
-var
-  punk: IUnknown;
-begin
-  if FIntf = nil then
-  begin
-    punk := GetServer;
-    Fintf:= punk as IFilters;
-  end;
-end;
-
-procedure TFilters.ConnectTo(svrIntf: IFilters);
-begin
-  Disconnect;
-  FIntf := svrIntf;
-end;
-
-procedure TFilters.DisConnect;
-begin
-  if Fintf <> nil then
-  begin
-    FIntf := nil;
-  end;
-end;
-
-function TFilters.GetDefaultInterface: IFilters;
-begin
-  if FIntf = nil then
-    Connect;
-  Assert(FIntf <> nil, 'DefaultInterface is NULL. Component is not connected to Server. You must call "Connect" or "ConnectTo" before this operation');
-  Result := FIntf;
-end;
-
-constructor TFilters.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-end;
-
-destructor TFilters.Destroy;
-begin
-  inherited Destroy;
-end;
-
-function TFilters.Get_Item(Index: Integer): IFilter;
-begin
-  Result := DefaultInterface.Item[Index];
-end;
-
-function TFilters.Get_Count: Integer;
-begin
-  Result := DefaultInterface.Count;
-end;
-
-procedure TFilters.Add(const FilterID: WideString; Index: Integer);
-begin
-  DefaultInterface.Add(FilterID, Index);
-end;
-
-procedure TFilters.Remove(Index: Integer);
-begin
-  DefaultInterface.Remove(Index);
-end;
-
 class function CoImageProcess.Create: IImageProcess;
 begin
   Result := CreateComObject(CLASS_ImageProcess) as IImageProcess;
@@ -3122,76 +1459,6 @@ end;
 class function CoImageProcess.CreateRemote(const MachineName: string): IImageProcess;
 begin
   Result := CreateRemoteComObject(MachineName, CLASS_ImageProcess) as IImageProcess;
-end;
-
-procedure TImageProcess.InitServerData;
-const
-  CServerData: TServerData = (
-    ClassID:   '{BD0D38E4-74C8-4904-9B5A-269F8E9994E9}';
-    IntfIID:   '{41506929-7855-4392-9E6F-98D88513E55D}';
-    EventIID:  '';
-    LicenseKey: nil;
-    Version: 500);
-begin
-  ServerData := @CServerData;
-end;
-
-procedure TImageProcess.Connect;
-var
-  punk: IUnknown;
-begin
-  if FIntf = nil then
-  begin
-    punk := GetServer;
-    Fintf:= punk as IImageProcess;
-  end;
-end;
-
-procedure TImageProcess.ConnectTo(svrIntf: IImageProcess);
-begin
-  Disconnect;
-  FIntf := svrIntf;
-end;
-
-procedure TImageProcess.DisConnect;
-begin
-  if Fintf <> nil then
-  begin
-    FIntf := nil;
-  end;
-end;
-
-function TImageProcess.GetDefaultInterface: IImageProcess;
-begin
-  if FIntf = nil then
-    Connect;
-  Assert(FIntf <> nil, 'DefaultInterface is NULL. Component is not connected to Server. You must call "Connect" or "ConnectTo" before this operation');
-  Result := FIntf;
-end;
-
-constructor TImageProcess.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-end;
-
-destructor TImageProcess.Destroy;
-begin
-  inherited Destroy;
-end;
-
-function TImageProcess.Get_FilterInfos: IFilterInfos;
-begin
-  Result := DefaultInterface.FilterInfos;
-end;
-
-function TImageProcess.Get_Filters: IFilters;
-begin
-  Result := DefaultInterface.Filters;
-end;
-
-function TImageProcess.Apply(const Source: IImageFile): IImageFile;
-begin
-  Result := DefaultInterface.Apply(Source);
 end;
 
 class function CoFormats.Create: IFormats;
@@ -3204,71 +1471,6 @@ begin
   Result := CreateRemoteComObject(MachineName, CLASS_Formats) as IFormats;
 end;
 
-procedure TFormats.InitServerData;
-const
-  CServerData: TServerData = (
-    ClassID:   '{6F62E261-0FE6-476B-A244-50CF7440DDEB}';
-    IntfIID:   '{882A274F-DF2F-4F6D-9F5A-AF4FD484530D}';
-    EventIID:  '';
-    LicenseKey: nil;
-    Version: 500);
-begin
-  ServerData := @CServerData;
-end;
-
-procedure TFormats.Connect;
-var
-  punk: IUnknown;
-begin
-  if FIntf = nil then
-  begin
-    punk := GetServer;
-    Fintf:= punk as IFormats;
-  end;
-end;
-
-procedure TFormats.ConnectTo(svrIntf: IFormats);
-begin
-  Disconnect;
-  FIntf := svrIntf;
-end;
-
-procedure TFormats.DisConnect;
-begin
-  if Fintf <> nil then
-  begin
-    FIntf := nil;
-  end;
-end;
-
-function TFormats.GetDefaultInterface: IFormats;
-begin
-  if FIntf = nil then
-    Connect;
-  Assert(FIntf <> nil, 'DefaultInterface is NULL. Component is not connected to Server. You must call "Connect" or "ConnectTo" before this operation');
-  Result := FIntf;
-end;
-
-constructor TFormats.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-end;
-
-destructor TFormats.Destroy;
-begin
-  inherited Destroy;
-end;
-
-function TFormats.Get_Item(Index: Integer): WideString;
-begin
-  Result := DefaultInterface.Item[Index];
-end;
-
-function TFormats.Get_Count: Integer;
-begin
-  Result := DefaultInterface.Count;
-end;
-
 class function CoDeviceCommand.Create: IDeviceCommand;
 begin
   Result := CreateComObject(CLASS_DeviceCommand) as IDeviceCommand;
@@ -3277,76 +1479,6 @@ end;
 class function CoDeviceCommand.CreateRemote(const MachineName: string): IDeviceCommand;
 begin
   Result := CreateRemoteComObject(MachineName, CLASS_DeviceCommand) as IDeviceCommand;
-end;
-
-procedure TDeviceCommand.InitServerData;
-const
-  CServerData: TServerData = (
-    ClassID:   '{72226184-AFBB-4059-BF55-0F6C076E669D}';
-    IntfIID:   '{7CF694C0-F589-451C-B56E-398B5855B05E}';
-    EventIID:  '';
-    LicenseKey: nil;
-    Version: 500);
-begin
-  ServerData := @CServerData;
-end;
-
-procedure TDeviceCommand.Connect;
-var
-  punk: IUnknown;
-begin
-  if FIntf = nil then
-  begin
-    punk := GetServer;
-    Fintf:= punk as IDeviceCommand;
-  end;
-end;
-
-procedure TDeviceCommand.ConnectTo(svrIntf: IDeviceCommand);
-begin
-  Disconnect;
-  FIntf := svrIntf;
-end;
-
-procedure TDeviceCommand.DisConnect;
-begin
-  if Fintf <> nil then
-  begin
-    FIntf := nil;
-  end;
-end;
-
-function TDeviceCommand.GetDefaultInterface: IDeviceCommand;
-begin
-  if FIntf = nil then
-    Connect;
-  Assert(FIntf <> nil, 'DefaultInterface is NULL. Component is not connected to Server. You must call "Connect" or "ConnectTo" before this operation');
-  Result := FIntf;
-end;
-
-constructor TDeviceCommand.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-end;
-
-destructor TDeviceCommand.Destroy;
-begin
-  inherited Destroy;
-end;
-
-function TDeviceCommand.Get_CommandID: WideString;
-begin
-  Result := DefaultInterface.CommandID;
-end;
-
-function TDeviceCommand.Get_Name: WideString;
-begin
-  Result := DefaultInterface.Name;
-end;
-
-function TDeviceCommand.Get_Description: WideString;
-begin
-  Result := DefaultInterface.Description;
 end;
 
 class function CoDeviceCommands.Create: IDeviceCommands;
@@ -3359,71 +1491,6 @@ begin
   Result := CreateRemoteComObject(MachineName, CLASS_DeviceCommands) as IDeviceCommands;
 end;
 
-procedure TDeviceCommands.InitServerData;
-const
-  CServerData: TServerData = (
-    ClassID:   '{25B047DB-4AAD-4FC2-A0BE-31DDA687FF32}';
-    IntfIID:   '{C53AE9D5-6D91-4815-AF93-5F1E1B3B08BD}';
-    EventIID:  '';
-    LicenseKey: nil;
-    Version: 500);
-begin
-  ServerData := @CServerData;
-end;
-
-procedure TDeviceCommands.Connect;
-var
-  punk: IUnknown;
-begin
-  if FIntf = nil then
-  begin
-    punk := GetServer;
-    Fintf:= punk as IDeviceCommands;
-  end;
-end;
-
-procedure TDeviceCommands.ConnectTo(svrIntf: IDeviceCommands);
-begin
-  Disconnect;
-  FIntf := svrIntf;
-end;
-
-procedure TDeviceCommands.DisConnect;
-begin
-  if Fintf <> nil then
-  begin
-    FIntf := nil;
-  end;
-end;
-
-function TDeviceCommands.GetDefaultInterface: IDeviceCommands;
-begin
-  if FIntf = nil then
-    Connect;
-  Assert(FIntf <> nil, 'DefaultInterface is NULL. Component is not connected to Server. You must call "Connect" or "ConnectTo" before this operation');
-  Result := FIntf;
-end;
-
-constructor TDeviceCommands.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-end;
-
-destructor TDeviceCommands.Destroy;
-begin
-  inherited Destroy;
-end;
-
-function TDeviceCommands.Get_Item(Index: Integer): IDeviceCommand;
-begin
-  Result := DefaultInterface.Item[Index];
-end;
-
-function TDeviceCommands.Get_Count: Integer;
-begin
-  Result := DefaultInterface.Count;
-end;
-
 class function CoItem.Create: IItem;
 begin
   Result := CreateComObject(CLASS_Item) as IItem;
@@ -3432,101 +1499,6 @@ end;
 class function CoItem.CreateRemote(const MachineName: string): IItem;
 begin
   Result := CreateRemoteComObject(MachineName, CLASS_Item) as IItem;
-end;
-
-procedure TItem.InitServerData;
-const
-  CServerData: TServerData = (
-    ClassID:   '{36F479F3-C258-426E-B5FA-2793DCFDA881}';
-    IntfIID:   '{68F2BF12-A755-4E2B-9BCD-37A22587D078}';
-    EventIID:  '';
-    LicenseKey: nil;
-    Version: 500);
-begin
-  ServerData := @CServerData;
-end;
-
-procedure TItem.Connect;
-var
-  punk: IUnknown;
-begin
-  if FIntf = nil then
-  begin
-    punk := GetServer;
-    Fintf:= punk as IItem;
-  end;
-end;
-
-procedure TItem.ConnectTo(svrIntf: IItem);
-begin
-  Disconnect;
-  FIntf := svrIntf;
-end;
-
-procedure TItem.DisConnect;
-begin
-  if Fintf <> nil then
-  begin
-    FIntf := nil;
-  end;
-end;
-
-function TItem.GetDefaultInterface: IItem;
-begin
-  if FIntf = nil then
-    Connect;
-  Assert(FIntf <> nil, 'DefaultInterface is NULL. Component is not connected to Server. You must call "Connect" or "ConnectTo" before this operation');
-  Result := FIntf;
-end;
-
-constructor TItem.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-end;
-
-destructor TItem.Destroy;
-begin
-  inherited Destroy;
-end;
-
-function TItem.Get_ItemID: WideString;
-begin
-  Result := DefaultInterface.ItemID;
-end;
-
-function TItem.Get_Properties: IProperties;
-begin
-  Result := DefaultInterface.Properties;
-end;
-
-function TItem.Get_Items: IItems;
-begin
-  Result := DefaultInterface.Items;
-end;
-
-function TItem.Get_Formats: IFormats;
-begin
-  Result := DefaultInterface.Formats;
-end;
-
-function TItem.Get_Commands: IDeviceCommands;
-begin
-  Result := DefaultInterface.Commands;
-end;
-
-function TItem.Get_WiaItem: IUnknown;
-begin
-  Result := DefaultInterface.WiaItem;
-end;
-
-function TItem.Transfer(const FormatID: WideString): OleVariant;
-begin
-  Result := DefaultInterface.Transfer(FormatID);
-end;
-
-function TItem.ExecuteCommand(const CommandID: WideString): IItem;
-begin
-  Result := DefaultInterface.ExecuteCommand(CommandID);
 end;
 
 class function CoItems.Create: IItems;
@@ -3539,81 +1511,6 @@ begin
   Result := CreateRemoteComObject(MachineName, CLASS_Items) as IItems;
 end;
 
-procedure TItems.InitServerData;
-const
-  CServerData: TServerData = (
-    ClassID:   '{B243B765-CA9C-4F30-A457-C8B2B57A585E}';
-    IntfIID:   '{46102071-60B4-4E58-8620-397D17B0BB5B}';
-    EventIID:  '';
-    LicenseKey: nil;
-    Version: 500);
-begin
-  ServerData := @CServerData;
-end;
-
-procedure TItems.Connect;
-var
-  punk: IUnknown;
-begin
-  if FIntf = nil then
-  begin
-    punk := GetServer;
-    Fintf:= punk as IItems;
-  end;
-end;
-
-procedure TItems.ConnectTo(svrIntf: IItems);
-begin
-  Disconnect;
-  FIntf := svrIntf;
-end;
-
-procedure TItems.DisConnect;
-begin
-  if Fintf <> nil then
-  begin
-    FIntf := nil;
-  end;
-end;
-
-function TItems.GetDefaultInterface: IItems;
-begin
-  if FIntf = nil then
-    Connect;
-  Assert(FIntf <> nil, 'DefaultInterface is NULL. Component is not connected to Server. You must call "Connect" or "ConnectTo" before this operation');
-  Result := FIntf;
-end;
-
-constructor TItems.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-end;
-
-destructor TItems.Destroy;
-begin
-  inherited Destroy;
-end;
-
-function TItems.Get_Item(Index: Integer): IItem;
-begin
-  Result := DefaultInterface.Item[Index];
-end;
-
-function TItems.Get_Count: Integer;
-begin
-  Result := DefaultInterface.Count;
-end;
-
-procedure TItems.Add(const Name: WideString; Flags: Integer);
-begin
-  DefaultInterface.Add(Name, Flags);
-end;
-
-procedure TItems.Remove(Index: Integer);
-begin
-  DefaultInterface.Remove(Index);
-end;
-
 class function CoDeviceEvent.Create: IDeviceEvent;
 begin
   Result := CreateComObject(CLASS_DeviceEvent) as IDeviceEvent;
@@ -3622,81 +1519,6 @@ end;
 class function CoDeviceEvent.CreateRemote(const MachineName: string): IDeviceEvent;
 begin
   Result := CreateRemoteComObject(MachineName, CLASS_DeviceEvent) as IDeviceEvent;
-end;
-
-procedure TDeviceEvent.InitServerData;
-const
-  CServerData: TServerData = (
-    ClassID:   '{617CF892-783C-43D3-B04B-F0F1DE3B326D}';
-    IntfIID:   '{80D0880A-BB10-4722-82D1-07DC8DA157E2}';
-    EventIID:  '';
-    LicenseKey: nil;
-    Version: 500);
-begin
-  ServerData := @CServerData;
-end;
-
-procedure TDeviceEvent.Connect;
-var
-  punk: IUnknown;
-begin
-  if FIntf = nil then
-  begin
-    punk := GetServer;
-    Fintf:= punk as IDeviceEvent;
-  end;
-end;
-
-procedure TDeviceEvent.ConnectTo(svrIntf: IDeviceEvent);
-begin
-  Disconnect;
-  FIntf := svrIntf;
-end;
-
-procedure TDeviceEvent.DisConnect;
-begin
-  if Fintf <> nil then
-  begin
-    FIntf := nil;
-  end;
-end;
-
-function TDeviceEvent.GetDefaultInterface: IDeviceEvent;
-begin
-  if FIntf = nil then
-    Connect;
-  Assert(FIntf <> nil, 'DefaultInterface is NULL. Component is not connected to Server. You must call "Connect" or "ConnectTo" before this operation');
-  Result := FIntf;
-end;
-
-constructor TDeviceEvent.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-end;
-
-destructor TDeviceEvent.Destroy;
-begin
-  inherited Destroy;
-end;
-
-function TDeviceEvent.Get_EventID: WideString;
-begin
-  Result := DefaultInterface.EventID;
-end;
-
-function TDeviceEvent.Get_type_: WiaEventFlag;
-begin
-  Result := DefaultInterface.type_;
-end;
-
-function TDeviceEvent.Get_Name: WideString;
-begin
-  Result := DefaultInterface.Name;
-end;
-
-function TDeviceEvent.Get_Description: WideString;
-begin
-  Result := DefaultInterface.Description;
 end;
 
 class function CoDeviceEvents.Create: IDeviceEvents;
@@ -3709,71 +1531,6 @@ begin
   Result := CreateRemoteComObject(MachineName, CLASS_DeviceEvents) as IDeviceEvents;
 end;
 
-procedure TDeviceEvents.InitServerData;
-const
-  CServerData: TServerData = (
-    ClassID:   '{3563A59A-BBCD-4C86-94A0-92136C80A8B4}';
-    IntfIID:   '{03985C95-581B-44D1-9403-8488B347538B}';
-    EventIID:  '';
-    LicenseKey: nil;
-    Version: 500);
-begin
-  ServerData := @CServerData;
-end;
-
-procedure TDeviceEvents.Connect;
-var
-  punk: IUnknown;
-begin
-  if FIntf = nil then
-  begin
-    punk := GetServer;
-    Fintf:= punk as IDeviceEvents;
-  end;
-end;
-
-procedure TDeviceEvents.ConnectTo(svrIntf: IDeviceEvents);
-begin
-  Disconnect;
-  FIntf := svrIntf;
-end;
-
-procedure TDeviceEvents.DisConnect;
-begin
-  if Fintf <> nil then
-  begin
-    FIntf := nil;
-  end;
-end;
-
-function TDeviceEvents.GetDefaultInterface: IDeviceEvents;
-begin
-  if FIntf = nil then
-    Connect;
-  Assert(FIntf <> nil, 'DefaultInterface is NULL. Component is not connected to Server. You must call "Connect" or "ConnectTo" before this operation');
-  Result := FIntf;
-end;
-
-constructor TDeviceEvents.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-end;
-
-destructor TDeviceEvents.Destroy;
-begin
-  inherited Destroy;
-end;
-
-function TDeviceEvents.Get_Item(Index: Integer): IDeviceEvent;
-begin
-  Result := DefaultInterface.Item[Index];
-end;
-
-function TDeviceEvents.Get_Count: Integer;
-begin
-  Result := DefaultInterface.Count;
-end;
-
 class function CoDeviceInfo.Create: IDeviceInfo;
 begin
   Result := CreateComObject(CLASS_DeviceInfo) as IDeviceInfo;
@@ -3782,81 +1539,6 @@ end;
 class function CoDeviceInfo.CreateRemote(const MachineName: string): IDeviceInfo;
 begin
   Result := CreateRemoteComObject(MachineName, CLASS_DeviceInfo) as IDeviceInfo;
-end;
-
-procedure TDeviceInfo.InitServerData;
-const
-  CServerData: TServerData = (
-    ClassID:   '{F09CFB7A-E561-4625-9BB5-208BCA0DE09F}';
-    IntfIID:   '{2A99020A-E325-4454-95E0-136726ED4818}';
-    EventIID:  '';
-    LicenseKey: nil;
-    Version: 500);
-begin
-  ServerData := @CServerData;
-end;
-
-procedure TDeviceInfo.Connect;
-var
-  punk: IUnknown;
-begin
-  if FIntf = nil then
-  begin
-    punk := GetServer;
-    Fintf:= punk as IDeviceInfo;
-  end;
-end;
-
-procedure TDeviceInfo.ConnectTo(svrIntf: IDeviceInfo);
-begin
-  Disconnect;
-  FIntf := svrIntf;
-end;
-
-procedure TDeviceInfo.DisConnect;
-begin
-  if Fintf <> nil then
-  begin
-    FIntf := nil;
-  end;
-end;
-
-function TDeviceInfo.GetDefaultInterface: IDeviceInfo;
-begin
-  if FIntf = nil then
-    Connect;
-  Assert(FIntf <> nil, 'DefaultInterface is NULL. Component is not connected to Server. You must call "Connect" or "ConnectTo" before this operation');
-  Result := FIntf;
-end;
-
-constructor TDeviceInfo.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-end;
-
-destructor TDeviceInfo.Destroy;
-begin
-  inherited Destroy;
-end;
-
-function TDeviceInfo.Get_DeviceID: WideString;
-begin
-  Result := DefaultInterface.DeviceID;
-end;
-
-function TDeviceInfo.Get_type_: WiaDeviceType;
-begin
-  Result := DefaultInterface.type_;
-end;
-
-function TDeviceInfo.Get_Properties: IProperties;
-begin
-  Result := DefaultInterface.Properties;
-end;
-
-function TDeviceInfo.Connect1: IDevice;
-begin
-  Result := DefaultInterface.Connect;
 end;
 
 class function CoDeviceInfos.Create: IDeviceInfos;
@@ -3869,71 +1551,6 @@ begin
   Result := CreateRemoteComObject(MachineName, CLASS_DeviceInfos) as IDeviceInfos;
 end;
 
-procedure TDeviceInfos.InitServerData;
-const
-  CServerData: TServerData = (
-    ClassID:   '{2DFEE16B-E4AC-4A19-B660-AE71A745D34F}';
-    IntfIID:   '{FE076B64-8406-4E92-9CAC-9093F378E05F}';
-    EventIID:  '';
-    LicenseKey: nil;
-    Version: 500);
-begin
-  ServerData := @CServerData;
-end;
-
-procedure TDeviceInfos.Connect;
-var
-  punk: IUnknown;
-begin
-  if FIntf = nil then
-  begin
-    punk := GetServer;
-    Fintf:= punk as IDeviceInfos;
-  end;
-end;
-
-procedure TDeviceInfos.ConnectTo(svrIntf: IDeviceInfos);
-begin
-  Disconnect;
-  FIntf := svrIntf;
-end;
-
-procedure TDeviceInfos.DisConnect;
-begin
-  if Fintf <> nil then
-  begin
-    FIntf := nil;
-  end;
-end;
-
-function TDeviceInfos.GetDefaultInterface: IDeviceInfos;
-begin
-  if FIntf = nil then
-    Connect;
-  Assert(FIntf <> nil, 'DefaultInterface is NULL. Component is not connected to Server. You must call "Connect" or "ConnectTo" before this operation');
-  Result := FIntf;
-end;
-
-constructor TDeviceInfos.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-end;
-
-destructor TDeviceInfos.Destroy;
-begin
-  inherited Destroy;
-end;
-
-function TDeviceInfos.Get_Item(const Index: OleVariant): IDeviceInfo;
-begin
-  Result := DefaultInterface.Item[Index];
-end;
-
-function TDeviceInfos.Get_Count: Integer;
-begin
-  Result := DefaultInterface.Count;
-end;
-
 class function CoDevice.Create: IDevice;
 begin
   Result := CreateComObject(CLASS_Device) as IDevice;
@@ -3942,106 +1559,6 @@ end;
 class function CoDevice.CreateRemote(const MachineName: string): IDevice;
 begin
   Result := CreateRemoteComObject(MachineName, CLASS_Device) as IDevice;
-end;
-
-procedure TDevice.InitServerData;
-const
-  CServerData: TServerData = (
-    ClassID:   '{DBAA8843-B1C4-4EDC-B7E0-D6F61162BE58}';
-    IntfIID:   '{3714EAC4-F413-426B-B1E8-DEF2BE99EA55}';
-    EventIID:  '';
-    LicenseKey: nil;
-    Version: 500);
-begin
-  ServerData := @CServerData;
-end;
-
-procedure TDevice.Connect;
-var
-  punk: IUnknown;
-begin
-  if FIntf = nil then
-  begin
-    punk := GetServer;
-    Fintf:= punk as IDevice;
-  end;
-end;
-
-procedure TDevice.ConnectTo(svrIntf: IDevice);
-begin
-  Disconnect;
-  FIntf := svrIntf;
-end;
-
-procedure TDevice.DisConnect;
-begin
-  if Fintf <> nil then
-  begin
-    FIntf := nil;
-  end;
-end;
-
-function TDevice.GetDefaultInterface: IDevice;
-begin
-  if FIntf = nil then
-    Connect;
-  Assert(FIntf <> nil, 'DefaultInterface is NULL. Component is not connected to Server. You must call "Connect" or "ConnectTo" before this operation');
-  Result := FIntf;
-end;
-
-constructor TDevice.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-end;
-
-destructor TDevice.Destroy;
-begin
-  inherited Destroy;
-end;
-
-function TDevice.Get_DeviceID: WideString;
-begin
-  Result := DefaultInterface.DeviceID;
-end;
-
-function TDevice.Get_type_: WiaDeviceType;
-begin
-  Result := DefaultInterface.type_;
-end;
-
-function TDevice.Get_Properties: IProperties;
-begin
-  Result := DefaultInterface.Properties;
-end;
-
-function TDevice.Get_Items: IItems;
-begin
-  Result := DefaultInterface.Items;
-end;
-
-function TDevice.Get_Commands: IDeviceCommands;
-begin
-  Result := DefaultInterface.Commands;
-end;
-
-function TDevice.Get_Events: IDeviceEvents;
-begin
-  Result := DefaultInterface.Events;
-end;
-
-function TDevice.Get_WiaItem: IUnknown;
-begin
-  Result := DefaultInterface.WiaItem;
-end;
-
-function TDevice.GetItem(const ItemID: WideString): IItem;
-begin
-  Result := DefaultInterface.GetItem(ItemID);
-end;
-
-function TDevice.ExecuteCommand(const CommandID: WideString): IItem;
-begin
-  Result := DefaultInterface.ExecuteCommand(CommandID);
 end;
 
 class function CoCommonDialog.Create: ICommonDialog;
@@ -4054,110 +1571,6 @@ begin
   Result := CreateRemoteComObject(MachineName, CLASS_CommonDialog) as ICommonDialog;
 end;
 
-procedure TCommonDialog.InitServerData;
-const
-  CServerData: TServerData = (
-    ClassID:   '{850D1D11-70F3-4BE5-9A11-77AA6B2BB201}';
-    IntfIID:   '{B4760F13-D9F3-4DF8-94B5-D225F86EE9A1}';
-    EventIID:  '';
-    LicenseKey: nil;
-    Version: 500);
-begin
-  ServerData := @CServerData;
-end;
-
-procedure TCommonDialog.Connect;
-var
-  punk: IUnknown;
-begin
-  if FIntf = nil then
-  begin
-    punk := GetServer;
-    Fintf:= punk as ICommonDialog;
-  end;
-end;
-
-procedure TCommonDialog.ConnectTo(svrIntf: ICommonDialog);
-begin
-  Disconnect;
-  FIntf := svrIntf;
-end;
-
-procedure TCommonDialog.DisConnect;
-begin
-  if Fintf <> nil then
-  begin
-    FIntf := nil;
-  end;
-end;
-
-function TCommonDialog.GetDefaultInterface: ICommonDialog;
-begin
-  if FIntf = nil then
-    Connect;
-  Assert(FIntf <> nil, 'DefaultInterface is NULL. Component is not connected to Server. You must call "Connect" or "ConnectTo" before this operation');
-  Result := FIntf;
-end;
-
-constructor TCommonDialog.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-end;
-
-destructor TCommonDialog.Destroy;
-begin
-  inherited Destroy;
-end;
-
-function TCommonDialog.ShowAcquisitionWizard(const Device: IDevice): OleVariant;
-begin
-  Result := DefaultInterface.ShowAcquisitionWizard(Device);
-end;
-
-function TCommonDialog.ShowAcquireImage(DeviceType: WiaDeviceType; Intent: WiaImageIntent; 
-                                        Bias: WiaImageBias; const FormatID: WideString; 
-                                        AlwaysSelectDevice: WordBool; UseCommonUI: WordBool; 
-                                        CancelError: WordBool): IImageFile;
-begin
-  Result := DefaultInterface.ShowAcquireImage(DeviceType, Intent, Bias, FormatID, 
-                                              AlwaysSelectDevice, UseCommonUI, CancelError);
-end;
-
-function TCommonDialog.ShowSelectDevice(DeviceType: WiaDeviceType; AlwaysSelectDevice: WordBool; 
-                                        CancelError: WordBool): IDevice;
-begin
-  Result := DefaultInterface.ShowSelectDevice(DeviceType, AlwaysSelectDevice, CancelError);
-end;
-
-function TCommonDialog.ShowSelectItems(const Device: IDevice; Intent: WiaImageIntent; 
-                                       Bias: WiaImageBias; SingleSelect: WordBool; 
-                                       UseCommonUI: WordBool; CancelError: WordBool): IItems;
-begin
-  Result := DefaultInterface.ShowSelectItems(Device, Intent, Bias, SingleSelect, UseCommonUI, 
-                                             CancelError);
-end;
-
-procedure TCommonDialog.ShowDeviceProperties(const Device: IDevice; CancelError: WordBool);
-begin
-  DefaultInterface.ShowDeviceProperties(Device, CancelError);
-end;
-
-procedure TCommonDialog.ShowItemProperties(const Item: IItem; CancelError: WordBool);
-begin
-  DefaultInterface.ShowItemProperties(Item, CancelError);
-end;
-
-function TCommonDialog.ShowTransfer(const Item: IItem; const FormatID: WideString; 
-                                    CancelError: WordBool): OleVariant;
-begin
-  Result := DefaultInterface.ShowTransfer(Item, FormatID, CancelError);
-end;
-
-procedure TCommonDialog.ShowPhotoPrintingWizard(const Files: OleVariant);
-begin
-  DefaultInterface.ShowPhotoPrintingWizard(Files);
-end;
-
 class function CoDeviceManager.Create: IDeviceManager;
 begin
   Result := CreateComObject(CLASS_DeviceManager) as IDeviceManager;
@@ -4166,118 +1579,6 @@ end;
 class function CoDeviceManager.CreateRemote(const MachineName: string): IDeviceManager;
 begin
   Result := CreateRemoteComObject(MachineName, CLASS_DeviceManager) as IDeviceManager;
-end;
-
-procedure TDeviceManager.InitServerData;
-const
-  CServerData: TServerData = (
-    ClassID:   '{E1C5D730-7E97-4D8A-9E42-BBAE87C2059F}';
-    IntfIID:   '{73856D9A-2720-487A-A584-21D5774E9D0F}';
-    EventIID:  '{2E9A5206-2360-49DF-9D9B-1762B4BEAE77}';
-    LicenseKey: nil;
-    Version: 500);
-begin
-  ServerData := @CServerData;
-end;
-
-procedure TDeviceManager.Connect;
-var
-  punk: IUnknown;
-begin
-  if FIntf = nil then
-  begin
-    punk := GetServer;
-    ConnectEvents(punk);
-    Fintf:= punk as IDeviceManager;
-  end;
-end;
-
-procedure TDeviceManager.ConnectTo(svrIntf: IDeviceManager);
-begin
-  Disconnect;
-  FIntf := svrIntf;
-  ConnectEvents(FIntf);
-end;
-
-procedure TDeviceManager.DisConnect;
-begin
-  if Fintf <> nil then
-  begin
-    DisconnectEvents(FIntf);
-    FIntf := nil;
-  end;
-end;
-
-function TDeviceManager.GetDefaultInterface: IDeviceManager;
-begin
-  if FIntf = nil then
-    Connect;
-  Assert(FIntf <> nil, 'DefaultInterface is NULL. Component is not connected to Server. You must call "Connect" or "ConnectTo" before this operation');
-  Result := FIntf;
-end;
-
-constructor TDeviceManager.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-end;
-
-destructor TDeviceManager.Destroy;
-begin
-  inherited Destroy;
-end;
-
-procedure TDeviceManager.InvokeEvent(DispID: TDispID; var Params: TVariantArray);
-begin
-  case DispID of
-    -1: Exit;  // DISPID_UNKNOWN
-    1: if Assigned(FOnEvent) then
-         FOnEvent(Self,
-                  Params[0] {const WideString},
-                  Params[1] {const WideString},
-                  Params[2] {const WideString});
-  end; {case DispID}
-end;
-
-function TDeviceManager.Get_DeviceInfos: IDeviceInfos;
-begin
-  Result := DefaultInterface.DeviceInfos;
-end;
-
-procedure TDeviceManager.RegisterEvent(const EventID: WideString; const DeviceID: WideString);
-begin
-  DefaultInterface.RegisterEvent(EventID, DeviceID);
-end;
-
-procedure TDeviceManager.UnregisterEvent(const EventID: WideString; const DeviceID: WideString);
-begin
-  DefaultInterface.UnregisterEvent(EventID, DeviceID);
-end;
-
-procedure TDeviceManager.RegisterPersistentEvent(const Command: WideString; const Name: WideString; 
-                                                 const Description: WideString; 
-                                                 const Icon: WideString; const EventID: WideString; 
-                                                 const DeviceID: WideString);
-begin
-  DefaultInterface.RegisterPersistentEvent(Command, Name, Description, Icon, EventID, DeviceID);
-end;
-
-procedure TDeviceManager.UnregisterPersistentEvent(const Command: WideString; 
-                                                   const Name: WideString; 
-                                                   const Description: WideString; 
-                                                   const Icon: WideString; 
-                                                   const EventID: WideString; 
-                                                   const DeviceID: WideString);
-begin
-  DefaultInterface.UnregisterPersistentEvent(Command, Name, Description, Icon, EventID, DeviceID);
-end;
-
-procedure Register;
-begin
-  RegisterComponents(dtlServerPage, [TRational, TVector, TProperty, TProperties, 
-    TImageFile, TFilterInfo, TFilterInfos, TFilter, TFilters, 
-    TImageProcess, TFormats, TDeviceCommand, TDeviceCommands, TItem, 
-    TItems, TDeviceEvent, TDeviceEvents, TDeviceInfo, TDeviceInfos, 
-    TDevice, TCommonDialog, TDeviceManager]);
 end;
 
 end.
