@@ -305,7 +305,7 @@ type
   ['{98B5E8A0-29CC-491a-AAC0-E6DB4FDCCEB6}']
     function ReadMultiple(cpspec: ULONG;
                           const rgpspec: PPROPSPEC;
-                          out rgpropvar: PPROPVARIANT): HRESULT; stdcall;
+                          rgpropvar: PPROPVARIANT): HRESULT; stdcall; //out
 
     function WriteMultiple(cpspec: ULONG;
                            const rgpspec: PPROPSPEC;
@@ -317,7 +317,7 @@ type
 
     function ReadPropertyNames(cpspec: ULONG;
                                const rgpropid: PPROPID;
-                               out rglpwstrName: PLPOLESTR): HRESULT; stdcall;
+                               rglpwstrName: PLPOLESTR): HRESULT; stdcall; //out
 
     function WritePropertyNames(cpropid: ULONG;
                                 const rgpropid: PPROPID;
@@ -338,12 +338,12 @@ type
 
     function SetClass(clsid: PCLSID): HRESULT; stdcall;
 
-    function Stat(out pstatpsstg: STATPROPSETSTG): HRESULT; stdcall;
+    function Stat(pstatpsstg: PSTATPROPSETSTG): HRESULT; stdcall; //out
 
     function GetPropertyAttributes(cpspec: ULONG;
                                    rgpspec: PPROPSPEC;
-                                   out rgflags: PULONG;
-                                   out rgpropvar: PPROPVARIANT): HRESULT; stdcall;
+                                   rgflags: PULONG;                           //out
+                                   rgpropvar: PPROPVARIANT): HRESULT; stdcall;//out
 
     function GetCount(out pulNumProps: ULONG): HRESULT; stdcall;
 
