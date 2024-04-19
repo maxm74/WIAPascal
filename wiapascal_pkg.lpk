@@ -12,7 +12,7 @@
         <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
     </CompilerOptions>
-    <Description Value="WIA features for Free Pascal"/>
+    <Description Value="WIA and STI features for Free Pascal"/>
     <Version Release="1"/>
     <Files>
       <Item>
@@ -33,7 +33,11 @@
       </Item>
       <Item>
         <Filename Value="WIA_ScanProfiles_TLB.pas"/>
-        <UnitName Value="ScanProfilesLib_TLB"/>
+        <UnitName Value="WIA_ScanProfiles_TLB"/>
+      </Item>
+      <Item>
+        <Filename Value="STI.pas"/>
+        <UnitName Value="STI"/>
       </Item>
     </Files>
     <RequiredPkgs>
