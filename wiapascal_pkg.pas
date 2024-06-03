@@ -8,7 +8,7 @@ unit WIAPascal_pkg;
 interface
 
 uses
-  WIA_LH, WIA_TLB, WiaDef, WiaDevD, WIA_ScanProfiles_TLB, STI, LazarusPackageIntf;
+  WIA_LH, WIA_TLB, WiaDef, WiaDevD, WIA_ScanProfiles_TLB, STI, WIA, LazarusPackageIntf;
 
 implementation
 

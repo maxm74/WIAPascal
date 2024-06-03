@@ -39,6 +39,10 @@
         <Filename Value="STI.pas"/>
         <UnitName Value="STI"/>
       </Item>
+      <Item>
+        <Filename Value="wia.pas"/>
+        <UnitName Value="wia"/>
+      </Item>
     </Files>
     <RequiredPkgs>
       <Item>

@@ -33,6 +33,17 @@ type
 {$ALIGN 8}
 
 const
+  //MaxM: originally in "sti.h" moved here to avoid use of sti unit
+  // Type of device ( scanner, camera) is represented by DWORD value with
+  // hi word containing generic device type , and lo word containing sub-type
+  //
+  StiDeviceTypeDefault          = 0;
+  StiDeviceTypeScanner          = 1;
+  StiDeviceTypeDigitalCamera    = 2;
+  //#if (_WIN32_WINNT >= 0x0501) // Windows XP and later
+  StiDeviceTypeStreamingVideo   = 3;
+  //#endif //#if (_WIN32_WINNT >= 0x0501)
+
   //
   // WIA property ID and string constants
   //

@@ -19,6 +19,7 @@ type
     edDevTest: TEdit;
     Label1: TLabel;
     Memo2: TMemo;
+    procedure btIntCapClick(Sender: TObject);
     procedure btIntListClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -63,7 +64,8 @@ var
   pPropVar: array [0..2] of PROPVARIANT;
 
 begin
- (* // List of devices is a 1 based array
+ (*
+  // List of devices is a 1 based array
   Memo2.Lines.Add('Number of WIA Devices ='+IntToStr(FWIA_DevMgr.DeviceInfos.Count));
 
   for i:=1 to FWIA_DevMgr.DeviceInfos.Count do
@@ -117,8 +119,6 @@ begin
       pPropSpec[2].propid := WIA_DIP_DEV_TYPE;
       pPropIDS[2] :=WIA_DIP_DEV_TYPE;
 
-
-
       for i:=1 to devCount do
       begin
         FillChar(pPropVar, Sizeof(pPropVar), 0);
@@ -155,6 +155,11 @@ begin
       ppIEnum :=nil;
     end;
   end;
+end;
+
+procedure TForm1.btIntCapClick(Sender: TObject);
+begin
+
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
