@@ -6,7 +6,9 @@ interface
 
 uses
   Windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  Variants, ComObj, ActiveX, WIA_LH, WiaDef, WIA_TLB;
+  Variants,
+  //ComObj, ActiveX, WIA_LH, WiaDef, WIA_TLB
+  WIA;
 
 type
 
@@ -26,8 +28,9 @@ type
   private
     { private declarations }
     //FWIA_DevMgr: WIA_TLB.DeviceManager;
-    FWIA_DevMgr: WIA_LH.IWiaDevMgr2;
+    //FWIA_DevMgr: WIA_LH.IWiaDevMgr2;
     lres :HResult;
+    FWia: TWIAManager;
 
   public
     { public declarations }
@@ -45,7 +48,8 @@ implementation
 procedure TForm1.btIntListClick(Sender: TObject);
 var
   i:integer;
-  curDev: IDeviceInfo;
+  curDev: TWIADevice;
+(*  curDev: IDeviceInfo;
   Picture: IItem;
   Image: OleVariant;
   InVar: OLEVariant;
@@ -62,7 +66,7 @@ var
   pPropNames: array [0..2] of LPOLESTR;
   pPropSpec: array [0..2] of PROPSPEC;
   pPropVar: array [0..2] of PROPVARIANT;
-
+*)
 begin
  (*
   // List of devices is a 1 based array
@@ -85,6 +89,7 @@ begin
     Memo2.Lines.Add(astr);
   end;
 *)
+  (*
   if FWIA_DevMgr<>nil then
   begin
     lres :=FWIA_DevMgr.EnumDeviceInfo(WIA_DEVINFO_ENUM_ALL, ppIEnum);
@@ -155,6 +160,20 @@ begin
       ppIEnum :=nil;
     end;
   end;
+  *)
+  for i:=0 to FWia.DevicesCount-1 do
+  begin
+     curDev :=FWia.Devices[i];
+     if (curDev <> nil) then
+     begin
+       Memo2.Lines.Add('['+IntToStr(i)+']');
+       Memo2.Lines.Add('  ID : '+curDev.ID);
+       Memo2.Lines.Add('  Manufacturer : '+curDev.Manufacturer);
+       Memo2.Lines.Add('  Name : '+curDev.Name);
+       Memo2.Lines.Add('  Type : '+WIADeviceTypeStr[curDev.Type_]);
+     end
+     else Memo2.Lines.Add('['+IntToStr(i)+'] = NIL');
+  end;
 end;
 
 procedure TForm1.btIntCapClick(Sender: TObject);
@@ -165,13 +184,17 @@ end;
 procedure TForm1.FormCreate(Sender: TObject);
 begin
   //FWIA_DevMgr :=WIA_TLB.CoDeviceManager.Create;
-  FWIA_DevMgr :=nil;
-  lres :=CoCreateInstance(CLSID_WiaDevMgr2, nil, CLSCTX_LOCAL_SERVER, IID_IWiaDevMgr2, FWIA_DevMgr);
+ // FWIA_DevMgr :=nil;
+ // lres :=CoCreateInstance(CLSID_WiaDevMgr2, nil, CLSCTX_LOCAL_SERVER, IID_IWiaDevMgr2, FWIA_DevMgr);
+
+  FWia :=TWIAManager.Create;
 end;
 
 procedure TForm1.FormDestroy(Sender: TObject);
 begin
- if FWIA_DevMgr<>nil then FWIA_DevMgr :=nil;
+ //if FWIA_DevMgr<>nil then FWIA_DevMgr :=nil;
+
+  FWia.Free;
 end;
 
 end.

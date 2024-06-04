@@ -3,7 +3,7 @@ object Form1: TForm1
   Height = 210
   Top = 158
   Width = 549
-  Caption = 'WIA Tests'
+  Caption = 'WIA Demos'
   ClientHeight = 210
   ClientWidth = 549
   LCLVersion = '3.99.0.0'
@@ -47,6 +47,7 @@ object Form1: TForm1
     Top = 72
     Width = 123
     Caption = 'List Capabilities'
+    Enabled = False
     TabOrder = 3
     OnClick = btIntCapClick
   end
@@ -56,6 +57,7 @@ object Form1: TForm1
     Top = 104
     Width = 123
     Caption = 'Capture'
+    Enabled = False
     TabOrder = 4
   end
 end

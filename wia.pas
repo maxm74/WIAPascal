@@ -8,54 +8,55 @@ uses
   Windows, Classes, SysUtils, ActiveX, WiaDef, WIA_LH;
 
 type
-  TWIAComponent = class;
+  TWIAManager = class;
 
   TWIADeviceType = (
-      wiaDeviceTypeDefault          = StiDeviceTypeDefault,
-      wiaDeviceTypeScanner          = StiDeviceTypeScanner,
-      wiaDeviceTypeDigitalCamera    = StiDeviceTypeDigitalCamera,
-      StiDeviceTypeStreamingVideo   = StiDeviceTypeStreamingVideo
+      WIADeviceTypeDefault          = StiDeviceTypeDefault,
+      WIADeviceTypeScanner          = StiDeviceTypeScanner,
+      WIADeviceTypeDigitalCamera    = StiDeviceTypeDigitalCamera,
+      WIADeviceTypeStreamingVideo   = StiDeviceTypeStreamingVideo
   );
 
-  { TWIASource }
+  { TWIADevice }
 
-  TWIASource = class(TObject)
+  TWIADevice = class(TObject)
   protected
-    rOwner: TWIAComponent;
-    rDeviceID: String;
-    rDeviceName: String;
-    rDeviceSubType: Word;
-    rDeviceType: TWIADeviceType;
+    rOwner: TWIAManager;
+    rIndex: Integer;
+    rID,
+    rManufacturer,
+    rName: String;
+    rType: TWIADeviceType;
+    rSubType: Word;
 
     pWiaDevice: IWiaItem2;
 
   public
-    {Object being created/destroyed}
-    constructor Create(AOwner: TWIAComponent; ADeviceID: String);
+    constructor Create(AOwner: TWIAManager; AIndex: Integer; ADeviceID: String);
     destructor Destroy; override;
 
-    property DeviceName: String read rDeviceName;
-    property DeviceID: String read rDeviceID;
-    property DeviceType: TWIADeviceType read rDeviceType;
-    property DeviceSubType: Word read rDeviceSubType;
+    property ID: String read rID;
+    property Manufacturer: String read rManufacturer;
+    property Name: String read rName;
+    property Type_: TWIADeviceType read rType;
+    property SubType: Word read rSubType;
   end;
 
-  {Component kinds}
+  { TWIAManager }
 
-  { TWIAComponent }
-
-  TWIAComponent = class(TObject)
+  TWIAManager = class(TObject)
   protected
     pWIA_DevMgr: WIA_LH.IWiaDevMgr2;
     lres: HResult;
     HasEnumerated: Boolean;
-    rDeviceList : array of TWIASource;
+    rSelectedDeviceIndex: Integer;
+    rDeviceList : array of TWIADevice;
 
-    function GetSelectedSource: TWIASource;
-    function GetSelectedSourceIndex: Integer;
-    function GetSource(Index: Integer): TWIASource;
-    function GetSourceCount: Integer;
-    procedure SetSelectedSourceIndex(AValue: Integer);
+    function GetSelectedDevice: TWIADevice;
+    function GetSelectedDeviceIndex: Integer;
+    procedure SetSelectedDeviceIndex(AValue: Integer);
+    function GetDevice(Index: Integer): TWIADevice;
+    function GetDevicesCount: Integer;
 
     function CreateDevManager: IUnknown; virtual;
 
@@ -68,59 +69,84 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    {Returns a source}
-    property Source[Index: Integer]: TWIASource read GetSource;
+    {Finds a matching Device index}
+    function FindDevice(AID: String): Integer; overload;
+    function FindDevice(Value: TWIADevice): Integer; overload;
+    function FindDevice(AName: String; AManufacturer: String=''): Integer; overload;
 
-    {Returns the number of sources, after Library and Source Manager}
-    {has being loaded}
-    property SourceCount: Integer read GetSourceCount;
+    {Returns a Device}
+    property Devices[Index: Integer]: TWIADevice read GetDevice;
 
-    //Selected source in a dialog
-    property SelectedSourceIndex: Integer read GetSelectedSourceIndex write SetSelectedSourceIndex;
+    {Returns the number of Devices}
+    property DevicesCount: Integer read GetDevicesCount;
 
-    //Selected source in a dialog
-    property SelectedSource: TWIASource read GetSelectedSource;
+    //Selected Device in a dialog
+    property SelectedDeviceIndex: Integer read GetSelectedDeviceIndex write SetSelectedDeviceIndex;
+
+    //Selected Device in a dialog
+    property SelectedDevice: TWIADevice read GetSelectedDevice;
 
   end;
+
+const
+  WIADeviceTypeStr : array  [TWIADeviceType] of String = (
+    'Default', 'Scanner', 'Digital Camera', 'Streaming Video'
+  );
+
 
 
 implementation
 
-{ TWIASource }
+{ TWIADevice }
 
-constructor TWIASource.Create(AOwner: TWIAComponent; ADeviceID: String);
+constructor TWIADevice.Create(AOwner: TWIAManager; AIndex: Integer; ADeviceID: String);
 begin
   inherited Create;
 
   rOwner :=AOwner;
-  rDeviceID :=ADeviceID;
+  rIndex :=AIndex;
+  rID :=ADeviceID;
 end;
 
-destructor TWIASource.Destroy;
+destructor TWIADevice.Destroy;
 begin
   if (pWiaDevice<>nil) then pWiaDevice:=nil; //Free the Interface
 
   inherited Destroy;
 end;
 
-{ TWIAComponent }
+{ TWIAManager }
 
-function TWIAComponent.GetSelectedSource: TWIASource;
+function TWIAManager.GetSelectedDevice: TWIADevice;
 begin
-
+  if (rSelectedDeviceIndex>=0) and (rSelectedDeviceIndex<Length(rDeviceList))
+  then Result :=rDeviceList[rSelectedDeviceIndex]
+  else Result :=nil;
 end;
 
-function TWIAComponent.GetSelectedSourceIndex: Integer;
+function TWIAManager.GetSelectedDeviceIndex: Integer;
 begin
-
+   Result :=rSelectedDeviceIndex;
 end;
 
-function TWIAComponent.GetSource(Index: Integer): TWIASource;
+procedure TWIAManager.SetSelectedDeviceIndex(AValue: Integer);
 begin
-
+  if (AValue<>rSelectedDeviceIndex) and (AValue>=0) and (AValue<Length(rDeviceList)) then
+  begin
+    if (rDeviceList[AValue]<>nil)
+    then rSelectedDeviceIndex :=AValue
+    else rSelectedDeviceIndex :=-1;
+  end;
 end;
 
-function TWIAComponent.GetSourceCount: Integer;
+function TWIAManager.GetDevice(Index: Integer): TWIADevice;
+begin
+  if (Index>=0) and (Index<Length(rDeviceList))
+  then Result :=rDeviceList[Index]
+  else Result :=nil;
+end;
+
+function TWIAManager.GetDevicesCount: Integer;
 begin
   if (pWIA_DevMgr=nil)
   then pWIA_DevMgr :=WIA_LH.IWiaDevMgr2(CreateDevManager);
@@ -132,17 +158,12 @@ begin
   Result := Length(rDeviceList);
 end;
 
-procedure TWIAComponent.SetSelectedSourceIndex(AValue: Integer);
-begin
-
-end;
-
-function TWIAComponent.CreateDevManager: IUnknown;
+function TWIAManager.CreateDevManager: IUnknown;
 begin
   lres :=CoCreateInstance(CLSID_WiaDevMgr2, nil, CLSCTX_LOCAL_SERVER, IID_IWiaDevMgr2, Result);
 end;
 
-procedure TWIAComponent.EmptyDeviceList(setZeroLength:Boolean);
+procedure TWIAManager.EmptyDeviceList(setZeroLength:Boolean);
 var
    i:Integer;
 
@@ -152,17 +173,17 @@ begin
   if setZeroLength then SetLength(rDeviceList, 0);
 end;
 
-function TWIAComponent.EnumerateDevices: Boolean;
+function TWIAManager.EnumerateDevices: Boolean;
 var
   i:integer;
   ppIEnum: IEnumWIA_DEV_INFO;
   devCount: ULONG;
   devFetched: ULONG;
   pWiaPropertyStorage: IWiaPropertyStorage;
-  pPropIDS: array [0..2] of PROPID;
-  pPropNames: array [0..2] of LPOLESTR;
-  pPropSpec: array [0..2] of PROPSPEC;
-  pPropVar: array [0..2] of PROPVARIANT;
+  //pPropIDS: array [0..3] of PROPID;
+  //pPropNames: array [0..3] of LPOLESTR;
+  pPropSpec: array [0..3] of PROPSPEC;
+  pPropVar: array [0..3] of PROPVARIANT;
 
 begin
   Result :=False;
@@ -186,21 +207,28 @@ begin
         //
         pPropSpec[0].ulKind := PRSPEC_PROPID;
         pPropSpec[0].propid := WIA_DIP_DEV_ID;
-        pPropIDS[0] :=WIA_DIP_DEV_ID;
+        //pPropIDS[0] :=WIA_DIP_DEV_ID;
+
+        //
+        // Device Manufacturer
+        //
+        pPropSpec[1].ulKind := PRSPEC_PROPID;
+        pPropSpec[1].propid := WIA_DIP_VEND_DESC;
+        //pPropIDS[1] :=WIA_DIP_VEND_DESC;
 
         //
         // Device Name
         //
-        pPropSpec[1].ulKind := PRSPEC_PROPID;
-        pPropSpec[1].propid := WIA_DIP_DEV_NAME;
-        pPropIDS[1] :=WIA_DIP_DEV_NAME;
+        pPropSpec[2].ulKind := PRSPEC_PROPID;
+        pPropSpec[2].propid := WIA_DIP_DEV_NAME;
+        //pPropIDS[2] :=WIA_DIP_DEV_NAME;
 
         //
-        // Device description
+        // Device Type
         //
-        pPropSpec[2].ulKind := PRSPEC_PROPID;
-        pPropSpec[2].propid := WIA_DIP_DEV_TYPE;
-        pPropIDS[2] :=WIA_DIP_DEV_TYPE;
+        pPropSpec[3].ulKind := PRSPEC_PROPID;
+        pPropSpec[3].propid := WIA_DIP_DEV_TYPE;
+        //pPropIDS[3] :=WIA_DIP_DEV_TYPE;
 
         SetLength(rDeviceList, devCount);
         EmptyDeviceList(False);
@@ -208,7 +236,7 @@ begin
         for i:=0 to devCount-1 do
         begin
           FillChar(pPropVar, Sizeof(pPropVar), 0);
-          FillChar(pPropNames, Sizeof(pPropNames), 0);
+          //FillChar(pPropNames, Sizeof(pPropNames), 0);
 
           pWiaPropertyStorage :=nil;
 
@@ -220,26 +248,31 @@ begin
           //
           // Ask for the property values
           //
-          lres := pWiaPropertyStorage.ReadMultiple(3, @pPropSpec, @pPropVar);
+          lres := pWiaPropertyStorage.ReadMultiple(4, @pPropSpec, @pPropVar);
 
 
-          lres := pWiaPropertyStorage.ReadPropertyNames(3, @pPropIDS, @pPropNames);
+         // lres := pWiaPropertyStorage.ReadPropertyNames(4, @pPropIDS, @pPropNames);
 
           if (VT_BSTR = pPropVar[0].vt)
-          then rDeviceList[i] :=TWIASource.Create(Self, pPropVar[0].bstrVal)
+          then rDeviceList[i] :=TWIADevice.Create(Self, i, pPropVar[0].bstrVal)
           else Exception.Create('ID of Device '+IntToStr(i)+' not String');
 
           if (VT_BSTR = pPropVar[1].vt)
-          then rDeviceList[i].rDeviceName :=pPropVar[1].bstrVal
-          else Exception.Create('DeviceName of Device '+IntToStr(i)+' not String');
+          then rDeviceList[i].rManufacturer :=pPropVar[1].bstrVal
+          else Exception.Create('Manufacturer of Device '+IntToStr(i)+' not String');
 
-          if (VT_I4 = pPropVar[2].vt)
-          then rDeviceList[i].rDeviceType :=TWiaDeviceType(pPropVar[2].iVal)
+          if (VT_BSTR = pPropVar[2].vt)
+          then rDeviceList[i].rName :=pPropVar[2].bstrVal
+          else Exception.Create('Name of Device '+IntToStr(i)+' not String');
+
+          if (VT_I4 = pPropVar[3].vt)
+          then rDeviceList[i].rType :=TWiaDeviceType(pPropVar[3].iVal)
           else Exception.Create('DeviceType of Device '+IntToStr(i)+' not Integer');
 
-          CoTaskMemFree(pPropNames[0]);
+          (*CoTaskMemFree(pPropNames[0]);
           CoTaskMemFree(pPropNames[1]);
           CoTaskMemFree(pPropNames[2]);
+          CoTaskMemFree(pPropNames[3]);*)
         end;
 
         ppIEnum :=nil;
@@ -254,21 +287,66 @@ begin
   end;
 end;
 
-constructor TWIAComponent.Create;
+constructor TWIAManager.Create;
 begin
   inherited Create;
 
   HasEnumerated :=False;
   pWIA_DevMgr :=nil;
+  rSelectedDeviceIndex :=-1;
 end;
 
-destructor TWIAComponent.Destroy;
+destructor TWIAManager.Destroy;
 begin
+  EmptyDeviceList(True);
   if (pWIA_DevMgr<>nil) then pWIA_DevMgr :=nil; //Free the Interface
 
-
-
   inherited Destroy;
+end;
+
+function TWIAManager.FindDevice(AID: String): Integer;
+var
+   i      :Integer;
+   curDev :TWIADevice;
+
+begin
+    Result :=-1;
+    for i:=0 to DevicesCount-1 do
+    begin
+      curDev :=Devices[i];
+      if (curDev <> nil) and
+         (curDev.ID = AID)
+      then begin Result:=i; break; end;
+    end;
+end;
+
+function TWIAManager.FindDevice(Value: TWIADevice): Integer;
+var
+   i      :Integer;
+
+begin
+  Result :=-1;
+  if (Value <> nil)
+  then for i:=0 to DevicesCount-1 do
+         if (Devices[i] = Value) then begin Result:=i; break; end;
+end;
+
+function TWIAManager.FindDevice(AName: String; AManufacturer: String): Integer;
+var
+   i      :Integer;
+   curDev :TWIADevice;
+
+begin
+    Result :=-1;
+    for i:=0 to DevicesCount-1 do
+    begin
+      curDev:=Devices[i];
+      { #todo -oMaxM : if there is more identical device? }
+      if (curDev <> nil) and
+         (curDev.Name = AName) and
+         ((AManufacturer <> '') and (curDev.Manufacturer = AManufacturer))
+      then begin Result:=i; break; end;
+    end;
 end;
 
 end.
