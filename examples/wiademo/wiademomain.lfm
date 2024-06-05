@@ -47,7 +47,6 @@ object Form1: TForm1
     Top = 72
     Width = 123
     Caption = 'List Capabilities'
-    Enabled = False
     TabOrder = 3
     OnClick = btIntCapClick
   end
@@ -59,5 +58,14 @@ object Form1: TForm1
     Caption = 'Capture'
     Enabled = False
     TabOrder = 4
+  end
+  object Button1: TButton
+    Left = 435
+    Height = 25
+    Top = 144
+    Width = 75
+    Caption = 'Button1'
+    TabOrder = 5
+    OnClick = Button1Click
   end
 end

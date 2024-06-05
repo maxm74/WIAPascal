@@ -78,9 +78,6 @@ type
   IEnumWiaItem2 = interface;
   IWiaItem2 = interface;
   IWiaDevMgr2 = interface;
- (* WiaDevMgr = class;
-  WiaDevMgr2 = class;
-  WiaLog = class; *)
 
   TarrayBSTR = array [0..0] of BSTR;
   PBSTR = ^TarrayBSTR; //^BSTR;
@@ -685,8 +682,6 @@ type
                          out ppbstrFilePaths: PBSTR;
                          var ppItem: IWiaItem2): HRESULT; stdcall;
   end;
-
-  { #todo 10 -oMaxM : Continua Line 2749 of .h MIDL_INTERFACE("6C16186C-D0A6-400c-80F4-D26986A0E734") }
 
 implementation
 

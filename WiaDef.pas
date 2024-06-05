@@ -1747,31 +1747,10 @@ const
   //
   // WIA property LIST container MACROS
   //
+  function WIA_PROP_LIST_COUNT(ppv: PPROPVARIANT): ULONG;
+  function WIA_PROP_LIST_VALUE(ppv: PPROPVARIANT; index: Integer): Variant;
 
- // TO-DO MaxM
- // WIA_PROP_LIST_COUNT(ppv) (((PROPVARIANT*)ppv)->cal.cElems - WIA_LIST_VALUES)
-
- // WIA_PROP_LIST_VALUE(ppv, index)                              \\
- //      ((index > ((PROPVARIANT*) ppv)->cal.cElems - WIA_LIST_VALUES) || (index < -WIA_LIST_NOM)) ?\\
- //      NULL :                                                          \\
- //      (((PROPVARIANT*) ppv)->vt == VT_UI1) ?                          \\
- //      ((PROPVARIANT*) ppv)->caub.pElems[WIA_LIST_VALUES + index] :    \\
- //      (((PROPVARIANT*) ppv)->vt == VT_UI2) ?                          \\
- //      ((PROPVARIANT*) ppv)->caui.pElems[WIA_LIST_VALUES + index] :    \\
- //      (((PROPVARIANT*) ppv)->vt == VT_UI4) ?                          \\
- //      ((PROPVARIANT*) ppv)->caul.pElems[WIA_LIST_VALUES + index] :    \\
- //      (((PROPVARIANT*) ppv)->vt == VT_I2) ?                           \\
- //      ((PROPVARIANT*) ppv)->cai.pElems[WIA_LIST_VALUES + index] :     \\
- //      (((PROPVARIANT*) ppv)->vt == VT_I4) ?                           \\
- //      ((PROPVARIANT*) ppv)->cal.pElems[WIA_LIST_VALUES + index] :     \\
-  //     (((PROPVARIANT*) ppv)->vt == VT_R4) ?                           \\
-  //     ((PROPVARIANT*) ppv)->caflt.pElems[WIA_LIST_VALUES + index] :   \\
-  //     (((PROPVARIANT*) ppv)->vt == VT_R8) ?                           \\
-  //     ((PROPVARIANT*) ppv)->cadbl.pElems[WIA_LIST_VALUES + index] :   \\
-  //     (((PROPVARIANT*) ppv)->vt == VT_BSTR) ?                         \\
-  //     (LONG)(((PROPVARIANT*) ppv)->cabstr.pElems[WIA_LIST_VALUES + index]) : \\
-  //     NULL
-
+const
   //
   // Microsoft defined WIA property offset constants
   //
@@ -2530,6 +2509,31 @@ const
 
 
 implementation
+
+function WIA_PROP_LIST_COUNT(ppv: PPROPVARIANT): ULONG;
+begin
+  if (ppv <> nil)
+  then Result :=ppv^.cal.cElems - WIA_LIST_VALUES
+  else Result :=0;
+end;
+
+{ #todo -oMaxM : Maybe deferred Word^ etc... }
+function WIA_PROP_LIST_VALUE(ppv: PPROPVARIANT; index: Integer): Variant;
+begin
+  Result :=nil;
+  if (ppv <> nil) then
+    if not((index > (ppv^.cal.cElems - WIA_LIST_VALUES)) or (index < -WIA_LIST_NOM))
+    then Case ppv^.vt of
+         VT_UI1: Result :=Boolean(ppv^.caub.pElems[WIA_LIST_VALUES + index]);
+         VT_UI2: Result :=ppv^.caui.pElems[WIA_LIST_VALUES + index];
+         VT_UI4: Result :=ppv^.caul.pElems[WIA_LIST_VALUES + index];
+         VT_I2:  Result :=ppv^.cai.pElems[WIA_LIST_VALUES + index];
+         VT_I4:  Result :=ppv^.cal.pElems[WIA_LIST_VALUES + index];
+         VT_R4:  Result :=ppv^.caflt.pElems[WIA_LIST_VALUES + index];
+         VT_R8:  Result :=ppv^.cadbl.pElems[WIA_LIST_VALUES + index];
+         VT_BSTR:Result :=ppv^.cabstr.pElems[WIA_LIST_VALUES + index];
+       end;
+end;
 
 end.
 

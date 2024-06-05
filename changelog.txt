@@ -1,6 +1,10 @@
 WIAPASCAL CHANGE LOG
 ======================
 
-2024/06/04 Renamed Component to Manager, Source to Device; Updated EnumerateDevices; Added FindDevice; Demo uses WIAManager
+2024/06/05 Added TWIADevice.GetWiaDevice (Create the Device); 
+           Added WIA property LIST container MACROS to SDK files; 
+           Demo List some Capabilities;
+2024/06/04 Renamed Component to Manager, Source to Device; Updated EnumerateDevices; Added FindDevice; 
+           Demo uses WIAManager
 2024/06/03 Added StiDeviceType to WiaDef; First write of Wia Component
 2024/04/05 MaxM - Initial Translation of Windows SDK files (must be completed), TLB Import 

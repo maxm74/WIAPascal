@@ -8,7 +8,7 @@ uses
   Windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   Variants,
   //ComObj, ActiveX, WIA_LH, WiaDef, WIA_TLB
-  WIA;
+  ComObj, ActiveX, WIA_LH, WiaDef, WIA;
 
 type
 
@@ -18,11 +18,13 @@ type
     btIntCap: TButton;
     btIntCapture: TButton;
     btIntList: TButton;
+    Button1: TButton;
     edDevTest: TEdit;
     Label1: TLabel;
     Memo2: TMemo;
     procedure btIntCapClick(Sender: TObject);
     procedure btIntListClick(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
   private
@@ -68,6 +70,7 @@ var
   pPropVar: array [0..2] of PROPVARIANT;
 *)
 begin
+  Memo2.Lines.Add(#13#10+' List of WIA Devices');
  (*
   // List of devices is a 1 based array
   Memo2.Lines.Add('Number of WIA Devices ='+IntToStr(FWIA_DevMgr.DeviceInfos.Count));
@@ -176,9 +179,87 @@ begin
   end;
 end;
 
-procedure TForm1.btIntCapClick(Sender: TObject);
-begin
+procedure TForm1.Button1Click(Sender: TObject);
+var
+   test :IWiaItem2;
+   curDev: TWIADevice;
+   OleStrID :POleStr;
+   pWiaDevice: IWiaItem2;
+   pWIA_DevMgr: WIA_LH.IWiaDevMgr2;
 
+
+begin
+ // curDev :=FWia.Devices[StrToInt(edDevTest.Text)];
+ // test :=curDev.WiaDevice;
+    try
+ //   lres :=CoCreateInstance(CLSID_WiaDevMgr2, nil, CLSCTX_LOCAL_SERVER, IID_IWiaDevMgr2, pWIA_DevMgr);
+
+ //   lres :=pWIA_DevMgr.SelectDeviceDlg(SElf.Handle, 0, $00000001, OleStrID, pWiaDevice);
+ //   if (lres = S_OK) then Memo2.Lines.Add(OleStrID);
+
+ //   pWIA_DevMgr :=nil;
+ //   pWiaDevice :=nil;
+    finally
+//      if (OleStrID<>nil) then CoTaskMemFree(OleStrID);
+    end;
+end;
+
+procedure TForm1.btIntCapClick(Sender: TObject);
+var
+   i: Integer;
+   test :IWiaItem2;
+   curDev: TWIADevice;
+   OleStrID :POleStr;
+   pWiaDevice: IWiaItem2;
+   pWIA_DevMgr: WIA_LH.IWiaDevMgr2;
+   pWiaPropertyStorage: IWiaPropertyStorage;
+   pPropIDS: array [0..3] of PROPID;
+   pPropNames: array [0..3] of LPOLESTR;
+   pPropSpec: array [0..3] of PROPSPEC;
+   pPropVar: array [0..3] of PROPVARIANT;
+
+begin
+  try
+     Memo2.Lines.Add(#13#10+' List of Capabilities for Device : '+edDevTest.Text);
+     curDev :=FWia.Devices[StrToInt(edDevTest.Text)];
+     test :=curDev.WiaDevice;
+     lres :=test.QueryInterface(IID_IWiaPropertyStorage, pWiaPropertyStorage);
+     //WIA_IPS_PAGE_SIZE
+      pPropSpec[0].ulKind := PRSPEC_PROPID;
+      pPropSpec[0].propid := WIA_IPS_MAX_HORIZONTAL_SIZE;
+
+      pPropSpec[1].ulKind := PRSPEC_PROPID;
+      pPropSpec[1].propid := WIA_IPS_MAX_VERTICAL_SIZE;
+
+      pPropSpec[2].ulKind := PRSPEC_PROPID;
+      pPropSpec[2].propid := WIA_IPS_XRES; //WIA_IPS_OPTICAL_XRES;
+
+      pPropSpec[3].ulKind := PRSPEC_PROPID;
+      pPropSpec[3].propid := WIA_IPS_YRES; //WIA_IPS_OPTICAL_XRES;
+
+      for i:=0 to Length(pPropSpec)-1 do pPropIDS[i] := pPropSpec[i].propid;
+
+      FillChar(pPropVar, Sizeof(pPropVar), 0);
+      FillChar(pPropNames, Sizeof(pPropNames), 0);
+
+      lres := pWiaPropertyStorage.ReadMultiple(Length(pPropSpec), @pPropSpec, @pPropVar);
+
+      if (lres = S_OK) then
+      begin
+        lres := pWiaPropertyStorage.ReadPropertyNames(Length(pPropSpec), @pPropIDS, @pPropNames);
+
+        for i:=0 to Length(pPropSpec)-1 do
+        begin
+          if (VT_I4 = pPropVar[0].vt)
+          then Memo2.Lines.Add('   '+pPropNames[i]+': '+IntToStr(pPropVar[i].iVal));
+
+          CoTaskMemFree(pPropNames[i]);
+        end;
+      end;
+
+     pWiaPropertyStorage :=nil;
+  finally
+  end;
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);

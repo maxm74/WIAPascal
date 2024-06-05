@@ -5,7 +5,7 @@ unit WIA;
 interface
 
 uses
-  Windows, Classes, SysUtils, ActiveX, WiaDef, WIA_LH;
+  Windows, Classes, SysUtils, WiaDef, WIA_LH;
 
 type
   TWIAManager = class;
@@ -28,8 +28,10 @@ type
     rName: String;
     rType: TWIADeviceType;
     rSubType: Word;
-
+    lres: HResult;
     pWiaDevice: IWiaItem2;
+
+    function GetWiaDevice: IWiaItem2;
 
   public
     constructor Create(AOwner: TWIAManager; AIndex: Integer; ADeviceID: String);
@@ -40,6 +42,8 @@ type
     property Name: String read rName;
     property Type_: TWIADeviceType read rType;
     property SubType: Word read rSubType;
+
+    property WiaDevice: IWiaItem2 read GetWiaDevice;
   end;
 
   { TWIAManager }
@@ -97,7 +101,31 @@ const
 
 implementation
 
+uses ComObj, ActiveX;
+
 { TWIADevice }
+
+function TWIADevice.GetWiaDevice: IWiaItem2;
+//var
+//   OleStrID :BSTR;
+
+begin
+  Result :=nil;
+
+  if (rOwner <> nil) then
+  begin
+    if (pWiaDevice = nil)
+    then try
+           //OleStrID :=SysAllocString(StringToOleStr(Self.rID));
+
+           lres :=rOwner.pWIA_DevMgr.CreateDevice(0, StringToOleStr(Self.rID), pWiaDevice);
+           if (lres = S_OK) then Result :=pWiaDevice;
+         finally
+           //if (OleStrID<>nil) then SysFreeString(OleStrID);
+         end
+    else Result :=pWiaDevice;
+  end;
+end;
 
 constructor TWIADevice.Create(AOwner: TWIAManager; AIndex: Integer; ADeviceID: String);
 begin
@@ -106,6 +134,7 @@ begin
   rOwner :=AOwner;
   rIndex :=AIndex;
   rID :=ADeviceID;
+  pWiaDevice :=nil;
 end;
 
 destructor TWIADevice.Destroy;
@@ -233,12 +262,12 @@ begin
         SetLength(rDeviceList, devCount);
         EmptyDeviceList(False);
 
+        pWiaPropertyStorage :=nil;
+
         for i:=0 to devCount-1 do
         begin
           FillChar(pPropVar, Sizeof(pPropVar), 0);
           //FillChar(pPropNames, Sizeof(pPropNames), 0);
-
-          pWiaPropertyStorage :=nil;
 
           lres :=ppIEnum.Next(1, pWiaPropertyStorage, devFetched);
 
@@ -269,7 +298,9 @@ begin
           then rDeviceList[i].rType :=TWiaDeviceType(pPropVar[3].iVal)
           else Exception.Create('DeviceType of Device '+IntToStr(i)+' not Integer');
 
-          (*CoTaskMemFree(pPropNames[0]);
+          pWiaPropertyStorage :=nil;
+
+         (*CoTaskMemFree(pPropNames[0]);
           CoTaskMemFree(pPropNames[1]);
           CoTaskMemFree(pPropNames[2]);
           CoTaskMemFree(pPropNames[3]);*)
