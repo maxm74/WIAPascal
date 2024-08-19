@@ -16,7 +16,7 @@
 
 unit WiaDevD;
 
-{$MODE DELPHI}
+{$H+}
 {$ALIGN 8}
 
 interface

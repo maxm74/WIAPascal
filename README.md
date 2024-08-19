@@ -18,7 +18,7 @@ The library was created from scratch by Massimo Magnano since there was nothing 
   For Delphi use wiapascal_dpkg.dpk package (will be written and tested in the near future),
 - Supported Compilers:
   Lazarus / Free Pascal
-  VCL: (will be written and tested in the near future)
+  Delphi  (on Delphi 11 there is an Internal Error adding STI.pas to package)
 
 See the changelog.txt file for Change Log
 

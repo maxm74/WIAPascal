@@ -1,6 +1,6 @@
 unit WIA;
 
-{$mode objfpc}{$H+}
+{$H+}
 
 interface
 

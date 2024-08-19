@@ -15,13 +15,14 @@
 
 unit STI;
 
-{$MODE DELPHI}
+{$ALIGN 8}
+{$H+}
+{$POINTERMATH ON}
 
 interface
 
 uses Windows;
 
-{$ALIGN 8}
 
 const
   //
@@ -79,6 +80,15 @@ const
   STI_MAX_INTERNAL_NAME_LENGTH = 128;
 
 type
+{$IFNDEF FPC}
+{$IFDEF CPUX64}
+  PtrInt = Int64;
+  PtrUInt = UInt64;
+{$ELSE}
+  PtrInt = longint;
+  PtrUInt = Longword;
+{$ENDIF}
+{$ENDIF}
   // begin sti_device_information
 
   //
@@ -457,7 +467,7 @@ type
 
       // Handle of Win32 auto-reset event , which will be signalled whenever device has
       // notification pending
-      hEvent : HANDLE;
+      hEvent : THANDLE;
 
       // Code of notification message, sent to window
       uiNotificationMessage : UINT;
@@ -478,7 +488,7 @@ type
       dwSize : DWORD;
 
       // GUID of the notification being retrieved
-      guidNotificationCode : GUID;
+      guidNotificationCode : TGUID;
 
       // Vendor specific notification description
       abNotificationData : array[0..(MAX_NOTIFICATION_DATA)-1] of BYTE;
@@ -645,10 +655,10 @@ type
     function GetLastError(out pdwLastDeviceError: DWORD): HRESULT; stdcall;
     function LockDevice(dwTimeOut: DWORD): HRESULT; stdcall;
     function UnLockDevice(): HRESULT; stdcall;
-    function RawReadData(var lpBuffer: LPVOID; var lpdwNumberOfBytes: DWORD; lpOverlapped: LPOVERLAPPED): HRESULT; stdcall;
-    function RawWriteData(lpBuffer: LPVOID; nNumberOfBytes: DWORD; lpOverlapped: LPOVERLAPPED): HRESULT; stdcall;
-    function RawReadCommand(var lpBuffer: LPVOID; var lpdwNumberOfBytes: DWORD; lpOverlapped: LPOVERLAPPED): HRESULT; stdcall;
-    function RawWriteCommand(lpBuffer: LPVOID; nNumberOfBytes: DWORD; lpOverlapped: LPOVERLAPPED): HRESULT; stdcall;
+    function RawReadData(var lpBuffer: LPVOID; var lpdwNumberOfBytes: DWORD; lpOverlapped: POVERLAPPED): HRESULT; stdcall;
+    function RawWriteData(lpBuffer: LPVOID; nNumberOfBytes: DWORD; lpOverlapped: POVERLAPPED): HRESULT; stdcall;
+    function RawReadCommand(var lpBuffer: LPVOID; var lpdwNumberOfBytes: DWORD; lpOverlapped: POVERLAPPED): HRESULT; stdcall;
+    function RawWriteCommand(lpBuffer: LPVOID; nNumberOfBytes: DWORD; lpOverlapped: POVERLAPPED): HRESULT; stdcall;
 
     //
     // Subscription is used to enable "control center" style applications , where flow of
@@ -688,33 +698,32 @@ implementation
 
 function GET_STIVER_MAJOR(dwVersion : longint) : DWORD;
 begin
-  GET_STIVER_MAJOR :=HIWORD(dwVersion) and not(STI_VERSION_FLAG_MASK);
+  Result:= HIWORD(dwVersion) and not(STI_VERSION_FLAG_MASK);
 end;
 
 function GET_STIVER_MINOR(dwVersion : longint) : WORD;
 begin
-  GET_STIVER_MINOR :=LOWORD(dwVersion);
+  Result:= LOWORD(dwVersion);
 end;
 
 function GET_STIDEVICE_TYPE(dwDevType : longint) : WORD;
 begin
-  GET_STIDEVICE_TYPE :=HIWORD(dwDevType);
+  Result:= HIWORD(dwDevType);
 end;
 
 function GET_STIDEVICE_SUBTYPE(dwDevType : longint) : WORD;
 begin
-  GET_STIDEVICE_SUBTYPE :=LOWORD(dwDevType);
+  Result:= LOWORD(dwDevType);
 end;
 
 function GET_STIDCOMMON_CAPS(dwGenericCaps : longint) : WORD;
 begin
-  GET_STIDCOMMON_CAPS:=LOWORD(dwGenericCaps);
+  Result:= LOWORD(dwGenericCaps);
 end;
 
 function GET_STIVENDOR_CAPS(dwGenericCaps : longint) : WORD;
 begin
-  GET_STIVENDOR_CAPS:=HIWORD(dwGenericCaps);
+  Result:= HIWORD(dwGenericCaps);
 end;
 
 end.
-

@@ -33,11 +33,11 @@ unit WIA_TLB;
 {$WRITEABLECONST ON}
 {$VARPROPSETTER ON}
 {$ALIGN 4}
-{$MODE DELPHI}
+{$H+}
 
 interface
 
-uses Windows, Classes, Variants, OleServer, ActiveX;
+uses Windows, Classes, Variants, ActiveX;
 
 // *********************************************************************//
 // GUIDS declared in the TypeLibrary. Following prefixes are used:        

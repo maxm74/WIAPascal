@@ -31,7 +31,7 @@ unit WIA_ScanProfiles_TLB;
 {$WRITEABLECONST ON}
 {$VARPROPSETTER ON}
 {$ALIGN 4}
-{$MODE DELPHI}
+{$H+}
 
 interface
 

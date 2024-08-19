@@ -16,7 +16,7 @@
 
 unit WIA_LH;
 
-{$MODE DELPHI}
+{$H+}
 
 interface
 
@@ -54,6 +54,10 @@ const
   CLSID_WiaLog : TGUID = '{A1E75357-881A-419e-83E2-BB16DB197C68}';
 
 type
+  BSTR = POLESTR;
+  PLPOLESTR	= ^POLESTR;
+  REFIID = TIID;
+
   IWiaDevMgr = interface;
   IEnumWIA_DEV_INFO = interface;
   IWiaEventCallback = interface;
@@ -98,13 +102,13 @@ type
 
   _WIA_PROPID_TO_NAME = record
       propid : PROPID;
-      pszName : LPOLESTR;
+      pszName : POLESTR;
   end;
   WIA_PROPID_TO_NAME = _WIA_PROPID_TO_NAME;
   PWIA_PROPID_TO_NAME = ^WIA_PROPID_TO_NAME;
 
   _WIA_FORMAT_INFO = record
-      guidFormatID : GUID;
+      guidFormatID : TGUID;
       lTymed : LONG;
     end;
   WIA_FORMAT_INFO = _WIA_FORMAT_INFO;
@@ -193,7 +197,7 @@ type
 
   _WIA_DATA_CALLBACK_HEADER = record
       lSize : LONG;
-      guidFormatID : GUID;
+      guidFormatID : TGUID;
       lBufferSize : LONG;
       lPageCount : LONG;
   end;
@@ -367,7 +371,7 @@ type
   end;
 
   _WIA_DEV_CAP = record
-        guid : GUID;
+        guid : TGUID;
         ulFlags : ULONG;
         bstrName : BSTR;
         bstrDescription : BSTR;
@@ -431,7 +435,7 @@ type
                  bstrText: BSTR): HRESULT; stdcall;
 
     function hResultEx(lMethodId: LONG;
-                       hResult: HRESULT): HRESULT; stdcall;
+                       hhResult: HRESULT): HRESULT; stdcall;
 
     function LogEx(lMethodId: LONG;
                    lFlags,
@@ -534,7 +538,7 @@ type
 
     function FilterPreviewImage(lFlags: LONG;
                                 pWiaChildItem2: IWiaItem2;
-                                InputImageExtents: RECT;
+                                InputImageExtents: TRECT;
                                 pInputStream: IStream): HRESULT; stdcall;
 
     function ApplyProperties(pWiaPropertyStorage: IWiaPropertyStorage): HRESULT; stdcall;

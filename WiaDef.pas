@@ -15,7 +15,9 @@
 
 unit WiaDef;
 
-{$MODE DELPHI}
+
+{$H+}
+{$POINTERMATH ON}
 
 interface
 
@@ -25,7 +27,7 @@ type
   //MaxM: originally in "wia_lh.h" but moved here to avoid circular unit reference
   _WIA_PROPID_TO_NAME = record
       propid : PROPID;
-      pszName : LPOLESTR;
+      pszName : POLESTR;
   end;
   WIA_PROPID_TO_NAME = _WIA_PROPID_TO_NAME;
   PWIA_PROPID_TO_NAME = ^WIA_PROPID_TO_NAME;
@@ -2272,7 +2274,7 @@ const
   var
      g_psDeviceInfo : array[0..WIA_NUM_DIP-1] of PROPSPEC; //cvar; external;
      g_piDeviceInfo : array[0..WIA_NUM_DIP-1] of PROPID;   //cvar;external;
-     g_pszDeviceInfo : array[0..WIA_NUM_DIP-1] of LPOLESTR;//cvar;external;
+     g_pszDeviceInfo : array[0..WIA_NUM_DIP-1] of POLESTR;//cvar;external;
   {$endif}
 
   //
@@ -2520,7 +2522,7 @@ end;
 { #todo -oMaxM : Maybe deferred Word^ etc... }
 function WIA_PROP_LIST_VALUE(ppv: PPROPVARIANT; index: Integer): Variant;
 begin
-  Result :=nil;
+  TVarData(Result).VType := varempty;
   if (ppv <> nil) then
     if not((index > (ppv^.cal.cElems - WIA_LIST_VALUES)) or (index < -WIA_LIST_NOM))
     then Case ppv^.vt of
@@ -2531,7 +2533,7 @@ begin
          VT_I4:  Result :=ppv^.cal.pElems[WIA_LIST_VALUES + index];
          VT_R4:  Result :=ppv^.caflt.pElems[WIA_LIST_VALUES + index];
          VT_R8:  Result :=ppv^.cadbl.pElems[WIA_LIST_VALUES + index];
-         VT_BSTR:Result :=ppv^.cabstr.pElems[WIA_LIST_VALUES + index];
+         VT_BSTR:Result :=String(ppv^.cabstr.pElems[WIA_LIST_VALUES + index]);
        end;
 end;
 
