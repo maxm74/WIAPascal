@@ -8,14 +8,8 @@ unit WIAPascal_pkg;
 interface
 
 uses
-  WIA_LH, WIA_TLB, WiaDef, WiaDevD, WIA_ScanProfiles_TLB, STI, WIA, LazarusPackageIntf;
+  WIA_LH, WIA_TLB, WiaDef, WiaDevD, WIA_ScanProfiles_TLB, STI, WIA, WIA_SelectForm;
 
 implementation
 
-procedure Register;
-begin
-end;
-
-initialization
-  RegisterPackage('WIAPascal_pkg', @Register);
 end.

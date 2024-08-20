@@ -3,7 +3,6 @@
   <Package Version="5">
     <PathDelim Value="\"/>
     <Name Value="WIAPascal_pkg"/>
-    <Type Value="RunAndDesignTime"/>
     <Author Value="MaxM"/>
     <CompilerOptions>
       <Version Value="11"/>
@@ -43,8 +42,15 @@
         <Filename Value="WIA.pas"/>
         <UnitName Value="WIA"/>
       </Item>
+      <Item>
+        <Filename Value="WIA_SelectForm.pas"/>
+        <UnitName Value="WIA_SelectForm"/>
+      </Item>
     </Files>
     <RequiredPkgs>
+      <Item>
+        <PackageName Value="LCLBase"/>
+      </Item>
       <Item>
         <PackageName Value="FCL"/>
       </Item>

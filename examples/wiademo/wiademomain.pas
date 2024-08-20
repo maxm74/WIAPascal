@@ -16,14 +16,17 @@ type
 
   TForm1 = class(TForm)
     btIntCap: TButton;
-    btIntCapture: TButton;
+    btListChilds: TButton;
     btIntList: TButton;
     Button1: TButton;
+    btSelect: TButton;
     edDevTest: TEdit;
     Label1: TLabel;
     Memo2: TMemo;
     procedure btIntCapClick(Sender: TObject);
+    procedure btListChildsClick(Sender: TObject);
     procedure btIntListClick(Sender: TObject);
+    procedure btSelectClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -179,6 +182,19 @@ begin
   end;
 end;
 
+procedure TForm1.btSelectClick(Sender: TObject);
+var
+   newIndex: Integer;
+
+begin
+  newIndex:= FWIA.SelectDeviceDialog;
+  if (newIndex > -1) then
+  begin
+    FWIA.SelectedDeviceIndex:= newIndex;
+    edDevTest.Text:= IntToStr(newIndex);
+  end;
+end;
+
 procedure TForm1.Button1Click(Sender: TObject);
 var
    test :IWiaItem2;
@@ -259,6 +275,54 @@ begin
 
      pWiaPropertyStorage :=nil;
   finally
+  end;
+end;
+
+procedure TForm1.btListChildsClick(Sender: TObject);
+var
+   test :IWiaItem2;
+   pWiaTransfer: IWiaTransfer;
+   lItemType: LONG;
+   pIEnumItem: IEnumWiaItem2;
+   pItem: IWiaItem2;
+   itemCount,
+   itemFetched: ULONG;
+   i: Integer;
+   curDev: TWIADevice;
+
+begin
+  Memo2.Lines.Add(#13#10+' List of Childs for Device : '+edDevTest.Text);
+  curDev :=FWia.Devices[StrToInt(edDevTest.Text)];
+  test :=curDev.WiaDevice;
+//  lres :=test.QueryInterface(IID_IWiaTransfer, pWiaTransfer);
+//  pWiaTransfer.Download(0, );
+  lItemType:= 0;
+  lres:= test.GetItemType(lItemType);
+
+  Memo2.Lines.Add(IntToHex(lItemType));
+
+  lres:= test.EnumChildItems(nil, pIEnumItem);
+  if (lres = S_OK) then
+  begin
+    lres:= pIEnumItem.GetCount(itemCount);
+    if (lres = S_OK) then
+    begin
+      for i:=0 to itemCount-1 do
+      begin
+        lres :=pIEnumItem.Next(1, pItem, itemFetched);
+        if (lres = S_OK) then
+        begin
+          lItemType:= 0;
+          lres:= pItem.GetItemType(lItemType);
+
+          Memo2.Lines.Add('  '+IntToHex(lItemType));
+
+          pItem:= nil;
+        end;
+      end;
+    end;
+
+    pIEnumItem:= nil;
   end;
 end;
 

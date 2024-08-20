@@ -1,6 +1,7 @@
 WIAPASCAL CHANGE LOG
 ======================
 
+2024/08/20 Added SelectDeviceDialog; Added in demo List Childs and SelectDeviceDialog
 2024/08/19 Porting to Delphi
 2024/06/05 Added TWIADevice.GetWiaDevice (Create the Device); 
            Added WIA property LIST container MACROS to SDK files; 

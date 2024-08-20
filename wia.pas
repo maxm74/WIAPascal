@@ -19,7 +19,7 @@ type
 
   { TWIADevice }
 
-  TWIADevice = class(TObject)
+  TWIADevice = class(TInterfacedObject(*, IWiaTransferCallback*))
   protected
     rOwner: TWIAManager;
     rIndex: Integer;
@@ -73,18 +73,24 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    {Finds a matching Device index}
+    //Clears the list of sources
+    procedure ClearDeviceList;
+
+    //Display a dialog to let the user choose a Device and returns it's index
+    function SelectDeviceDialog: Integer; virtual;
+
+    //Finds a matching Device index
     function FindDevice(AID: String): Integer; overload;
     function FindDevice(Value: TWIADevice): Integer; overload;
     function FindDevice(AName: String; AManufacturer: String=''): Integer; overload;
 
-    {Returns a Device}
+    //Returns a Device
     property Devices[Index: Integer]: TWIADevice read GetDevice;
 
-    {Returns the number of Devices}
+    //Returns the number of Devices
     property DevicesCount: Integer read GetDevicesCount;
 
-    //Selected Device in a dialog
+    //Selected Device index
     property SelectedDeviceIndex: Integer read GetSelectedDeviceIndex write SetSelectedDeviceIndex;
 
     //Selected Device in a dialog
@@ -101,7 +107,7 @@ const
 
 implementation
 
-uses ComObj, ActiveX;
+uses ComObj, ActiveX, WIA_SelectForm;
 
 { TWIADevice }
 
@@ -318,6 +324,17 @@ begin
   end;
 end;
 
+function TWIAManager.SelectDeviceDialog: Integer;
+begin
+  Result:= -1;
+  try
+    Result:= TWIASelectForm.Execute(Self);
+
+  finally
+    FreeAndNil(WIASelectForm);
+  end;
+end;
+
 constructor TWIAManager.Create;
 begin
   inherited Create;
@@ -333,6 +350,11 @@ begin
   if (pWIA_DevMgr<>nil) then pWIA_DevMgr :=nil; //Free the Interface
 
   inherited Destroy;
+end;
+
+procedure TWIAManager.ClearDeviceList;
+begin
+  EmptyDeviceList(True);
 end;
 
 function TWIAManager.FindDevice(AID: String): Integer;

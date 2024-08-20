@@ -20,7 +20,7 @@ object Form1: TForm1
   object edDevTest: TEdit
     Left = 499
     Height = 23
-    Top = 40
+    Top = 72
     Width = 40
     TabOrder = 1
     Text = '1'
@@ -28,7 +28,7 @@ object Form1: TForm1
   object Label1: TLabel
     Left = 419
     Height = 15
-    Top = 43
+    Top = 75
     Width = 74
     Caption = 'Device to Use:'
   end
@@ -44,28 +44,37 @@ object Form1: TForm1
   object btIntCap: TButton
     Left = 416
     Height = 25
-    Top = 72
+    Top = 104
     Width = 123
     Caption = 'List Capabilities'
     TabOrder = 3
     OnClick = btIntCapClick
   end
-  object btIntCapture: TButton
+  object btListChilds: TButton
     Left = 416
     Height = 25
-    Top = 104
+    Top = 136
     Width = 123
-    Caption = 'Capture'
-    Enabled = False
+    Caption = 'List Childs'
     TabOrder = 4
+    OnClick = btListChildsClick
   end
   object Button1: TButton
     Left = 435
     Height = 25
-    Top = 144
+    Top = 176
     Width = 75
     Caption = 'Button1'
     TabOrder = 5
     OnClick = Button1Click
+  end
+  object btSelect: TButton
+    Left = 416
+    Height = 25
+    Top = 40
+    Width = 123
+    Caption = 'Select Device'
+    TabOrder = 6
+    OnClick = btSelectClick
   end
 end
