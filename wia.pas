@@ -5,7 +5,7 @@ unit WIA;
 interface
 
 uses
-  Windows, Classes, SysUtils, WiaDef, WIA_LH;
+  Windows, Classes, SysUtils, ComObj, ActiveX, WiaDef, WIA_LH;
 
 type
   TWIAManager = class;
@@ -19,7 +19,7 @@ type
 
   { TWIADevice }
 
-  TWIADevice = class(TInterfacedObject(*, IWiaTransferCallback*))
+  TWIADevice = class(TNoRefCountObject, IWiaTransferCallback)
   protected
     rOwner: TWIAManager;
     rIndex: Integer;
@@ -28,14 +28,30 @@ type
     rName: String;
     rType: TWIADeviceType;
     rSubType: Word;
+    rVersion,
+    rVersionSub: Integer;
     lres: HResult;
-    pWiaDevice: IWiaItem2;
+    pWiaRootItem: IWiaItem2;
+    StreamDestination: TFileStream;
+    StreamAdapter: TStreamAdapter;
+    DownloadComplete: Boolean;
 
-    function GetWiaDevice: IWiaItem2;
+    function GetWiaRootItem: IWiaItem2;
+    function CreateDestinationStream(bstrItemName: String; var ppDestination: IStream): HRESULT;
 
   public
+    function TransferCallback(lFlags: LONG;
+                              pWiaTransferParams: PWiaTransferParams): HRESULT; stdcall;
+
+    function GetNextStream(lFlags: LONG;
+                           bstrItemName,
+                           bstrFullItemName: BSTR;
+                           out ppDestination: IStream): HRESULT; stdcall;
+
     constructor Create(AOwner: TWIAManager; AIndex: Integer; ADeviceID: String);
     destructor Destroy; override;
+
+    function Download(const childIndex: Integer = 0): Boolean; virtual;
 
     property ID: String read rID;
     property Manufacturer: String read rManufacturer;
@@ -43,7 +59,7 @@ type
     property Type_: TWIADeviceType read rType;
     property SubType: Word read rSubType;
 
-    property WiaDevice: IWiaItem2 read GetWiaDevice;
+    property WiaRootItem: IWiaItem2 read GetWiaRootItem;
   end;
 
   { TWIAManager }
@@ -107,11 +123,34 @@ const
 
 implementation
 
-uses ComObj, ActiveX, WIA_SelectForm;
+uses WIA_SelectForm;
+
+procedure VersionStrToInt(const s: String; var Ver, VerSub: Integer);
+var
+   pPos, ppPos: Integer;
+
+begin
+  Ver:= 0;
+  VerSub:= 0;
+
+  try
+     pPos:= Pos('.', s);
+     if (pPos > 0) then
+     begin
+       Ver:= StrToInt(Copy(s, 0, pPos-1));
+       ppPos:= Pos('.', s, pPos+1);
+       if (ppPos > 0)
+       then VerSub:= StrToInt(Copy(s, pPos+1, ppPos-1))
+       else VerSub:= StrToInt(Copy(s, pPos+1, 255));
+     end;
+  except
+
+  end;
+end;
 
 { TWIADevice }
 
-function TWIADevice.GetWiaDevice: IWiaItem2;
+function TWIADevice.GetWiaRootItem: IWiaItem2;
 //var
 //   OleStrID :BSTR;
 
@@ -120,17 +159,68 @@ begin
 
   if (rOwner <> nil) then
   begin
-    if (pWiaDevice = nil)
+    if (pWiaRootItem = nil)
     then try
-           //OleStrID :=SysAllocString(StringToOleStr(Self.rID));
-
-           lres :=rOwner.pWIA_DevMgr.CreateDevice(0, StringToOleStr(Self.rID), pWiaDevice);
-           if (lres = S_OK) then Result :=pWiaDevice;
+           lres :=rOwner.pWIA_DevMgr.CreateDevice(0, StringToOleStr(Self.rID), pWiaRootItem);
+           if (lres = S_OK) then Result :=pWiaRootItem;
          finally
-           //if (OleStrID<>nil) then SysFreeString(OleStrID);
          end
-    else Result :=pWiaDevice;
+    else Result :=pWiaRootItem;
   end;
+end;
+
+function TWIADevice.CreateDestinationStream(bstrItemName: String; var ppDestination: IStream): HRESULT;
+begin
+  { #todo 10 -oMaxM : Gestione degli Stream in ingresso }
+
+  if (StreamDestination = nil)
+  then StreamDestination:= TFileStream.Create('testWia.dat', fmCreate);
+
+  if (StreamAdapter = nil)
+  then StreamAdapter:= TStreamAdapter.Create(StreamDestination, soReference);
+end;
+
+function TWIADevice.TransferCallback(lFlags: LONG; pWiaTransferParams: PWiaTransferParams): HRESULT; stdcall;
+begin
+  Result:= S_OK;
+
+  if (pWiaTransferParams <> nil) then
+  Case pWiaTransferParams^.lMessage of
+    WIA_TRANSFER_MSG_STATUS: begin
+    end;
+    WIA_TRANSFER_MSG_END_OF_STREAM: begin
+      if (StreamDestination <> nil) then
+      begin
+        StreamDestination.Flush;
+        //FreeAndNil(StreamDestination);
+      end;
+    end;
+    WIA_TRANSFER_MSG_END_OF_TRANSFER: begin
+      DownloadComplete:= True;
+      if (StreamDestination <> nil) then
+      begin
+        //StreamDestination.Flush;
+        FreeAndNil(StreamDestination);
+      end;
+    end;
+    WIA_TRANSFER_MSG_DEVICE_STATUS: begin
+    end;
+    WIA_TRANSFER_MSG_NEW_PAGE: begin
+    end
+    else begin
+
+    end;
+  end;
+end;
+
+function TWIADevice.GetNextStream(lFlags: LONG; bstrItemName, bstrFullItemName: BSTR; out ppDestination: IStream): HRESULT; stdcall;
+begin
+  Result:= S_OK;
+
+  //  Return a new stream for this item's data.
+  //
+  Result:= CreateDestinationStream(bstrItemName, ppDestination);
+
 end;
 
 constructor TWIADevice.Create(AOwner: TWIAManager; AIndex: Integer; ADeviceID: String);
@@ -140,14 +230,79 @@ begin
   rOwner :=AOwner;
   rIndex :=AIndex;
   rID :=ADeviceID;
-  pWiaDevice :=nil;
+  pWiaRootItem :=nil;
+  StreamAdapter:= nil;
+  StreamDestination:= nil;
+  DownloadComplete:= False;
 end;
 
 destructor TWIADevice.Destroy;
 begin
-  if (pWiaDevice<>nil) then pWiaDevice:=nil; //Free the Interface
+  if (pWiaRootItem <> nil) then pWiaRootItem:= nil; //Free the Interface
+  if (StreamAdapter <> nil) then StreamAdapter.Free;
+  if (StreamDestination <> nil) then StreamDestination.Free;
 
   inherited Destroy;
+end;
+
+(*
+            if (device.Version == WiaVersion.Wia10)
+            {
+                // In WIA 1.0, the root device only has a single child, "Scan"
+                // https://docs.microsoft.com/en-us/windows-hardware/drivers/image/wia-scanner-tree
+                return device.GetSubItems().First();
+            }
+            else
+            {
+                // In WIA 2.0, the root device may have multiple children, i.e. "Flatbed" and "Feeder"
+                // https://docs.microsoft.com/en-us/windows-hardware/drivers/image/non-duplex-capable-document-feeder
+                // The "Feeder" child may also have a pair of children (for front/back sides with duplex)
+                // https://docs.microsoft.com/en-us/windows-hardware/drivers/image/simple-duplex-capable-document-feeder
+                var items = device.GetSubItems();
+                var preferredItemName = _options.PaperSource == PaperSource.Flatbed ? "Flatbed" : "Feeder";
+                return items.FirstOrDefault(x => x.Name() == preferredItemName) ?? items.First();
+            }
+
+*)
+
+function TWIADevice.Download(const childIndex: Integer): Boolean;
+var
+   pWiaTransfer: IWiaTransfer;
+   myTickStart, curTick:QWord;
+
+begin
+  Result:= False;
+
+  if (pWiaRootItem = nil) then GetWiaRootItem;
+  if (pWiaRootItem <> nil) then
+  begin
+    //Vedi Nota Sopra...
+    Case rVersion of
+      1: begin
+
+      end;
+      2: begin
+      end;
+    end;
+
+    lres:= pWiaRootItem.QueryInterface(IID_IWiaTransfer, pWiaTransfer);
+    if (lres = S_OK) and (pWiaTransfer <> nil) then
+    begin
+      lres:= pWiaTransfer.Download(0, Self); //WIA_TRANSFER_ACQUIRE_CHILDREN);
+
+      DownloadComplete:= False;
+      myTickStart:= GetTickCount64; curTick:= myTickStart;
+      repeat
+        CheckSynchronize;
+
+        curTick:= GetTickCount64;
+
+      until DownloadComplete or ((curTick-myTickStart)>30000);
+
+      // Release the IWiaTransfer
+      pWiaTransfer:= nil;
+    end;
+  end;
 end;
 
 { TWIAManager }
@@ -217,8 +372,8 @@ var
   pWiaPropertyStorage: IWiaPropertyStorage;
   //pPropIDS: array [0..3] of PROPID;
   //pPropNames: array [0..3] of LPOLESTR;
-  pPropSpec: array [0..3] of PROPSPEC;
-  pPropVar: array [0..3] of PROPVARIANT;
+  pPropSpec: array [0..4] of PROPSPEC;
+  pPropVar: array [0..4] of PROPVARIANT;
 
 begin
   Result :=False;
@@ -265,6 +420,14 @@ begin
         pPropSpec[3].propid := WIA_DIP_DEV_TYPE;
         //pPropIDS[3] :=WIA_DIP_DEV_TYPE;
 
+        //
+        // Device Wia Version
+        //
+        pPropSpec[4].ulKind := PRSPEC_PROPID;
+        pPropSpec[4].propid := WIA_DIP_WIA_VERSION;
+        //pPropIDS[4] :=WIA_DIP_WIA_VERSION;
+
+
         SetLength(rDeviceList, devCount);
         EmptyDeviceList(False);
 
@@ -283,10 +446,10 @@ begin
           //
           // Ask for the property values
           //
-          lres := pWiaPropertyStorage.ReadMultiple(4, @pPropSpec, @pPropVar);
+          lres := pWiaPropertyStorage.ReadMultiple(Length(pPropSpec), @pPropSpec, @pPropVar);
 
 
-         // lres := pWiaPropertyStorage.ReadPropertyNames(4, @pPropIDS, @pPropNames);
+         // lres := pWiaPropertyStorage.ReadPropertyNames(Length(pPropIDS), @pPropIDS, @pPropNames);
 
           if (VT_BSTR = pPropVar[0].vt)
           then rDeviceList[i] :=TWIADevice.Create(Self, i, pPropVar[0].bstrVal)
@@ -304,7 +467,11 @@ begin
           then rDeviceList[i].rType :=TWiaDeviceType(pPropVar[3].iVal)
           else Exception.Create('DeviceType of Device '+IntToStr(i)+' not Integer');
 
-          pWiaPropertyStorage :=nil;
+          if (VT_BSTR = pPropVar[4].vt)
+          then VersionStrToInt(pPropVar[4].bstrVal, rDeviceList[i].rVersion, rDeviceList[i].rVersionSub)
+          else Exception.Create('WiaVersion of Device '+IntToStr(i)+' not String');
+
+          pWiaPropertyStorage:= nil;
 
          (*CoTaskMemFree(pPropNames[0]);
           CoTaskMemFree(pPropNames[1]);

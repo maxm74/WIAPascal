@@ -18,7 +18,7 @@ type
     btIntCap: TButton;
     btListChilds: TButton;
     btIntList: TButton;
-    Button1: TButton;
+    btDownload: TButton;
     btSelect: TButton;
     edDevTest: TEdit;
     Label1: TLabel;
@@ -27,7 +27,7 @@ type
     procedure btListChildsClick(Sender: TObject);
     procedure btIntListClick(Sender: TObject);
     procedure btSelectClick(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
+    procedure btDownloadClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
   private
@@ -195,7 +195,7 @@ begin
   end;
 end;
 
-procedure TForm1.Button1Click(Sender: TObject);
+procedure TForm1.btDownloadClick(Sender: TObject);
 var
    test :IWiaItem2;
    curDev: TWIADevice;
@@ -205,19 +205,12 @@ var
 
 
 begin
- // curDev :=FWia.Devices[StrToInt(edDevTest.Text)];
- // test :=curDev.WiaDevice;
-    try
- //   lres :=CoCreateInstance(CLSID_WiaDevMgr2, nil, CLSCTX_LOCAL_SERVER, IID_IWiaDevMgr2, pWIA_DevMgr);
-
- //   lres :=pWIA_DevMgr.SelectDeviceDlg(SElf.Handle, 0, $00000001, OleStrID, pWiaDevice);
- //   if (lres = S_OK) then Memo2.Lines.Add(OleStrID);
-
- //   pWIA_DevMgr :=nil;
- //   pWiaDevice :=nil;
-    finally
-//      if (OleStrID<>nil) then CoTaskMemFree(OleStrID);
-    end;
+  try
+     Memo2.Lines.Add(#13#10+' Download on Device : '+edDevTest.Text);
+     curDev :=FWia.Devices[StrToInt(edDevTest.Text)];
+     curDev.Download;
+  finally
+  end;
 end;
 
 procedure TForm1.btIntCapClick(Sender: TObject);
@@ -238,7 +231,7 @@ begin
   try
      Memo2.Lines.Add(#13#10+' List of Capabilities for Device : '+edDevTest.Text);
      curDev :=FWia.Devices[StrToInt(edDevTest.Text)];
-     test :=curDev.WiaDevice;
+     test :=curDev.WiaRootItem;
      lres :=test.QueryInterface(IID_IWiaPropertyStorage, pWiaPropertyStorage);
      //WIA_IPS_PAGE_SIZE
       pPropSpec[0].ulKind := PRSPEC_PROPID;
@@ -289,11 +282,15 @@ var
    itemFetched: ULONG;
    i: Integer;
    curDev: TWIADevice;
+   pPropSpec: PROPSPEC;
+   pPropVar: PROPVARIANT;
+   pWiaPropertyStorage: IWiaPropertyStorage;
+   rName: String;
 
 begin
   Memo2.Lines.Add(#13#10+' List of Childs for Device : '+edDevTest.Text);
   curDev :=FWia.Devices[StrToInt(edDevTest.Text)];
-  test :=curDev.WiaDevice;
+  test :=curDev.WiaRootItem;
 //  lres :=test.QueryInterface(IID_IWiaTransfer, pWiaTransfer);
 //  pWiaTransfer.Download(0, );
   lItemType:= 0;
@@ -313,9 +310,24 @@ begin
         if (lres = S_OK) then
         begin
           lItemType:= 0;
-          lres:= pItem.GetItemType(lItemType);
 
-          Memo2.Lines.Add('  '+IntToHex(lItemType));
+          lres:= pItem.GetItemType(lItemType);
+          lres:= pItem.QueryInterface(IID_IWiaPropertyStorage, pWiaPropertyStorage);
+          if (pWiaPropertyStorage <> nil) then
+          begin
+            pPropSpec.ulKind := PRSPEC_PROPID;
+            pPropSpec.propid := WIA_IPA_ITEM_NAME;
+
+            lres := pWiaPropertyStorage.ReadMultiple(1, @pPropSpec, @pPropVar);
+
+            if (VT_BSTR = pPropVar.vt)
+            then rName :=pPropVar.bstrVal
+            else rName:='?';
+
+            pWiaPropertyStorage:= nil;
+          end;
+
+          Memo2.Lines.Add('  Name='+rName+'  Kind='+IntToHex(lItemType));
 
           pItem:= nil;
         end;
