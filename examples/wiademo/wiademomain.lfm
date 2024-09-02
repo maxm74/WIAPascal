@@ -1,17 +1,17 @@
 object Form1: TForm1
   Left = 391
-  Height = 210
+  Height = 234
   Top = 158
   Width = 549
   Caption = 'WIA Demos'
-  ClientHeight = 210
+  ClientHeight = 234
   ClientWidth = 549
   LCLVersion = '3.99.0.0'
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   object Memo2: TMemo
     Left = 0
-    Height = 200
+    Height = 224
     Top = 8
     Width = 416
     ScrollBars = ssAutoBoth
@@ -76,5 +76,12 @@ object Form1: TForm1
     Caption = 'Select Device'
     TabOrder = 6
     OnClick = btSelectClick
+  end
+  object edSelItemName: TEdit
+    Left = 424
+    Height = 23
+    Top = 200
+    Width = 112
+    TabOrder = 7
   end
 end

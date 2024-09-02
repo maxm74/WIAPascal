@@ -10,6 +10,12 @@ uses
 type
   TWIAManager = class;
 
+  TWIAItem = record
+    Name: String;
+    ItemType: LONG;
+  end;
+  PWIAItem = ^TWIAItem;
+
   TWIADeviceType = (
       WIADeviceTypeDefault          = StiDeviceTypeDefault,
       WIADeviceTypeScanner          = StiDeviceTypeScanner,
@@ -31,12 +37,24 @@ type
     rVersion,
     rVersionSub: Integer;
     lres: HResult;
-    pWiaRootItem: IWiaItem2;
+    pRootItem,
+    pSelectedItem: IWiaItem2;
     StreamDestination: TFileStream;
     StreamAdapter: TStreamAdapter;
     DownloadComplete: Boolean;
+    rSelectedItemIndex: Integer;
+    HasEnumerated: Boolean;
+    rItemList : array of TWIAItem;
 
-    function GetWiaRootItem: IWiaItem2;
+    function GeItem(Index: Integer): PWIAItem;
+    function GetItemCount: Integer;
+    procedure SetSelectedItemIndex(AValue: Integer);
+    function GetRootItem: IWiaItem2;
+    function GetSelectedItem: IWiaItem2;
+
+    //Enumerate the avaliable items
+    function EnumerateItems: Boolean;
+
     function CreateDestinationStream(bstrItemName: String; var ppDestination: IStream): HRESULT;
 
   public
@@ -51,7 +69,9 @@ type
     constructor Create(AOwner: TWIAManager; AIndex: Integer; ADeviceID: String);
     destructor Destroy; override;
 
-    function Download(const childIndex: Integer = 0): Boolean; virtual;
+    function SelectItem(AName: String): Boolean;
+
+    function Download: Boolean; virtual;
 
     property ID: String read rID;
     property Manufacturer: String read rManufacturer;
@@ -59,7 +79,14 @@ type
     property Type_: TWIADeviceType read rType;
     property SubType: Word read rSubType;
 
-    property WiaRootItem: IWiaItem2 read GetWiaRootItem;
+    property ItemCount: Integer read GetItemCount;
+
+    //Returns a Item
+    property Items[Index: Integer]: PWIAItem read GeItem;
+
+    property RootItem: IWiaItem2 read GetRootItem;
+    property SelectedItemIndex: Integer read rSelectedItemIndex write SetSelectedItemIndex;
+    property SelectedItem: IWiaItem2 read GetSelectedItem;
   end;
 
   { TWIAManager }
@@ -73,7 +100,6 @@ type
     rDeviceList : array of TWIADevice;
 
     function GetSelectedDevice: TWIADevice;
-    function GetSelectedDeviceIndex: Integer;
     procedure SetSelectedDeviceIndex(AValue: Integer);
     function GetDevice(Index: Integer): TWIADevice;
     function GetDevicesCount: Integer;
@@ -107,7 +133,7 @@ type
     property DevicesCount: Integer read GetDevicesCount;
 
     //Selected Device index
-    property SelectedDeviceIndex: Integer read GetSelectedDeviceIndex write SetSelectedDeviceIndex;
+    property SelectedDeviceIndex: Integer read rSelectedDeviceIndex write SetSelectedDeviceIndex;
 
     //Selected Device in a dialog
     property SelectedDevice: TWIADevice read GetSelectedDevice;
@@ -150,7 +176,41 @@ end;
 
 { TWIADevice }
 
-function TWIADevice.GetWiaRootItem: IWiaItem2;
+function TWIADevice.GetSelectedItem: IWiaItem2;
+begin
+  //Enumerate Items if needed
+  if not(HasEnumerated)
+  then HasEnumerated:= EnumerateItems;
+
+  if (rSelectedItemIndex >= 0) and (rSelectedItemIndex < GetItemCount)
+  then Result:= pSelectedItem
+  else Result:= nil;
+end;
+
+function TWIADevice.GeItem(Index: Integer): PWIAItem;
+begin
+  if (Index >= 0) and (Index < Length(rItemList))
+  then Result:= @rItemList[Index]
+  else Result:= nil;
+end;
+
+function TWIADevice.GetItemCount: Integer;
+begin
+  //Enumerate Items if needed
+  if not(HasEnumerated)
+  then HasEnumerated:= EnumerateItems;
+
+  Result:= Length(rItemList);
+end;
+
+procedure TWIADevice.SetSelectedItemIndex(AValue: Integer);
+begin
+  if (rSelectedItemIndex <> AValue) and
+     (AValue >= 0) and (AValue < GetItemCount)
+  then rSelectedItemIndex:= AValue;
+end;
+
+function TWIADevice.GetRootItem: IWiaItem2;
 //var
 //   OleStrID :BSTR;
 
@@ -159,13 +219,73 @@ begin
 
   if (rOwner <> nil) then
   begin
-    if (pWiaRootItem = nil)
+    if (pRootItem = nil)
     then try
-           lres :=rOwner.pWIA_DevMgr.CreateDevice(0, StringToOleStr(Self.rID), pWiaRootItem);
-           if (lres = S_OK) then Result :=pWiaRootItem;
+           lres :=rOwner.pWIA_DevMgr.CreateDevice(0, StringToOleStr(Self.rID), pRootItem);
+           if (lres = S_OK) then Result :=pRootItem;
          finally
          end
-    else Result :=pWiaRootItem;
+    else Result :=pRootItem;
+  end;
+end;
+
+function TWIADevice.EnumerateItems: Boolean;
+var
+   pIEnumItem: IEnumWiaItem2;
+   pItem: IWiaItem2;
+   iCount,
+   itemFetched: ULONG;
+   i: Integer;
+   pPropSpec: PROPSPEC;
+   pPropVar: PROPVARIANT;
+   pWiaPropertyStorage: IWiaPropertyStorage;
+
+begin
+  Result :=False;
+  SetLength(rItemList, 0);
+
+  lres:= GetRootItem.EnumChildItems(nil, pIEnumItem);
+  if (lres = S_OK) then
+  begin
+    lres:= pIEnumItem.GetCount(iCount);
+    if (lres = S_OK) then
+    begin
+      SetLength(rItemList, iCount);
+
+      if (rSelectedItemIndex < 0) or (rSelectedItemIndex > iCount-1)
+      then rSelectedItemIndex:= 0;
+
+      for i:=0 to iCount-1 do
+      begin
+        lres:= pIEnumItem.Next(1, pItem, itemFetched);
+        if (lres = S_OK) then
+        begin
+          rItemList[i].ItemType:= 0;
+
+          lres:= pItem.GetItemType(rItemList[i].ItemType);
+          lres:= pItem.QueryInterface(IID_IWiaPropertyStorage, pWiaPropertyStorage);
+          if (pWiaPropertyStorage <> nil) then
+          begin
+            pPropSpec.ulKind := PRSPEC_PROPID;
+            pPropSpec.propid := WIA_IPA_ITEM_NAME;
+
+            lres := pWiaPropertyStorage.ReadMultiple(1, @pPropSpec, @pPropVar);
+
+            if (VT_BSTR = pPropVar.vt)
+            then rItemList[i].Name :=pPropVar.bstrVal
+            else rItemList[i].Name :='?';
+
+            pWiaPropertyStorage:= nil;
+          end;
+
+          if (i = rSelectedItemIndex)
+          then pSelectedItem:= pItem
+          else pItem:= nil;
+        end;
+      end;
+    end;
+
+    pIEnumItem:= nil;
   end;
 end;
 
@@ -174,10 +294,13 @@ begin
   { #todo 10 -oMaxM : Gestione degli Stream in ingresso }
 
   if (StreamDestination = nil)
-  then StreamDestination:= TFileStream.Create('testWia.dat', fmCreate);
+  then StreamDestination:= TFileStream.Create('testWia.bmp', fmCreate);
 
   if (StreamAdapter = nil)
   then StreamAdapter:= TStreamAdapter.Create(StreamDestination, soReference);
+
+  ppDestination:= StreamAdapter;
+  Result:= S_OK;
 end;
 
 function TWIADevice.TransferCallback(lFlags: LONG; pWiaTransferParams: PWiaTransferParams): HRESULT; stdcall;
@@ -228,9 +351,12 @@ begin
   inherited Create;
 
   rOwner :=AOwner;
+  HasEnumerated :=False;
+  rSelectedItemIndex :=-1;
   rIndex :=AIndex;
   rID :=ADeviceID;
-  pWiaRootItem :=nil;
+  pRootItem :=nil;
+  pSelectedItem :=nil;
   StreamAdapter:= nil;
   StreamDestination:= nil;
   DownloadComplete:= False;
@@ -238,11 +364,30 @@ end;
 
 destructor TWIADevice.Destroy;
 begin
-  if (pWiaRootItem <> nil) then pWiaRootItem:= nil; //Free the Interface
-  if (StreamAdapter <> nil) then StreamAdapter.Free;
+  if (pRootItem <> nil) then pRootItem:= nil; //Free the Interface
+  if (pSelectedItem <> nil) then pSelectedItem:= nil;
+  if (StreamAdapter <> nil) then StreamAdapter:= nil;
   if (StreamDestination <> nil) then StreamDestination.Free;
+  SetLength(rItemList, 0);
 
   inherited Destroy;
+end;
+
+function TWIADevice.SelectItem(AName: String): Boolean;
+var
+   pFindItem: IWiaItem2;
+
+begin
+  Result:= False;
+
+  lres:= GetRootItem.FindItemByName(0, PWideChar(AName), pFindItem);
+  if (lres = S_OK) then
+  begin
+    pSelectedItem:= nil; //Free Selected Item
+    pSelectedItem:= pFindItem;
+
+    Result:= True;
+  end;
 end;
 
 (*
@@ -265,7 +410,7 @@ end;
 
 *)
 
-function TWIADevice.Download(const childIndex: Integer): Boolean;
+function TWIADevice.Download: Boolean;
 var
    pWiaTransfer: IWiaTransfer;
    myTickStart, curTick:QWord;
@@ -273,10 +418,10 @@ var
 begin
   Result:= False;
 
-  if (pWiaRootItem = nil) then GetWiaRootItem;
-  if (pWiaRootItem <> nil) then
+  if (pSelectedItem = nil) then GetSelectedItem;
+  if (pSelectedItem <> nil) then
   begin
-    //Vedi Nota Sopra...
+(*    //Vedi Nota Sopra...
     Case rVersion of
       1: begin
 
@@ -284,11 +429,17 @@ begin
       2: begin
       end;
     end;
-
-    lres:= pWiaRootItem.QueryInterface(IID_IWiaTransfer, pWiaTransfer);
+*)
+    lres:= pSelectedItem.QueryInterface(IID_IWiaTransfer, pWiaTransfer);
     if (lres = S_OK) and (pWiaTransfer <> nil) then
     begin
-      lres:= pWiaTransfer.Download(0, Self); //WIA_TRANSFER_ACQUIRE_CHILDREN);
+      if (rItemList[rSelectedItemIndex].ItemType and WiaItemTypeTransfer = WiaItemTypeTransfer) then
+      begin
+        if (rItemList[rSelectedItemIndex].ItemType and WiaItemTypeFolder = WiaItemTypeFolder)
+        then lres:= pWiaTransfer.Download(WIA_TRANSFER_ACQUIRE_CHILDREN, Self)
+        else if (rItemList[rSelectedItemIndex].ItemType and WiaItemTypeFile = WiaItemTypeFile)
+             then lres:= pWiaTransfer.Download(0, Self);
+      end;
 
       DownloadComplete:= False;
       myTickStart:= GetTickCount64; curTick:= myTickStart;
@@ -309,48 +460,44 @@ end;
 
 function TWIAManager.GetSelectedDevice: TWIADevice;
 begin
-  if (rSelectedDeviceIndex>=0) and (rSelectedDeviceIndex<Length(rDeviceList))
-  then Result :=rDeviceList[rSelectedDeviceIndex]
-  else Result :=nil;
-end;
-
-function TWIAManager.GetSelectedDeviceIndex: Integer;
-begin
-   Result :=rSelectedDeviceIndex;
+  if (rSelectedDeviceIndex >= 0) and (rSelectedDeviceIndex < Length(rDeviceList))
+  then Result:= rDeviceList[rSelectedDeviceIndex]
+  else Result:= nil;
 end;
 
 procedure TWIAManager.SetSelectedDeviceIndex(AValue: Integer);
 begin
-  if (AValue<>rSelectedDeviceIndex) and (AValue>=0) and (AValue<Length(rDeviceList)) then
+  if (AValue <> rSelectedDeviceIndex) and
+     (AValue >= 0) and (AValue < Length(rDeviceList)) then
   begin
-    if (rDeviceList[AValue]<>nil)
-    then rSelectedDeviceIndex :=AValue
-    else rSelectedDeviceIndex :=-1;
+    if (rDeviceList[AValue] <> nil)
+    then rSelectedDeviceIndex:= AValue
+    else rSelectedDeviceIndex:= -1;
   end;
 end;
 
 function TWIAManager.GetDevice(Index: Integer): TWIADevice;
 begin
-  if (Index>=0) and (Index<Length(rDeviceList))
-  then Result :=rDeviceList[Index]
-  else Result :=nil;
+  if (Index >= 0) and (Index < Length(rDeviceList))
+  then Result:= rDeviceList[Index]
+  else Result:= nil;
 end;
 
 function TWIAManager.GetDevicesCount: Integer;
 begin
-  if (pWIA_DevMgr=nil)
-  then pWIA_DevMgr :=WIA_LH.IWiaDevMgr2(CreateDevManager);
+  if (pWIA_DevMgr = nil)
+  then pWIA_DevMgr:= WIA_LH.IWiaDevMgr2(CreateDevManager);
 
   //Enumerate devices if needed
   if not(HasEnumerated)
-  then HasEnumerated :=EnumerateDevices;
+  then HasEnumerated:= EnumerateDevices;
 
-  Result := Length(rDeviceList);
+  Result:= Length(rDeviceList);
 end;
 
 function TWIAManager.CreateDevManager: IUnknown;
 begin
-  lres :=CoCreateInstance(CLSID_WiaDevMgr2, nil, CLSCTX_LOCAL_SERVER, IID_IWiaDevMgr2, Result);
+  lres:= CoCreateInstance(CLSID_WiaDevMgr2, nil, CLSCTX_LOCAL_SERVER, IID_IWiaDevMgr2, Result);
 end;
 
 procedure TWIAManager.EmptyDeviceList(setZeroLength:Boolean);
@@ -506,9 +653,9 @@ constructor TWIAManager.Create;
 begin
   inherited Create;
 
-  HasEnumerated :=False;
-  pWIA_DevMgr :=nil;
-  rSelectedDeviceIndex :=-1;
+  HasEnumerated:= False;
+  pWIA_DevMgr:= nil;
+  rSelectedDeviceIndex:= -1;
 end;
 
 destructor TWIAManager.Destroy;

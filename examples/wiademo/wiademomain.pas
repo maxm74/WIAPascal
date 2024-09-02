@@ -21,6 +21,7 @@ type
     btDownload: TButton;
     btSelect: TButton;
     edDevTest: TEdit;
+    edSelItemName: TEdit;
     Label1: TLabel;
     Memo2: TMemo;
     procedure btIntCapClick(Sender: TObject);
@@ -208,7 +209,14 @@ begin
   try
      Memo2.Lines.Add(#13#10+' Download on Device : '+edDevTest.Text);
      curDev :=FWia.Devices[StrToInt(edDevTest.Text)];
-     curDev.Download;
+
+     if edSelItemName.Text <> ''
+     then begin
+            if curDev.SelectItem(edSelItemName.Text)
+            then curDev.Download
+            else Memo2.Lines.Add('Item '+edSelItemName.Text+' NOT FOUND');
+          end
+     else curDev.Download;
   finally
   end;
 end;
@@ -231,7 +239,7 @@ begin
   try
      Memo2.Lines.Add(#13#10+' List of Capabilities for Device : '+edDevTest.Text);
      curDev :=FWia.Devices[StrToInt(edDevTest.Text)];
-     test :=curDev.WiaRootItem;
+     test :=curDev.RootItem;
      lres :=test.QueryInterface(IID_IWiaPropertyStorage, pWiaPropertyStorage);
      //WIA_IPS_PAGE_SIZE
       pPropSpec[0].ulKind := PRSPEC_PROPID;
@@ -273,68 +281,19 @@ end;
 
 procedure TForm1.btListChildsClick(Sender: TObject);
 var
-   test :IWiaItem2;
-   pWiaTransfer: IWiaTransfer;
-   lItemType: LONG;
-   pIEnumItem: IEnumWiaItem2;
-   pItem: IWiaItem2;
-   itemCount,
-   itemFetched: ULONG;
    i: Integer;
    curDev: TWIADevice;
-   pPropSpec: PROPSPEC;
-   pPropVar: PROPVARIANT;
-   pWiaPropertyStorage: IWiaPropertyStorage;
-   rName: String;
+   curItem: PWIAItem;
 
 begin
   Memo2.Lines.Add(#13#10+' List of Childs for Device : '+edDevTest.Text);
   curDev :=FWia.Devices[StrToInt(edDevTest.Text)];
-  test :=curDev.WiaRootItem;
-//  lres :=test.QueryInterface(IID_IWiaTransfer, pWiaTransfer);
-//  pWiaTransfer.Download(0, );
-  lItemType:= 0;
-  lres:= test.GetItemType(lItemType);
 
-  Memo2.Lines.Add(IntToHex(lItemType));
-
-  lres:= test.EnumChildItems(nil, pIEnumItem);
-  if (lres = S_OK) then
+  for i:=0 to curDev.ItemCount-1 do
   begin
-    lres:= pIEnumItem.GetCount(itemCount);
-    if (lres = S_OK) then
-    begin
-      for i:=0 to itemCount-1 do
-      begin
-        lres :=pIEnumItem.Next(1, pItem, itemFetched);
-        if (lres = S_OK) then
-        begin
-          lItemType:= 0;
-
-          lres:= pItem.GetItemType(lItemType);
-          lres:= pItem.QueryInterface(IID_IWiaPropertyStorage, pWiaPropertyStorage);
-          if (pWiaPropertyStorage <> nil) then
-          begin
-            pPropSpec.ulKind := PRSPEC_PROPID;
-            pPropSpec.propid := WIA_IPA_ITEM_NAME;
-
-            lres := pWiaPropertyStorage.ReadMultiple(1, @pPropSpec, @pPropVar);
-
-            if (VT_BSTR = pPropVar.vt)
-            then rName :=pPropVar.bstrVal
-            else rName:='?';
-
-            pWiaPropertyStorage:= nil;
-          end;
-
-          Memo2.Lines.Add('  Name='+rName+'  Kind='+IntToHex(lItemType));
-
-          pItem:= nil;
-        end;
-      end;
-    end;
-
-    pIEnumItem:= nil;
+    curItem:= curDev.Items[i];
+    if curItem <> nil
+    then  Memo2.Lines.Add('  Name='+curItem^.Name+'  Kind='+IntToHex(curItem^.ItemType));
   end;
 end;
 
