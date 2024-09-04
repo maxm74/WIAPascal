@@ -38,6 +38,7 @@ contains
   WIA_ScanProfiles_TLB in 'WIA_ScanProfiles_TLB.pas',
   WIA_TLB in 'WIA_TLB.pas',
   WiaDef in 'WiaDef.pas',
-  WiaDevD in 'WiaDevD.pas';
+  WiaDevD in 'WiaDevD.pas',
+  WIA_SelectForm in 'WIA_SelectForm.pas' {WIASelectForm};
 
 end.

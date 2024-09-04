@@ -1,3 +1,21 @@
+(****************************************************************************
+*                FreePascal \ Delphi WIA Implementation
+*
+*  FILE: WIA.pas
+*
+*  VERSION:     0.0.1
+*
+*  DESCRIPTION:
+*    WIA Base classes.
+*
+*****************************************************************************
+*
+*  (c) 2024 Massimo Magnano
+*
+*  See changelog.txt for Change Log
+*
+*****************************************************************************)
+
 unit WIA;
 
 {$H+}
@@ -41,10 +59,14 @@ type
     pSelectedItem: IWiaItem2;
     StreamDestination: TFileStream;
     StreamAdapter: TStreamAdapter;
-    DownloadComplete: Boolean;
     rSelectedItemIndex: Integer;
     HasEnumerated: Boolean;
     rItemList : array of TWIAItem;
+
+    rDownloaded: Boolean;
+    Download_Count: Integer;
+    Download_Path,
+    Download_BaseFileName: String;
 
     function GeItem(Index: Integer): PWIAItem;
     function GetItemCount: Integer;
@@ -55,7 +77,7 @@ type
     //Enumerate the avaliable items
     function EnumerateItems: Boolean;
 
-    function CreateDestinationStream(bstrItemName: String; var ppDestination: IStream): HRESULT;
+    function CreateDestinationStream(FileName: String; var ppDestination: IStream): HRESULT;
 
   public
     function TransferCallback(lFlags: LONG;
@@ -71,7 +93,8 @@ type
 
     function SelectItem(AName: String): Boolean;
 
-    function Download: Boolean; virtual;
+    //Download the Selected Item and return the number of files transfered
+    function Download(APath, ABaseFileName: String): Integer; virtual;
 
     property ID: String read rID;
     property Manufacturer: String read rManufacturer;
@@ -87,9 +110,14 @@ type
     property RootItem: IWiaItem2 read GetRootItem;
     property SelectedItemIndex: Integer read rSelectedItemIndex write SetSelectedItemIndex;
     property SelectedItem: IWiaItem2 read GetSelectedItem;
+
+    property Downloaded: Boolean read rDownloaded;
   end;
 
   { TWIAManager }
+
+  TOnDeviceTransfer = function (AWiaManager: TWIAManager; AWiaDevice: TWIADevice;
+                         lFlags: LONG; pWiaTransferParams: PWiaTransferParams): Boolean of object;
 
   TWIAManager = class(TObject)
   protected
@@ -98,6 +126,8 @@ type
     HasEnumerated: Boolean;
     rSelectedDeviceIndex: Integer;
     rDeviceList : array of TWIADevice;
+    rOnAfterDeviceTransfer,
+    rOnBeforeDeviceTransfer: TOnDeviceTransfer;
 
     function GetSelectedDevice: TWIADevice;
     procedure SetSelectedDeviceIndex(AValue: Integer);
@@ -138,6 +168,9 @@ type
     //Selected Device in a dialog
     property SelectedDevice: TWIADevice read GetSelectedDevice;
 
+    //Events
+    property OnBeforeDeviceTransfer:TOnDeviceTransfer read rOnBeforeDeviceTransfer write rOnBeforeDeviceTransfer;
+    property OnAfterDeviceTransfer:TOnDeviceTransfer read rOnAfterDeviceTransfer write rOnAfterDeviceTransfer;
   end;
 
 const
@@ -150,6 +183,12 @@ const
 implementation
 
 uses WIA_SelectForm;
+
+{$ifndef fpc}
+const
+  AllowDirectorySeparators : set of AnsiChar = ['\','/'];
+  DirectorySeparator = '\';
+{$endif}
 
 procedure VersionStrToInt(const s: String; var Ver, VerSub: Integer);
 var
@@ -252,13 +291,22 @@ begin
     begin
       SetLength(rItemList, iCount);
 
+      //Select the First item by default
       if (rSelectedItemIndex < 0) or (rSelectedItemIndex > iCount-1)
       then rSelectedItemIndex:= 0;
+
+      //Free old Selected Item if any
+      if (pSelectedItem <> nil)
+      then pSelectedItem:= nil;
+
+      Result :=True;
 
       for i:=0 to iCount-1 do
       begin
         lres:= pIEnumItem.Next(1, pItem, itemFetched);
-        if (lres = S_OK) then
+
+        Result := (lres = S_OK);
+        if Result then
         begin
           rItemList[i].ItemType:= 0;
 
@@ -267,7 +315,7 @@ begin
           if (pWiaPropertyStorage <> nil) then
           begin
             pPropSpec.ulKind := PRSPEC_PROPID;
-            pPropSpec.propid := WIA_IPA_ITEM_NAME;
+            pPropSpec.propid := WIA_IPA_ITEM_NAME; //WIA_IPA_FULL_ITEM_NAME
 
             lres := pWiaPropertyStorage.ReadMultiple(1, @pPropSpec, @pPropVar);
 
@@ -281,7 +329,8 @@ begin
           if (i = rSelectedItemIndex)
           then pSelectedItem:= pItem
           else pItem:= nil;
-        end;
+        end
+        else break;
       end;
     end;
 
@@ -289,42 +338,30 @@ begin
   end;
 end;
 
-function TWIADevice.CreateDestinationStream(bstrItemName: String; var ppDestination: IStream): HRESULT;
+function TWIADevice.CreateDestinationStream(FileName: String; var ppDestination: IStream): HRESULT;
 begin
-  { #todo 10 -oMaxM : Gestione degli Stream in ingresso }
-
-  if (StreamDestination = nil)
-  then StreamDestination:= TFileStream.Create('testWia.bmp', fmCreate);
-
-  if (StreamAdapter = nil)
-  then StreamAdapter:= TStreamAdapter.Create(StreamDestination, soReference);
-
-  ppDestination:= StreamAdapter;
+  StreamDestination:= TFileStream.Create(FileName, fmCreate);
+  ppDestination:= TStreamAdapter.Create(StreamDestination, soOwned);
   Result:= S_OK;
 end;
 
 function TWIADevice.TransferCallback(lFlags: LONG; pWiaTransferParams: PWiaTransferParams): HRESULT; stdcall;
 begin
-  Result:= S_OK;
+  if not(Assigned(rOwner.OnBeforeDeviceTransfer))
+  then Result:= S_OK
+  else if rOwner.OnBeforeDeviceTransfer(rOwner, Self, lFlags, pWiaTransferParams)
+       then Result:= S_OK
+       else Result:= S_FALSE;   { #todo 2 -oMaxM : Test if this value cancel the Download }
 
-  if (pWiaTransferParams <> nil) then
+  if (Result = S_OK) and (pWiaTransferParams <> nil) then
   Case pWiaTransferParams^.lMessage of
     WIA_TRANSFER_MSG_STATUS: begin
     end;
     WIA_TRANSFER_MSG_END_OF_STREAM: begin
-      if (StreamDestination <> nil) then
-      begin
-        StreamDestination.Flush;
-        //FreeAndNil(StreamDestination);
-      end;
     end;
     WIA_TRANSFER_MSG_END_OF_TRANSFER: begin
-      DownloadComplete:= True;
-      if (StreamDestination <> nil) then
-      begin
-        //StreamDestination.Flush;
-        FreeAndNil(StreamDestination);
-      end;
+      rDownloaded:= True;
+      pWiaTransferParams^.lPercentComplete:=100;
     end;
     WIA_TRANSFER_MSG_DEVICE_STATUS: begin
     end;
@@ -334,16 +371,33 @@ begin
 
     end;
   end;
+
+  if Assigned(rOwner.OnAfterDeviceTransfer)
+  then if rOwner.OnAfterDeviceTransfer(rOwner, Self, lFlags, pWiaTransferParams)
+       then Result:= S_OK
+       else Result:= S_FALSE;   { #todo 2 -oMaxM : Test if this value cancel the Download }
 end;
 
 function TWIADevice.GetNextStream(lFlags: LONG; bstrItemName, bstrFullItemName: BSTR; out ppDestination: IStream): HRESULT; stdcall;
+var
+   extFile: String;
+
 begin
   Result:= S_OK;
 
   //  Return a new stream for this item's data.
   //
-  Result:= CreateDestinationStream(bstrItemName, ppDestination);
+  if (Download_Count = 0)
+  then Result:= CreateDestinationStream(Download_Path+Download_BaseFileName,
+                   ppDestination)
+  else begin
+         extFile:= ExtractFileExt(Download_BaseFileName);
+         Result:= CreateDestinationStream(Download_Path+
+                    ExtractFileName(Copy(Download_BaseFileName, 1, LastDelimiter(extFile, Download_BaseFileName)-1))+'-'+IntToStr(Download_Count)+extFile,
+                    ppDestination);
+       end;
 
+  Inc(Download_Count);
 end;
 
 constructor TWIADevice.Create(AOwner: TWIAManager; AIndex: Integer; ADeviceID: String);
@@ -359,7 +413,10 @@ begin
   pSelectedItem :=nil;
   StreamAdapter:= nil;
   StreamDestination:= nil;
-  DownloadComplete:= False;
+  Download_Path:= '';
+  Download_BaseFileName:= '';
+  Download_Count:= 0;
+  rDownloaded:= False;
 end;
 
 destructor TWIADevice.Destroy;
@@ -367,7 +424,6 @@ begin
   if (pRootItem <> nil) then pRootItem:= nil; //Free the Interface
   if (pSelectedItem <> nil) then pSelectedItem:= nil;
   if (StreamAdapter <> nil) then StreamAdapter:= nil;
-  if (StreamDestination <> nil) then StreamDestination.Free;
   SetLength(rItemList, 0);
 
   inherited Destroy;
@@ -376,11 +432,13 @@ end;
 function TWIADevice.SelectItem(AName: String): Boolean;
 var
    pFindItem: IWiaItem2;
+   i: Integer;
 
 begin
   Result:= False;
+(* { #note -oMaxM : does not work with ITEM_NAME only with FULL_ITEM_NAME  }
 
-  lres:= GetRootItem.FindItemByName(0, PWideChar(AName), pFindItem);
+  lres:= GetRootItem.FindItemByName(0, StringToOleStr(AName), pFindItem);
   if (lres = S_OK) then
   begin
     pSelectedItem:= nil; //Free Selected Item
@@ -388,6 +446,20 @@ begin
 
     Result:= True;
   end;
+  *)
+  for i:=0 to ItemCount-1 do
+  begin
+    if (rItemList[i].Name = AName) then
+    begin
+      Result:= True;
+      rSelectedItemIndex:= i;
+      break;
+    end;
+  end;
+
+  //Re Enumerate Items so the correct IWiaItem2 interface is assigned in pSelectedItem
+  if Result
+  then Result:= EnumerateItems;
 end;
 
 (*
@@ -410,13 +482,14 @@ end;
 
 *)
 
-function TWIADevice.Download: Boolean;
+function TWIADevice.Download(APath, ABaseFileName: String): Integer;
 var
    pWiaTransfer: IWiaTransfer;
-   myTickStart, curTick:QWord;
+   myTickStart, curTick: UInt64;
+   selItemType: LONG;
 
 begin
-  Result:= False;
+  Result:= 0;
 
   if (pSelectedItem = nil) then GetSelectedItem;
   if (pSelectedItem <> nil) then
@@ -433,25 +506,47 @@ begin
     lres:= pSelectedItem.QueryInterface(IID_IWiaTransfer, pWiaTransfer);
     if (lres = S_OK) and (pWiaTransfer <> nil) then
     begin
-      if (rItemList[rSelectedItemIndex].ItemType and WiaItemTypeTransfer = WiaItemTypeTransfer) then
+      selItemType:= rItemList[rSelectedItemIndex].ItemType;
+
+      if (APath = '') or CharInSet(APath[Length(APath)], AllowDirectorySeparators)
+      then Download_Path:= APath
+      else Download_Path:= APath+DirectorySeparator;
+
+      Download_BaseFileName:= ABaseFileName;
+      Download_Count:= 0;
+      rDownloaded:= False;
+
+      if (selItemType and WiaItemTypeTransfer = WiaItemTypeTransfer) then
       begin
-        if (rItemList[rSelectedItemIndex].ItemType and WiaItemTypeFolder = WiaItemTypeFolder)
-        then lres:= pWiaTransfer.Download(WIA_TRANSFER_ACQUIRE_CHILDREN, Self)
-        else if (rItemList[rSelectedItemIndex].ItemType and WiaItemTypeFile = WiaItemTypeFile)
-             then lres:= pWiaTransfer.Download(0, Self);
+        if (selItemType and WiaItemTypeFolder = WiaItemTypeFolder)
+        then begin
+               lres:= pWiaTransfer.Download(WIA_TRANSFER_ACQUIRE_CHILDREN, Self);
+             end
+        else
+        if (selItemType and WiaItemTypeFile = WiaItemTypeFile)
+        then begin
+               lres:= pWiaTransfer.Download(0, Self);
+             end;
       end;
 
-      DownloadComplete:= False;
+      { #todo 2 -oMaxM : Test if all Scanner is Synch }
+      (*
+
       myTickStart:= GetTickCount64; curTick:= myTickStart;
       repeat
-        CheckSynchronize;
+        CheckSynchronize(100);
 
         curTick:= GetTickCount64;
 
-      until DownloadComplete or ((curTick-myTickStart)>30000);
+      until (rDownloaded) or ((curTick-myTickStart) > 27666);
+      *)
 
       // Release the IWiaTransfer
       pWiaTransfer:= nil;
+
+      if rDownloaded
+      then Result:= Download_Count
+      else Result:= 0;
     end;
   end;
 end;

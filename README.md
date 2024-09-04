@@ -15,11 +15,11 @@ The library was created from scratch by Massimo Magnano since there was nothing 
 - WIAPascal is not a TComponent descendand. 
   You have to use it from code only and free it by yourself (see the examples).
   For Lazarus use wiapascal_pkg.lpk package, 
-  For Delphi use wiapascal_dpkg.dpk package (will be written and tested in the near future),
+  For Delphi use wiapascal_dpkg.dpk package,
 - Supported Compilers:
   Lazarus / Free Pascal
-  Delphi  (on Delphi 11 there is an Internal Error adding STI.pas to package)
+  Delphi  (excluded sti.pas from Delphi 11 package due to compiler exception)
 
 See the changelog.txt file for Change Log
 
-Massimo Magnano (c) 2024
+(c) 2024 Massimo Magnano

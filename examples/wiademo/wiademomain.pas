@@ -1,11 +1,15 @@
 unit wiademomain;
 
-{$mode objfpc}{$H+}
+{$ifdef fpc}
+{$mode delphi}
+{$endif}
+
+{$H+}
 
 interface
 
 uses
-  Windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
+  Windows, Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls,
   Variants,
   //ComObj, ActiveX, WIA_LH, WiaDef, WIA_TLB
   ComObj, ActiveX, WIA_LH, WiaDef, WIA;
@@ -23,6 +27,7 @@ type
     edDevTest: TEdit;
     edSelItemName: TEdit;
     Label1: TLabel;
+    Label2: TLabel;
     Memo2: TMemo;
     procedure btIntCapClick(Sender: TObject);
     procedure btListChildsClick(Sender: TObject);
@@ -38,6 +43,9 @@ type
     lres :HResult;
     FWia: TWIAManager;
 
+    function DeviceTransferEvent(AWiaManager: TWIAManager; AWiaDevice: TWIADevice;
+                         lFlags: LONG; pWiaTransferParams: PWiaTransferParams): Boolean;
+
   public
     { public declarations }
   end;
@@ -47,7 +55,11 @@ var
 
 implementation
 
-{$R *.lfm}
+{$ifdef FPC}
+  {$R *.lfm}
+{$else}
+  {$R *.dfm}
+{$endif}
 
 { TForm1 }
 
@@ -203,7 +215,7 @@ var
    OleStrID :POleStr;
    pWiaDevice: IWiaItem2;
    pWIA_DevMgr: WIA_LH.IWiaDevMgr2;
-
+   c: Integer;
 
 begin
   try
@@ -213,10 +225,12 @@ begin
      if edSelItemName.Text <> ''
      then begin
             if curDev.SelectItem(edSelItemName.Text)
-            then curDev.Download
+            then c:= curDev.Download('', 'WiaTest.bmp')
             else Memo2.Lines.Add('Item '+edSelItemName.Text+' NOT FOUND');
           end
-     else curDev.Download;
+     else c:= curDev.Download('', 'WiaTest.bmp');
+
+     Memo2.Lines.Add('Item Downloaded '+IntToStr(c)+' Files');
   finally
   end;
 end;
@@ -231,7 +245,7 @@ var
    pWIA_DevMgr: WIA_LH.IWiaDevMgr2;
    pWiaPropertyStorage: IWiaPropertyStorage;
    pPropIDS: array [0..3] of PROPID;
-   pPropNames: array [0..3] of LPOLESTR;
+   pPropNames: array [0..3] of POLESTR;
    pPropSpec: array [0..3] of PROPSPEC;
    pPropVar: array [0..3] of PROPVARIANT;
 
@@ -304,6 +318,7 @@ begin
  // lres :=CoCreateInstance(CLSID_WiaDevMgr2, nil, CLSCTX_LOCAL_SERVER, IID_IWiaDevMgr2, FWIA_DevMgr);
 
   FWia :=TWIAManager.Create;
+  FWia.OnAfterDeviceTransfer:= DeviceTransferEvent;
 end;
 
 procedure TForm1.FormDestroy(Sender: TObject);
@@ -311,6 +326,35 @@ begin
  //if FWIA_DevMgr<>nil then FWIA_DevMgr :=nil;
 
   FWia.Free;
+end;
+
+function TForm1.DeviceTransferEvent(AWiaManager: TWIAManager; AWiaDevice: TWIADevice; lFlags: LONG;
+  pWiaTransferParams: PWiaTransferParams): Boolean;
+begin
+  Result:= True;
+
+  if (pWiaTransferParams <> nil) then
+  Case pWiaTransferParams^.lMessage of
+    WIA_TRANSFER_MSG_STATUS: begin
+      Memo2.Lines.Add('WIA_TRANSFER_MSG_STATUS : '+IntToStr(pWiaTransferParams^.lPercentComplete)+'% err='+IntToHex(pWiaTransferParams^.hrErrorStatus));
+    end;
+    WIA_TRANSFER_MSG_END_OF_STREAM: begin
+      Memo2.Lines.Add('WIA_TRANSFER_MSG_END_OF_STREAM : '+IntToStr(pWiaTransferParams^.lPercentComplete)+'% err='+IntToHex(pWiaTransferParams^.hrErrorStatus));
+    end;
+    WIA_TRANSFER_MSG_END_OF_TRANSFER: begin
+      Memo2.Lines.Add('WIA_TRANSFER_MSG_END_OF_TRANSFER : '+IntToStr(pWiaTransferParams^.lPercentComplete)+'% err='+IntToHex(pWiaTransferParams^.hrErrorStatus));
+      Memo2.Lines.Add('   Downloaded='+BoolToStr(AWiaDevice.Downloaded, True));
+    end;
+    WIA_TRANSFER_MSG_DEVICE_STATUS: begin
+      Memo2.Lines.Add('WIA_TRANSFER_MSG_DEVICE_STATUS : '+IntToStr(pWiaTransferParams^.lPercentComplete)+'% err='+IntToHex(pWiaTransferParams^.hrErrorStatus));
+    end;
+    WIA_TRANSFER_MSG_NEW_PAGE: begin
+      Memo2.Lines.Add('WIA_TRANSFER_MSG_NEW_PAGE : '+IntToStr(pWiaTransferParams^.lPercentComplete)+'% err='+IntToHex(pWiaTransferParams^.hrErrorStatus));
+    end
+    else begin
+      Memo2.Lines.Add('WIA_TRANSFER_MSG_'+IntToHex(pWiaTransferParams^.lMessage)+' : '+IntToStr(pWiaTransferParams^.lPercentComplete)+'% err='+IntToHex(pWiaTransferParams^.hrErrorStatus));
+    end;
+  end;
 end;
 
 end.

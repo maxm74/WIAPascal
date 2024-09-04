@@ -1,12 +1,30 @@
+(****************************************************************************
+*                FreePascal \ Delphi WIA Implementation
+*
+*  FILE: WIA_SelectForm.pas
+*
+*  VERSION:     0.0.1
+*
+*  DESCRIPTION:
+*    WIA Select Device Dialog.
+*
+*****************************************************************************
+*
+*  (c) 2024 Massimo Magnano
+*
+*  See changelog.txt for Change Log
+*
+*****************************************************************************)
+
 unit WIA_SelectForm;
 
-{$mode ObjFPC}{$H+}
+{$H+}
 
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, Grids, ExtCtrls, Buttons,
-  ComCtrls, WIA, LResources;
+  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, Buttons,
+  ComCtrls, WIA;
 
 type
   { TWIASelectForm }
@@ -32,7 +50,12 @@ var
 
 implementation
 
-{$R *.lfm}
+{$ifdef FPC}
+  {$R *.lfm}
+{$else}
+  {$R *.dfm}
+{$endif}
+
 
 { TWIASelectForm }
 
@@ -87,7 +110,7 @@ begin
     FillList;
 
     if (lvSources.Items.Count = 0)
-    then MessageDlg('WIA', 'No Wia Device present...', mtError, [mbOk], 0)
+    then Dialogs.MessageDlg('No Wia Device present...', mtError, [mbOk], 0)
     else if (ShowModal = mrOk)
          then Result:= lvSources.ItemIndex;
   end;
