@@ -380,7 +380,8 @@ end;
 
 function TWIADevice.GetNextStream(lFlags: LONG; bstrItemName, bstrFullItemName: BSTR; out ppDestination: IStream): HRESULT; stdcall;
 var
-   extFile: String;
+   FileName: String;
+   i: Integer;
 
 begin
   Result:= S_OK;
@@ -388,13 +389,13 @@ begin
   //  Return a new stream for this item's data.
   //
   if (Download_Count = 0)
-  then Result:= CreateDestinationStream(Download_Path+Download_BaseFileName,
-                   ppDestination)
+  then Result:= CreateDestinationStream(Download_Path+Download_BaseFileName, ppDestination)
   else begin
-         extFile:= ExtractFileExt(Download_BaseFileName);
-         Result:= CreateDestinationStream(Download_Path+
-                    ExtractFileName(Copy(Download_BaseFileName, 1, LastDelimiter(extFile, Download_BaseFileName)-1))+'-'+IntToStr(Download_Count)+extFile,
-                    ppDestination);
+         FileName:= Download_BaseFileName;
+         i:= LastDelimiter('.', FileName);
+         if (i <= 0) then i:=MaxInt;
+         Insert('-'+IntToStr(Download_Count), FileName, i);
+         Result:= CreateDestinationStream(Download_Path+FileName, ppDestination);
        end;
 
   Inc(Download_Count);
