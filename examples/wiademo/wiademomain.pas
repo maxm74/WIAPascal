@@ -20,14 +20,16 @@ type
 
   TForm1 = class(TForm)
     btIntCap: TButton;
-    btListChilds: TButton;
     btIntList: TButton;
     btDownload: TButton;
+    btListChilds: TButton;
     btSelect: TButton;
     edDevTest: TEdit;
+    edDPI: TEdit;
     edSelItemName: TEdit;
     Label1: TLabel;
     Label2: TLabel;
+    Label3: TLabel;
     Memo2: TMemo;
     procedure btIntCapClick(Sender: TObject);
     procedure btListChildsClick(Sender: TObject);
@@ -222,15 +224,17 @@ begin
      Memo2.Lines.Add(#13#10+' Download on Device : '+edDevTest.Text);
      curDev :=FWia.Devices[StrToInt(edDevTest.Text)];
 
-     if edSelItemName.Text <> ''
-     then begin
-            if curDev.SelectItem(edSelItemName.Text)
-            then c:= curDev.Download('', 'WiaTest.bmp')
-            else Memo2.Lines.Add('Item '+edSelItemName.Text+' NOT FOUND');
-          end
-     else c:= curDev.Download('', 'WiaTest.bmp');
+      if edSelItemName.Text <> ''
+      then if not(curDev.SelectItem(edSelItemName.Text)) then
+           begin
+             Memo2.Lines.Add('Item '+edSelItemName.Text+' NOT FOUND');
+             exit;
+           end;
 
-     Memo2.Lines.Add('Item Downloaded '+IntToStr(c)+' Files');
+      curDev.SetProperty(WIA_IPS_XRES, StrToInt(edDPI.Text));
+      curDev.SetProperty(WIA_IPS_YRES, StrToInt(edDPI.Text));
+      c:= curDev.Download('', 'WiaTest.bmp');
+      Memo2.Lines.Add('Item Downloaded '+IntToStr(c)+' Files');
   finally
   end;
 end;
@@ -253,8 +257,20 @@ begin
   try
      Memo2.Lines.Add(#13#10+' List of Capabilities for Device : '+edDevTest.Text);
      curDev :=FWia.Devices[StrToInt(edDevTest.Text)];
-     test :=curDev.RootItem;
-     lres :=test.QueryInterface(IID_IWiaPropertyStorage, pWiaPropertyStorage);
+
+     if edSelItemName.Text <> ''
+     then curDev.SelectItem(edSelItemName.Text);
+
+     pWiaPropertyStorage:= curDev.SelectedProperties;
+
+     if pWiaPropertyStorage=nil then
+     begin
+      Memo2.Lines.Add('Item '+edSelItemName.Text+' NOT FOUND');
+      exit;
+     end;
+
+//     pWiaPropertyStorage:= curDev.RootProperties;
+
      //WIA_IPS_PAGE_SIZE
       pPropSpec[0].ulKind := PRSPEC_PROPID;
       pPropSpec[0].propid := WIA_IPS_MAX_HORIZONTAL_SIZE;
@@ -288,7 +304,7 @@ begin
         end;
       end;
 
-     pWiaPropertyStorage :=nil;
+//     pWiaPropertyStorage :=nil;
   finally
   end;
 end;

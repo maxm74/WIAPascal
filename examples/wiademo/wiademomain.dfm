@@ -2,8 +2,8 @@ object Form1: TForm1
   Left = 391
   Top = 158
   Caption = 'WIA Demos'
-  ClientHeight = 233
-  ClientWidth = 540
+  ClientHeight = 260
+  ClientWidth = 544
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -21,17 +21,24 @@ object Form1: TForm1
     Caption = 'Device to Use:'
   end
   object Label2: TLabel
-    Left = 432
-    Top = 192
-    Width = 59
+    Left = 419
+    Top = 128
+    Width = 66
     Height = 15
-    Caption = 'from Item :'
+    Caption = 'Item to Use :'
+  end
+  object Label3: TLabel
+    Left = 416
+    Top = 232
+    Width = 17
+    Height = 15
+    Caption = 'dpi'
   end
   object Memo2: TMemo
     Left = 0
     Top = 8
     Width = 416
-    Height = 224
+    Height = 247
     TabOrder = 0
   end
   object edDevTest: TEdit
@@ -53,29 +60,20 @@ object Form1: TForm1
   end
   object btIntCap: TButton
     Left = 416
-    Top = 104
+    Top = 176
     Width = 123
     Height = 25
     Caption = 'List Capabilities'
     TabOrder = 3
     OnClick = btIntCapClick
   end
-  object btListChilds: TButton
-    Left = 416
-    Top = 136
-    Width = 123
-    Height = 25
-    Caption = 'List Childs'
-    TabOrder = 4
-    OnClick = btListChildsClick
-  end
   object btDownload: TButton
     Left = 416
-    Top = 168
+    Top = 208
     Width = 123
     Height = 25
     Caption = 'Download'
-    TabOrder = 5
+    TabOrder = 4
     OnClick = btDownloadClick
   end
   object btSelect: TButton
@@ -84,14 +82,30 @@ object Form1: TForm1
     Width = 123
     Height = 25
     Caption = 'Select Device'
-    TabOrder = 6
+    TabOrder = 5
     OnClick = btSelectClick
   end
   object edSelItemName: TEdit
-    Left = 432
-    Top = 208
-    Width = 107
+    Left = 419
+    Top = 144
+    Width = 123
     Height = 23
+    TabOrder = 6
+  end
+  object btListChilds: TButton
+    Left = 416
+    Top = 96
+    Width = 123
+    Height = 25
+    Caption = 'List Childs'
     TabOrder = 7
+    OnClick = btListChildsClick
+  end
+  object edDPI: TEdit
+    Left = 440
+    Top = 232
+    Width = 47
+    Height = 23
+    TabOrder = 8
   end
 end

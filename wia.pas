@@ -55,8 +55,12 @@ type
     rVersion,
     rVersionSub: Integer;
     lres: HResult;
+
     pRootItem,
     pSelectedItem: IWiaItem2;
+    pRootProperties,
+    pSelectedProperties: IWiaPropertyStorage;
+
     StreamDestination: TFileStream;
     StreamAdapter: TStreamAdapter;
     rSelectedItemIndex: Integer;
@@ -71,13 +75,17 @@ type
     function GeItem(Index: Integer): PWIAItem;
     function GetItemCount: Integer;
     procedure SetSelectedItemIndex(AValue: Integer);
+
     function GetRootItem: IWiaItem2;
     function GetSelectedItem: IWiaItem2;
+    function GetRootProperties: IWiaPropertyStorage;
+    function GetSelectedProperties: IWiaPropertyStorage;
 
     //Enumerate the avaliable items
     function EnumerateItems: Boolean;
 
     function CreateDestinationStream(FileName: String; var ppDestination: IStream): HRESULT;
+
 
   public
     function TransferCallback(lFlags: LONG;
@@ -96,6 +104,23 @@ type
     //Download the Selected Item and return the number of files transfered
     function Download(APath, ABaseFileName: String): Integer; virtual;
 
+    //Set a Property given the ID, the user must know the correct type to use
+    function SetProperty(APropId: PROPID; APropValue: Smallint; useRoot: Boolean=False): Boolean; overload;  //VT_I2
+    function SetProperty(APropId: PROPID; APropValue: Integer; useRoot: Boolean=False): Boolean; overload;   //VT_I4, VT_INT
+    function SetProperty(APropId: PROPID; APropValue: Single; useRoot: Boolean=False): Boolean; overload;    //VT_R4
+    function SetProperty(APropId: PROPID; APropValue: Double; useRoot: Boolean=False): Boolean; overload;    //VT_R8
+    function SetProperty(APropId: PROPID; APropValue: Currency; useRoot: Boolean=False): Boolean; overload;  //VT_R8
+    function SetProperty(APropId: PROPID; APropValue: TDateTime; useRoot: Boolean=False): Boolean; overload; //VT_DATE
+    function SetProperty(APropId: PROPID; APropValue: BSTR; useRoot: Boolean=False): Boolean; overload;      //VT_BSTR
+    function SetProperty(APropId: PROPID; APropValue: Boolean; useRoot: Boolean=False): Boolean; overload;   //VT_BOOL
+    function SetProperty(APropId: PROPID; APropValue: Word; useRoot: Boolean=False): Boolean; overload;      //VT_UI2
+    function SetProperty(APropId: PROPID; APropValue: DWord; useRoot: Boolean=False): Boolean; overload;     //VT_UI4, VT_UINT
+    function SetProperty(APropId: PROPID; APropValue: Int64; useRoot: Boolean=False): Boolean; overload;     //VT_I8
+    function SetProperty(APropId: PROPID; APropValue: UInt64; useRoot: Boolean=False): Boolean; overload;    //VT_UI8
+    function SetProperty(APropId: PROPID; APropValue: LPSTR; useRoot: Boolean=False): Boolean; overload;     //VT_LPSTR
+//    procedure SetProperty(APropId: PROPID; APropValue: LPWSTR; useRoot: Boolean=False): Boolean; overload;  //VT_LPWSTR
+
+
     property ID: String read rID;
     property Manufacturer: String read rManufacturer;
     property Name: String read rName;
@@ -108,8 +133,11 @@ type
     property Items[Index: Integer]: PWIAItem read GeItem;
 
     property RootItem: IWiaItem2 read GetRootItem;
-    property SelectedItemIndex: Integer read rSelectedItemIndex write SetSelectedItemIndex;
     property SelectedItem: IWiaItem2 read GetSelectedItem;
+    property SelectedItemIndex: Integer read rSelectedItemIndex write SetSelectedItemIndex;
+
+    property RootProperties: IWiaPropertyStorage read GetRootProperties;
+    property SelectedProperties: IWiaPropertyStorage read GetSelectedProperties;
 
     property Downloaded: Boolean read rDownloaded;
   end;
@@ -215,6 +243,22 @@ end;
 
 { TWIADevice }
 
+function TWIADevice.GetRootItem: IWiaItem2;
+begin
+  Result :=nil;
+
+  if (rOwner <> nil) then
+  begin
+    if (pRootItem = nil)
+    then try
+           lres :=rOwner.pWIA_DevMgr.CreateDevice(0, StringToOleStr(Self.rID), pRootItem);
+           if (lres = S_OK) then Result :=pRootItem;
+         finally
+         end
+    else Result :=pRootItem;
+  end;
+end;
+
 function TWIADevice.GetSelectedItem: IWiaItem2;
 begin
   //Enumerate Items if needed
@@ -224,6 +268,29 @@ begin
   if (rSelectedItemIndex >= 0) and (rSelectedItemIndex < GetItemCount)
   then Result:= pSelectedItem
   else Result:= nil;
+end;
+
+function TWIADevice.GetRootProperties: IWiaPropertyStorage;
+begin
+  Result:= nil;
+
+  if (pRootItem = nil) then GetRootItem;
+  if (pRootItem <> nil) then
+  begin
+    if (pRootProperties = nil)
+    then lres:= pRootItem.QueryInterface(IID_IWiaPropertyStorage, pRootProperties);
+
+    Result:= pRootProperties;
+  end;
+end;
+
+function TWIADevice.GetSelectedProperties: IWiaPropertyStorage;
+begin
+  Result:= nil;
+
+  if (pSelectedItem = nil) then GetSelectedItem;
+  if (pSelectedItem <> nil)
+  then Result:= pSelectedProperties;
 end;
 
 function TWIADevice.GeItem(Index: Integer): PWIAItem;
@@ -247,25 +314,6 @@ begin
   if (rSelectedItemIndex <> AValue) and
      (AValue >= 0) and (AValue < GetItemCount)
   then rSelectedItemIndex:= AValue;
-end;
-
-function TWIADevice.GetRootItem: IWiaItem2;
-//var
-//   OleStrID :BSTR;
-
-begin
-  Result :=nil;
-
-  if (rOwner <> nil) then
-  begin
-    if (pRootItem = nil)
-    then try
-           lres :=rOwner.pWIA_DevMgr.CreateDevice(0, StringToOleStr(Self.rID), pRootItem);
-           if (lres = S_OK) then Result :=pRootItem;
-         finally
-         end
-    else Result :=pRootItem;
-  end;
 end;
 
 function TWIADevice.EnumerateItems: Boolean;
@@ -295,9 +343,12 @@ begin
       if (rSelectedItemIndex < 0) or (rSelectedItemIndex > iCount-1)
       then rSelectedItemIndex:= 0;
 
-      //Free old Selected Item if any
-      if (pSelectedItem <> nil)
-      then pSelectedItem:= nil;
+      //If there is an Item Selected free Interfaces pointers
+      if (pSelectedItem <> nil) then
+      begin
+        pSelectedItem:= nil;
+        pSelectedProperties:= nil;
+      end;
 
       Result :=True;
 
@@ -322,13 +373,19 @@ begin
             if (VT_BSTR = pPropVar.vt)
             then rItemList[i].Name :=pPropVar.bstrVal
             else rItemList[i].Name :='?';
-
-            pWiaPropertyStorage:= nil;
           end;
 
           if (i = rSelectedItemIndex)
-          then pSelectedItem:= pItem
-          else pItem:= nil;
+          then begin
+                 //if it is the Selected Item keep the Interfaces pointers
+                 pSelectedItem:= pItem;
+                 pSelectedProperties:= pWiaPropertyStorage;
+               end
+          else begin
+                 //else Release it
+                 pItem:= nil;
+                 pWiaPropertyStorage:= nil;
+               end;
         end
         else break;
       end;
@@ -412,6 +469,7 @@ begin
   rID :=ADeviceID;
   pRootItem :=nil;
   pSelectedItem :=nil;
+  pSelectedProperties:= nil;
   StreamAdapter:= nil;
   StreamDestination:= nil;
   Download_Path:= '';
@@ -422,9 +480,12 @@ end;
 
 destructor TWIADevice.Destroy;
 begin
-  if (pRootItem <> nil) then pRootItem:= nil; //Free the Interface
+  //Free the Interfaces
+  if (pRootItem <> nil) then pRootItem:= nil;
   if (pSelectedItem <> nil) then pSelectedItem:= nil;
+  if (pSelectedProperties <> nil) then pSelectedProperties:= nil;
   if (StreamAdapter <> nil) then StreamAdapter:= nil;
+
   SetLength(rItemList, 0);
 
   inherited Destroy;
@@ -550,6 +611,95 @@ begin
       else Result:= 0;
     end;
   end;
+end;
+
+function TWIADevice.SetProperty(APropId: PROPID; APropValue: Smallint; useRoot: Boolean): Boolean;
+begin
+
+end;
+
+function TWIADevice.SetProperty(APropId: PROPID; APropValue: Integer; useRoot: Boolean): Boolean;
+var
+   pPropSpec: PROPSPEC;
+   pPropVar: PROPVARIANT;
+   curProp: IWiaPropertyStorage;
+
+begin
+  try
+     Result:= False;
+
+     if useRoot
+     then curProp:= GetRootProperties
+     else curProp:= GetSelectedProperties;
+
+     if (curProp <> nil) then
+     begin
+       pPropSpec.ulKind:= PRSPEC_PROPID;
+       pPropSpec.propid:= APropId;
+       pPropVar.vt:= VT_INT;   //VT_I4?
+       pPropVar.lVal:= APropValue;    //intVal
+
+       lres:= curProp.WriteMultiple(1, @pPropSpec, @pPropVar, 2);
+
+       Result:= (lres = S_OK);
+     end;
+  except
+  end;
+end;
+
+function TWIADevice.SetProperty(APropId: PROPID; APropValue: Single; useRoot: Boolean): Boolean;
+begin
+
+end;
+
+function TWIADevice.SetProperty(APropId: PROPID; APropValue: Double; useRoot: Boolean): Boolean;
+begin
+
+end;
+
+function TWIADevice.SetProperty(APropId: PROPID; APropValue: Currency; useRoot: Boolean): Boolean;
+begin
+
+end;
+
+function TWIADevice.SetProperty(APropId: PROPID; APropValue: TDateTime; useRoot: Boolean): Boolean;
+begin
+    { #note 3 -oMaxM : use ActiveX.DATE = DOUBLE }
+end;
+
+function TWIADevice.SetProperty(APropId: PROPID; APropValue: BSTR; useRoot: Boolean): Boolean;
+begin
+
+end;
+
+function TWIADevice.SetProperty(APropId: PROPID; APropValue: Boolean; useRoot: Boolean): Boolean;
+begin
+
+end;
+
+function TWIADevice.SetProperty(APropId: PROPID; APropValue: Word; useRoot: Boolean): Boolean;
+begin
+
+end;
+
+function TWIADevice.SetProperty(APropId: PROPID; APropValue: DWord; useRoot: Boolean): Boolean;
+begin
+
+end;
+
+function TWIADevice.SetProperty(APropId: PROPID; APropValue: Int64; useRoot: Boolean): Boolean;
+begin
+
+end;
+
+function TWIADevice.SetProperty(APropId: PROPID; APropValue: UInt64; useRoot: Boolean): Boolean;
+begin
+
+end;
+
+function TWIADevice.SetProperty(APropId: PROPID; APropValue: LPSTR; useRoot: Boolean): Boolean;
+begin
+
 end;
 
 { TWIAManager }

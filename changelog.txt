@@ -1,6 +1,10 @@
 WIAPASCAL CHANGE LOG
 ======================
 
+2024/09/06 Added SelectedProperties and RootProperties; 
+	   Added SetProperty; 
+	   First Download Test with dpi;
+
 2024/09/04 Added Path\FileName and Multiple Pages files to Download; 
 	   SelectItem use Internal array intestead of Wia FindItemByName; 
 	   Added OnDeviceTransfer Events; 
