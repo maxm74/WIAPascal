@@ -241,7 +241,7 @@ end;
 
 procedure TForm1.btIntCapClick(Sender: TObject);
 var
-   i: Integer;
+   i, k: Integer;
    test :IWiaItem2;
    curDev: TWIADevice;
    OleStrID :POleStr;
@@ -252,6 +252,9 @@ var
    pPropNames: array [0..3] of POLESTR;
    pPropSpec: array [0..3] of PROPSPEC;
    pPropVar: array [0..3] of PROPVARIANT;
+   pFlags: array[0..3] of ULONG;
+   sPropNames: array [0..3] of String;
+   fStr: String;
 
 begin
   try
@@ -289,18 +292,72 @@ begin
       FillChar(pPropVar, Sizeof(pPropVar), 0);
       FillChar(pPropNames, Sizeof(pPropNames), 0);
 
-      lres := pWiaPropertyStorage.ReadMultiple(Length(pPropSpec), @pPropSpec, @pPropVar);
+      Memo2.Lines.Add(#13#10'SizeOf(TPROPVARIANT) = '+IntToStr(SizeOf(TPROPVARIANT)));
 
+      lres := pWiaPropertyStorage.ReadPropertyNames(Length(pPropSpec), @pPropIDS, @pPropNames);
       if (lres = S_OK) then
       begin
-        lres := pWiaPropertyStorage.ReadPropertyNames(Length(pPropSpec), @pPropIDS, @pPropNames);
+        for i:=0 to Length(pPropSpec)-1 do
+        begin
+          sPropNames[i]:= pPropNames[i];
+
+          CoTaskMemFree(pPropNames[i]);
+        end;
+      end;
+
+      lres:= pWiaPropertyStorage.GetPropertyAttributes(Length(pPropSpec), @pPropSpec, @pFlags, @pPropVar);
+      if (lres = S_OK) then
+      begin
+        Memo2.Lines.Add(#13#10'PropertyAttributes:');
 
         for i:=0 to Length(pPropSpec)-1 do
         begin
-          if (VT_I4 = pPropVar[0].vt)
-          then Memo2.Lines.Add('   '+pPropNames[i]+': '+IntToStr(pPropVar[i].iVal));
+          fStr:=' '+sPropNames[i]+' ';
 
-          CoTaskMemFree(pPropNames[i]);
+          if (pFlags[i] and WIA_PROP_READ <> 0) then fStr:= fStr+'R,';
+          if (pFlags[i] and WIA_PROP_WRITE <> 0) then fStr:= fStr+'W,';
+          if (pFlags[i] and WIA_PROP_SYNC_REQUIRED <> 0) then fStr:= fStr+'S,';
+          if (pFlags[i] and WIA_PROP_NONE <> 0) then fStr:= fStr+'N,';
+          if (pFlags[i] and WIA_PROP_RANGE <> 0) then fStr:= fStr+'RANGE,';
+          if (pFlags[i] and WIA_PROP_LIST <> 0) then fStr:= fStr+'LIST,';
+          if (pFlags[i] and WIA_PROP_FLAG <> 0) then fStr:= fStr+'F,';
+          if (pFlags[i] and WIA_PROP_CACHEABLE <> 0) then fStr:= fStr+'C,';
+
+          fStr:=fStr+': ';
+
+          if (pPropVar[i].vt and VT_VECTOR <> 0)
+          then begin
+               fStr:= fStr+' (Vector of VT_I4) = (';
+               Case (pPropVar[i].vt and not(VT_VECTOR)) of
+               VT_I4: begin
+                        for k:=0 to  pPropVar[i].cal.cElems-1 do
+                         fStr:= fStr+IntToStr(longint(pPropVar[i].cal.pElems[k]))+',';
+                      end;
+               end;
+               fStr:= fStr+')';
+               end
+          else begin
+
+          end;
+
+          Memo2.Lines.Add(fStr);
+        end;
+      end;
+
+      lres := pWiaPropertyStorage.ReadMultiple(Length(pPropSpec), @pPropSpec, @pPropVar);
+      if (lres = S_OK) then
+      begin
+        Memo2.Lines.Add(#13#10'Property Values:');
+
+        for i:=0 to Length(pPropSpec)-1 do
+        begin
+          fStr:=' '+sPropNames[i]+' ';
+
+          Case pPropVar[i].vt of
+          VT_I4: fStr:= fStr+' (VT_I4) = '+IntToStr(pPropVar[i].iVal);
+          end;
+
+          Memo2.Lines.Add(fStr);
         end;
       end;
 
