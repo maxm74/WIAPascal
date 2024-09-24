@@ -255,6 +255,7 @@ var
    pFlags: array[0..3] of ULONG;
    sPropNames: array [0..3] of String;
    fStr: String;
+   tt: TWIAPropertyFlags;
 
 begin
   try
@@ -313,6 +314,8 @@ begin
         for i:=0 to Length(pPropSpec)-1 do
         begin
           fStr:=' '+sPropNames[i]+' ';
+
+          tt:=WIAPropertyFlags(pFlags[i]);
 
           if (pFlags[i] and WIA_PROP_READ <> 0) then fStr:= fStr+'R,';
           if (pFlags[i] and WIA_PROP_WRITE <> 0) then fStr:= fStr+'W,';

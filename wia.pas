@@ -41,6 +41,12 @@ type
       WIADeviceTypeStreamingVideo   = StiDeviceTypeStreamingVideo
   );
 
+  TWIAPropertyFlag = (
+      WIAProp_READ, WIAProp_WRITE, WIAProp_SYNC_REQUIRED, WIAProp_NONE,
+      WIAProp_RANGE, WIAProp_LIST, WIAProp_FLAG, WIAProp_CACHEABLE
+  );
+  TWIAPropertyFlags = set of TWIAPropertyFlag;
+
   { TWIADevice }
 
   TWIADevice = class(TNoRefCountObject, IWiaTransferCallback)
@@ -120,6 +126,7 @@ type
     function SetProperty(APropId: PROPID; APropValue: LPSTR; useRoot: Boolean=False): Boolean; overload;     //VT_LPSTR
 //    procedure SetProperty(APropId: PROPID; APropValue: LPWSTR; useRoot: Boolean=False): Boolean; overload;  //VT_LPWSTR
 
+    //function SetResolution();
 
     property ID: String read rID;
     property Manufacturer: String read rManufacturer;
@@ -206,7 +213,7 @@ const
     'Default', 'Scanner', 'Digital Camera', 'Streaming Video'
   );
 
-
+function WIAPropertyFlags(pFlags: ULONG): TWIAPropertyFlags;
 
 implementation
 
@@ -239,6 +246,20 @@ begin
   except
 
   end;
+end;
+
+function WIAPropertyFlags(pFlags: ULONG): TWIAPropertyFlags;
+begin
+  Result :=[];
+
+  if (pFlags and WIA_PROP_READ <> 0) then Result:= Result+[WIAProp_READ];
+  if (pFlags and WIA_PROP_WRITE <> 0) then Result:= Result+[WIAProp_WRITE];
+  if (pFlags and WIA_PROP_SYNC_REQUIRED <> 0) then Result:= Result+[WIAProp_SYNC_REQUIRED];
+  if (pFlags and WIA_PROP_NONE <> 0) then Result:= Result+[WIAProp_NONE];
+  if (pFlags and WIA_PROP_RANGE <> 0) then Result:= Result+[WIAProp_RANGE];
+  if (pFlags and WIA_PROP_LIST <> 0) then Result:= Result+[WIAProp_LIST];
+  if (pFlags and WIA_PROP_FLAG <> 0) then Result:= Result+[WIAProp_FLAG];
+  if (pFlags and WIA_PROP_CACHEABLE <> 0) then Result:= Result+[WIAProp_CACHEABLE];
 end;
 
 { TWIADevice }
