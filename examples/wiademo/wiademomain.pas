@@ -5,6 +5,7 @@ unit wiademomain;
 {$endif}
 
 {$H+}
+{$POINTERMATH ON}
 
 interface
 
@@ -217,7 +218,7 @@ var
    OleStrID :POleStr;
    pWiaDevice: IWiaItem2;
    pWIA_DevMgr: WIA_LH.IWiaDevMgr2;
-   c: Integer;
+   c, v: Integer;
 
 begin
   try
@@ -230,9 +231,14 @@ begin
              Memo2.Lines.Add('Item '+edSelItemName.Text+' NOT FOUND');
              exit;
            end;
+      try
+        v:= StrToInt(edDPI.Text);
+      except
+        v:= 100;
+      end;
 
-      curDev.SetProperty(WIA_IPS_XRES, StrToInt(edDPI.Text));
-      curDev.SetProperty(WIA_IPS_YRES, StrToInt(edDPI.Text));
+      curDev.SetProperty(WIA_IPS_XRES, v, VT_INT);
+      curDev.SetProperty(WIA_IPS_YRES, v, VT_INT);
       c:= curDev.Download('', 'WiaTest.bmp');
       Memo2.Lines.Add('Item Downloaded '+IntToStr(c)+' Files');
   finally

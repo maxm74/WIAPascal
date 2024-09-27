@@ -19,6 +19,7 @@
 unit WIA;
 
 {$H+}
+{$POINTERMATH ON}
 
 interface
 
@@ -110,8 +111,12 @@ type
     //Download the Selected Item and return the number of files transfered
     function Download(APath, ABaseFileName: String): Integer; virtual;
 
-    //Set a Property given the ID, the user must know the correct type to use
-    function SetProperty(APropId: PROPID; APropValue: Smallint; useRoot: Boolean=False): Boolean; overload;  //VT_I2
+    //Get Current Property Value given the ID, the user must know the correct type to use
+    function GetProperty(APropId: PROPID; var APropValue; var propType: TVarType; useRoot: Boolean=False): Boolean;
+
+    //Set the Property Value given the ID, the user must know the correct type to use
+    function SetProperty(APropId: PROPID; const APropValue; propType: TVarType; useRoot: Boolean=False): Boolean;
+(*    function SetProperty(APropId: PROPID; APropValue: Smallint; useRoot: Boolean=False): Boolean; overload;  //VT_I2
     function SetProperty(APropId: PROPID; APropValue: Integer; useRoot: Boolean=False): Boolean; overload;   //VT_I4, VT_INT
     function SetProperty(APropId: PROPID; APropValue: Single; useRoot: Boolean=False): Boolean; overload;    //VT_R4
     function SetProperty(APropId: PROPID; APropValue: Double; useRoot: Boolean=False): Boolean; overload;    //VT_R8
@@ -125,7 +130,7 @@ type
     function SetProperty(APropId: PROPID; APropValue: UInt64; useRoot: Boolean=False): Boolean; overload;    //VT_UI8
     function SetProperty(APropId: PROPID; APropValue: LPSTR; useRoot: Boolean=False): Boolean; overload;     //VT_LPSTR
 //    procedure SetProperty(APropId: PROPID; APropValue: LPWSTR; useRoot: Boolean=False): Boolean; overload;  //VT_LPWSTR
-
+*)
     //function SetResolution();
 
     property ID: String read rID;
@@ -634,6 +639,104 @@ begin
   end;
 end;
 
+function TWIADevice.GetProperty(APropId: PROPID; var APropValue; var propType: TVarType; useRoot: Boolean): Boolean;
+begin
+
+end;
+
+function TWIADevice.SetProperty(APropId: PROPID; const APropValue; propType: TVarType; useRoot: Boolean): Boolean;
+var
+   pPropSpec: PROPSPEC;
+   pPropVar: PROPVARIANT;
+   curProp: IWiaPropertyStorage;
+
+begin
+  try
+     Result:= False;
+
+     if useRoot
+     then curProp:= GetRootProperties
+     else curProp:= GetSelectedProperties;
+
+     if (curProp <> nil) then
+     begin
+       pPropSpec.ulKind:= PRSPEC_PROPID;
+       pPropSpec.propid:= APropId;
+       pPropVar.vt:= propType;
+
+       Case propType of
+         VT_I2: begin //2 byte signed int
+         end;
+         VT_I4, VT_INT: begin //4 byte signed int, signed machine int
+           pPropVar.lVal:= Integer(APropValue);
+         end;
+         VT_R4: begin //4 byte real
+         end;
+         VT_R8: begin //8 byte real
+         end;
+         VT_CY: begin //currency
+         end;
+         VT_DATE: begin //date
+         end;
+         VT_BSTR: begin //OLE Automation string
+         end;
+//         VT_DISPATCH         [V][T]   [S]  IDispatch *
+//         VT_ERROR            [V][T][P][S]  SCODE
+         VT_BOOL: begin //True=-1, False=0
+         end;
+//         VT_VARIANT          [V][T][P][S]  VARIANT *
+//         VT_UNKNOWN          [V][T]   [S]  IUnknown *
+//         VT_DECIMAL          [V][T]   [S]  16 byte fixed point
+//         VT_RECORD           [V]   [P][S]  user defined type
+         VT_I1: begin //signed AnsiChar
+         end;
+         VT_UI1: begin //unsigned AnsiChar
+         end;
+         VT_UI2: begin //unsigned short
+         end;
+         VT_UI4, VT_UINT : begin //unsigned long
+         end;
+         VT_I8 : begin //signed 64-bit int
+         end;
+         VT_UI8 : begin //unsigned 64-bit int
+         end;
+(*         VT_INT_PTR             [T]        signed machine register size width
+         VT_UINT_PTR            [T]        unsigned machine register size width
+         VT_VOID                [T]        C style void
+         VT_HRESULT             [T]        Standard return type
+         VT_PTR                 [T]        pointer type
+         VT_SAFEARRAY           [T]        (use VT_ARRAY in VARIANT)
+         VT_CARRAY              [T]        C style array
+         VT_USERDEFINED         [T]        user defined type
+*)
+         VT_LPSTR, VT_LPWSTR : begin //null terminated string, wide null terminated string
+         end;
+(*         VT_FILETIME               [P]     FILETIME
+         VT_BLOB                   [P]     Length prefixed bytes
+         VT_STREAM                 [P]     Name of the stream follows
+         VT_STORAGE                [P]     Name of the storage follows
+         VT_STREAMED_OBJECT        [P]     Stream contains an object
+         VT_STORED_OBJECT          [P]     Storage contains an object
+         VT_VERSIONED_STREAM       [P]     Stream with a GUID version
+         VT_BLOB_OBJECT            [P]     Blob contains an object
+         VT_CF                     [P]     Clipboard format
+         VT_CLSID                  [P]     A Class ID
+         VT_VECTOR                 [P]     simple counted array
+         VT_ARRAY            [V]           SAFEARRAY*
+         VT_BYREF            [V]           void* for local use
+         VT_BSTR_BLOB                      Reserved for system use
+*)
+       end;
+
+       lres:= curProp.WriteMultiple(1, @pPropSpec, @pPropVar, 2);
+
+       Result:= (lres = S_OK);
+     end;
+  except
+  end;
+end;
+
+(*
 function TWIADevice.SetProperty(APropId: PROPID; APropValue: Smallint; useRoot: Boolean): Boolean;
 begin
 
@@ -722,6 +825,7 @@ function TWIADevice.SetProperty(APropId: PROPID; APropValue: LPSTR; useRoot: Boo
 begin
 
 end;
+*)
 
 { TWIAManager }
 
