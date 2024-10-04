@@ -237,8 +237,8 @@ begin
         v:= 100;
       end;
 
-      curDev.SetProperty(WIA_IPS_XRES, v, VT_INT);
-      curDev.SetProperty(WIA_IPS_YRES, v, VT_INT);
+      curDev.SetProperty(WIA_IPS_XRES, VT_INT, v);
+      curDev.SetProperty(WIA_IPS_YRES, VT_INT, v);
       c:= curDev.Download('', 'WiaTest.bmp');
       Memo2.Lines.Add('Item Downloaded '+IntToStr(c)+' Files');
   finally

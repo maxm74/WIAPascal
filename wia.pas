@@ -111,12 +111,25 @@ type
     //Download the Selected Item and return the number of files transfered
     function Download(APath, ABaseFileName: String): Integer; virtual;
 
-    //Get Current Property Value given the ID, the user must know the correct type to use
-    function GetProperty(APropId: PROPID; var APropValue; var propType: TVarType; useRoot: Boolean=False): Boolean;
+    //Get Current Property Value and it's type given the ID
+    function GetProperty(APropId: PROPID; var propType: TVarType;
+                         var APropValue; useRoot: Boolean=False): Boolean; overload;
+
+    //Get Current, Default and Possible Values of a Property given the ID,
+    //  Depending on the type returned in propType
+    //  APropListValues can be a Dynamic Array of Integers, Real, etc... user must free it
+    //  if Result contain the Flag WIAProp_RANGE then APropListValues[0] is the Min Value, APropListValues[1] is the Max Value
+    function GetProperty(APropId: PROPID; var propType: TVarType;
+                         var APropValue; var APropDefaultValue;
+                         var APropListValues;
+                         useRoot: Boolean=False): TWIAPropertyFlag; overload;
 
     //Set the Property Value given the ID, the user must know the correct type to use
-    function SetProperty(APropId: PROPID; const APropValue; propType: TVarType; useRoot: Boolean=False): Boolean;
-(*    function SetProperty(APropId: PROPID; APropValue: Smallint; useRoot: Boolean=False): Boolean; overload;  //VT_I2
+    function SetProperty(APropId: PROPID; propType: TVarType; const APropValue; useRoot: Boolean=False): Boolean;
+
+{ #note -oMaxM : Do I need to build overloaded functions for Set/Get Property? }
+(*
+    function SetProperty(APropId: PROPID; APropValue: Smallint; useRoot: Boolean=False): Boolean; overload;  //VT_I2
     function SetProperty(APropId: PROPID; APropValue: Integer; useRoot: Boolean=False): Boolean; overload;   //VT_I4, VT_INT
     function SetProperty(APropId: PROPID; APropValue: Single; useRoot: Boolean=False): Boolean; overload;    //VT_R4
     function SetProperty(APropId: PROPID; APropValue: Double; useRoot: Boolean=False): Boolean; overload;    //VT_R8
@@ -131,7 +144,9 @@ type
     function SetProperty(APropId: PROPID; APropValue: LPSTR; useRoot: Boolean=False): Boolean; overload;     //VT_LPSTR
 //    procedure SetProperty(APropId: PROPID; APropValue: LPWSTR; useRoot: Boolean=False): Boolean; overload;  //VT_LPWSTR
 *)
-    //function SetResolution();
+
+   //function GetResolution();
+   //function SetResolution();
 
     property ID: String read rID;
     property Manufacturer: String read rManufacturer;
@@ -639,12 +654,139 @@ begin
   end;
 end;
 
-function TWIADevice.GetProperty(APropId: PROPID; var APropValue; var propType: TVarType; useRoot: Boolean): Boolean;
+function TWIADevice.GetProperty(APropId: PROPID; var propType: TVarType;
+                                var APropValue; useRoot: Boolean): Boolean;
+var
+   pPropSpec: PROPSPEC;
+   pPropVar: PROPVARIANT;
+   curProp: IWiaPropertyStorage;
+
+begin
+  try
+     Result:= False;
+
+     if useRoot
+     then curProp:= GetRootProperties
+     else curProp:= GetSelectedProperties;
+
+     if (curProp <> nil) then
+     begin
+       pPropSpec.ulKind:= PRSPEC_PROPID;
+       pPropSpec.propid:= APropId;
+
+       { #note -oMaxM : The Overloaded Version also call  }
+       //lres:= GetPropertyAttributes(1, @pPropSpec, @pFlags, @pPropVar);
+
+       lres:= curProp.ReadMultiple(1, @pPropSpec, @pPropVar);
+
+       Result:= (lres = S_OK);
+
+       if Result then
+       begin
+         propType:= pPropVar.vt;
+
+         { #todo 5 -oMaxM : Convert all the Common used Types to APropValue,
+          The Overloaded Version also the APropDefaultValue and APropListValuesArray
+         }
+         Case propType of
+           VT_I2: begin //2 byte signed int
+             SmallInt(APropValue):= pPropVar.iVal;
+           end;
+           VT_I4, VT_INT: begin //4 byte signed int, signed machine int
+             Integer(APropValue):= pPropVar.lVal;
+           end;
+           VT_R4: begin //4 byte real
+             Single(APropValue):= pPropVar.fltVal;
+           end;
+           VT_R8: begin //8 byte real
+             Double(APropValue):= pPropVar.dblVal;
+           end;
+           VT_CY: begin //currency
+             CURRENCY(APropValue):= pPropVar.cyVal;
+           end;
+           VT_DATE: begin //date
+             Double(APropValue):= pPropVar.date;
+           end;
+           VT_BSTR: begin //OLE Automation string
+             String(APropValue):= pPropVar.bstrVal;
+           end;
+//         VT_DISPATCH         [V][T]   [S]  IDispatch *
+//         VT_ERROR            [V][T][P][S]  SCODE
+           VT_BOOL: begin //True=-1, False=0
+             Boolean(APropValue):= pPropVar.boolVal;
+           end;
+//         VT_VARIANT          [V][T][P][S]  VARIANT *
+//         VT_UNKNOWN          [V][T]   [S]  IUnknown *
+//         VT_DECIMAL          [V][T]   [S]  16 byte fixed point
+//         VT_RECORD           [V]   [P][S]  user defined type
+           VT_I1: begin //signed AnsiChar
+             { #note -oMaxM : Lazarus and Delphi has different Declaration? }
+             {$ifdef fpc}
+             AnsiChar(APropValue):= pPropVar.cVal;
+             {$else}
+             ShortInt(APropValue):= pPropVar.cVal;
+             {$endif}
+           end;
+           VT_UI1: begin //unsigned AnsiChar
+             Byte(APropValue):= pPropVar.bVal;
+           end;
+           VT_UI2: begin //unsigned short
+             Word(APropValue):= pPropVar.uiVal;
+           end;
+           VT_UI4, VT_UINT : begin //unsigned long
+             LongWord(APropValue):= pPropVar.ulVal;
+           end;
+           VT_I8 : begin //signed 64-bit int
+             LARGE_INTEGER(APropValue):= pPropVar.hVal;
+           end;
+           VT_UI8 : begin //unsigned 64-bit int
+             ULARGE_INTEGER(APropValue):= pPropVar.uhVal;
+           end;
+(*         VT_INT_PTR             [T]        signed machine register size width
+         VT_UINT_PTR            [T]        unsigned machine register size width
+         VT_VOID                [T]        C style void
+         VT_HRESULT             [T]        Standard return type
+         VT_PTR                 [T]        pointer type
+         VT_SAFEARRAY           [T]        (use VT_ARRAY in VARIANT)
+         VT_CARRAY              [T]        C style array
+         VT_USERDEFINED         [T]        user defined type
+*)
+           VT_LPSTR  : begin //null terminated string, wide null terminated string
+             String(APropValue):= pPropVar.pszVal;
+           end;
+           VT_LPWSTR : begin //wide null terminated string
+             String(APropValue):= pPropVar.pwszVal;
+           end;
+(*         VT_FILETIME               [P]     FILETIME
+         VT_BLOB                   [P]     Length prefixed bytes
+         VT_STREAM                 [P]     Name of the stream follows
+         VT_STORAGE                [P]     Name of the storage follows
+         VT_STREAMED_OBJECT        [P]     Stream contains an object
+         VT_STORED_OBJECT          [P]     Storage contains an object
+         VT_VERSIONED_STREAM       [P]     Stream with a GUID version
+         VT_BLOB_OBJECT            [P]     Blob contains an object
+         VT_CF                     [P]     Clipboard format
+         VT_CLSID                  [P]     A Class ID
+         VT_VECTOR                 [P]     simple counted array
+         VT_ARRAY            [V]           SAFEARRAY*
+         VT_BYREF            [V]           void* for local use
+         VT_BSTR_BLOB                      Reserved for system use
+*)
+       end;
+     end;
+     end;
+  except
+  end;
+end;
+
+function TWIADevice.GetProperty(APropId: PROPID; var propType: TVarType;
+                                var APropValue; var APropDefaultValue;
+                                var APropListValues; useRoot: Boolean): TWIAPropertyFlag;
 begin
 
 end;
 
-function TWIADevice.SetProperty(APropId: PROPID; const APropValue; propType: TVarType; useRoot: Boolean): Boolean;
+function TWIADevice.SetProperty(APropId: PROPID; propType: TVarType; const APropValue; useRoot: Boolean): Boolean;
 var
    pPropSpec: PROPSPEC;
    pPropVar: PROPVARIANT;
@@ -666,67 +808,89 @@ begin
 
        Case propType of
          VT_I2: begin //2 byte signed int
+           pPropVar.iVal:= SmallInt(APropValue);
          end;
          VT_I4, VT_INT: begin //4 byte signed int, signed machine int
            pPropVar.lVal:= Integer(APropValue);
          end;
          VT_R4: begin //4 byte real
+           pPropVar.fltVal:= Single(APropValue);
          end;
          VT_R8: begin //8 byte real
+           pPropVar.dblVal:= Double(APropValue);
          end;
          VT_CY: begin //currency
+           pPropVar.cyVal:= CURRENCY(APropValue);
          end;
          VT_DATE: begin //date
+           pPropVar.date:= Double(APropValue);
          end;
          VT_BSTR: begin //OLE Automation string
+           pPropVar.bstrVal:= PWideChar(String(APropValue)); { #note 5 -oMaxM : Test this Cast }
          end;
 //         VT_DISPATCH         [V][T]   [S]  IDispatch *
 //         VT_ERROR            [V][T][P][S]  SCODE
          VT_BOOL: begin //True=-1, False=0
+           pPropVar.boolVal:= Boolean(APropValue);
          end;
 //         VT_VARIANT          [V][T][P][S]  VARIANT *
 //         VT_UNKNOWN          [V][T]   [S]  IUnknown *
 //         VT_DECIMAL          [V][T]   [S]  16 byte fixed point
 //         VT_RECORD           [V]   [P][S]  user defined type
          VT_I1: begin //signed AnsiChar
+           { #note -oMaxM : Lazarus and Delphi has different Declaration? }
+           {$ifdef fpc}
+           pPropVar.cVal:= AnsiChar(APropValue);
+           {$else}
+           pPropVar.cVal:= ShortInt(APropValue);
+           {$endif}
          end;
          VT_UI1: begin //unsigned AnsiChar
+           pPropVar.bVal:= Byte(APropValue);
          end;
          VT_UI2: begin //unsigned short
+           pPropVar.uiVal:= Word(APropValue);
          end;
          VT_UI4, VT_UINT : begin //unsigned long
+           pPropVar.ulVal:= LongWord(APropValue);
          end;
          VT_I8 : begin //signed 64-bit int
+           pPropVar.hVal:= LARGE_INTEGER(APropValue);
          end;
          VT_UI8 : begin //unsigned 64-bit int
+           pPropVar.uhVal:= ULARGE_INTEGER(APropValue);
          end;
 (*         VT_INT_PTR             [T]        signed machine register size width
-         VT_UINT_PTR            [T]        unsigned machine register size width
-         VT_VOID                [T]        C style void
-         VT_HRESULT             [T]        Standard return type
-         VT_PTR                 [T]        pointer type
-         VT_SAFEARRAY           [T]        (use VT_ARRAY in VARIANT)
-         VT_CARRAY              [T]        C style array
-         VT_USERDEFINED         [T]        user defined type
+       VT_UINT_PTR            [T]        unsigned machine register size width
+       VT_VOID                [T]        C style void
+       VT_HRESULT             [T]        Standard return type
+       VT_PTR                 [T]        pointer type
+       VT_SAFEARRAY           [T]        (use VT_ARRAY in VARIANT)
+       VT_CARRAY              [T]        C style array
+       VT_USERDEFINED         [T]        user defined type
 *)
-         VT_LPSTR, VT_LPWSTR : begin //null terminated string, wide null terminated string
+         VT_LPSTR  : begin //null terminated string, wide null terminated string
+           pPropVar.pszVal:= PAnsiChar(String(APropValue)); { #note 5 -oMaxM : Test this Cast }
+         end;
+         VT_LPWSTR : begin //wide null terminated string
+           pPropVar.pwszVal:= PWideChar(String(APropValue)); { #note 5 -oMaxM : Test this Cast }
          end;
 (*         VT_FILETIME               [P]     FILETIME
-         VT_BLOB                   [P]     Length prefixed bytes
-         VT_STREAM                 [P]     Name of the stream follows
-         VT_STORAGE                [P]     Name of the storage follows
-         VT_STREAMED_OBJECT        [P]     Stream contains an object
-         VT_STORED_OBJECT          [P]     Storage contains an object
-         VT_VERSIONED_STREAM       [P]     Stream with a GUID version
-         VT_BLOB_OBJECT            [P]     Blob contains an object
-         VT_CF                     [P]     Clipboard format
-         VT_CLSID                  [P]     A Class ID
-         VT_VECTOR                 [P]     simple counted array
-         VT_ARRAY            [V]           SAFEARRAY*
-         VT_BYREF            [V]           void* for local use
-         VT_BSTR_BLOB                      Reserved for system use
+       VT_BLOB                   [P]     Length prefixed bytes
+       VT_STREAM                 [P]     Name of the stream follows
+       VT_STORAGE                [P]     Name of the storage follows
+       VT_STREAMED_OBJECT        [P]     Stream contains an object
+       VT_STORED_OBJECT          [P]     Storage contains an object
+       VT_VERSIONED_STREAM       [P]     Stream with a GUID version
+       VT_BLOB_OBJECT            [P]     Blob contains an object
+       VT_CF                     [P]     Clipboard format
+       VT_CLSID                  [P]     A Class ID
+       VT_VECTOR                 [P]     simple counted array
+       VT_ARRAY            [V]           SAFEARRAY*
+       VT_BYREF            [V]           void* for local use
+       VT_BSTR_BLOB                      Reserved for system use
 *)
-       end;
+     end;
 
        lres:= curProp.WriteMultiple(1, @pPropSpec, @pPropVar, 2);
 

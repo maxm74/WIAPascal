@@ -1,6 +1,8 @@
 WIAPASCAL CHANGE LOG
 ======================
 
+2024/10/04 TWIADevice GetProperty, SetProperty with Formal Type
+
 2024/09/27 Use of Formal Types for TWIADevice.SetProperty/GetProperty
         24 Added TWIAPropertyFlags and WIAPropertyFlags function
 	13 Demo List Properties Flags and Vector Values
