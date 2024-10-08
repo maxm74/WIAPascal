@@ -47,7 +47,7 @@ object Form1: TForm1
     Width = 40
     Height = 23
     TabOrder = 1
-    Text = '1'
+    Text = '0'
   end
   object btIntList: TButton
     Left = 416

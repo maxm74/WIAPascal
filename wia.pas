@@ -27,6 +27,11 @@ uses
   Windows, Classes, SysUtils, ComObj, ActiveX, WiaDef, WIA_LH;
 
 type
+  //Dinamic Array types
+  TArraySingle = array of Single;
+  TArrayInteger = array of Integer;
+  TStringArray = array of String;
+
   TWIAManager = class;
 
   TWIAItem = record
@@ -122,7 +127,7 @@ type
     function GetProperty(APropId: PROPID; var propType: TVarType;
                          var APropValue; var APropDefaultValue;
                          var APropListValues;
-                         useRoot: Boolean=False): TWIAPropertyFlag; overload;
+                         useRoot: Boolean=False): TWIAPropertyFlags; overload;
 
     //Set the Property Value given the ID, the user must know the correct type to use
     function SetProperty(APropId: PROPID; propType: TVarType; const APropValue; useRoot: Boolean=False): Boolean;
@@ -720,12 +725,8 @@ begin
 //         VT_DECIMAL          [V][T]   [S]  16 byte fixed point
 //         VT_RECORD           [V]   [P][S]  user defined type
            VT_I1: begin //signed AnsiChar
-             { #note -oMaxM : Lazarus and Delphi has different Declaration? }
-             {$ifdef fpc}
-             AnsiChar(APropValue):= pPropVar.cVal;
-             {$else}
-             ShortInt(APropValue):= pPropVar.cVal;
-             {$endif}
+             { #note -oMaxM : Delphi has wrong declaration of cVal as ShortInt, correct one is Char }
+             AnsiChar(APropValue):= AnsiChar(pPropVar.cVal);
            end;
            VT_UI1: begin //unsigned AnsiChar
              Byte(APropValue):= pPropVar.bVal;
@@ -781,9 +782,161 @@ end;
 
 function TWIADevice.GetProperty(APropId: PROPID; var propType: TVarType;
                                 var APropValue; var APropDefaultValue;
-                                var APropListValues; useRoot: Boolean): TWIAPropertyFlag;
-begin
+                                var APropListValues; useRoot: Boolean): TWIAPropertyFlags;
+var
+   pPropSpec: PROPSPEC;
+   pPropVar,
+   pPropInfo: PROPVARIANT;
+   pFlags: ULONG;
+   curProp: IWiaPropertyStorage;
+   i: Integer;
+   numElems,
+   firstElem: DWord;
 
+begin
+  try
+     Result:= [];
+
+     if useRoot
+     then curProp:= GetRootProperties
+     else curProp:= GetSelectedProperties;
+
+     if (curProp <> nil) then
+     begin
+       pPropSpec.ulKind:= PRSPEC_PROPID;
+       pPropSpec.propid:= APropId;
+
+       lres:= curProp.GetPropertyAttributes(1, @pPropSpec, @pFlags, @pPropInfo);
+
+       if (lres = S_OK) then
+       begin
+         propType:= pPropInfo.vt;
+
+         Result:= WIAPropertyFlags(pFlags);
+
+         if not(Result = []) then
+         begin
+           lres:= curProp.ReadMultiple(1, @pPropSpec, @pPropVar);
+           propType:= pPropVar.vt;
+           { #todo -oMaxM : What to do if the two types (pPropVar and pPropInfo) are different? }
+
+           if (lres = S_OK) then
+           Case propType of
+             VT_I2: begin //2 byte signed int
+               SmallInt(APropValue):= pPropVar.iVal;
+             end;
+             VT_I4, VT_INT: begin //4 byte signed int, signed machine int
+               Integer(APropValue):= pPropVar.lVal;
+
+               numElems:= 0;
+               firstElem:= 0;
+               Integer(APropDefaultValue):= 0;
+
+               if (WIAProp_LIST in Result)
+               then begin
+                      numElems:= pPropInfo.cal.pElems[WIA_LIST_COUNT]; //pPropInfo.cal.cElems-WIA_LIST_VALUES
+                      firstElem:= WIA_LIST_VALUES;
+                      Integer(APropDefaultValue):= pPropInfo.cal.pElems[WIA_LIST_NOM];
+                    end
+               else
+               if (WIAProp_RANGE in Result)
+               then begin
+                      numElems:= WIA_RANGE_NUM_ELEMS;
+                      firstElem:= 0;
+                      Integer(APropDefaultValue):= pPropInfo.cal.pElems[WIA_RANGE_NOM];
+                    end;
+               if (WIAProp_FLAG in Result)
+               then begin
+                      numElems:= pPropInfo.cal.cElems; //pElems[WIA_FLAG_NUM_ELEMS];
+                      firstElem:= 0; //WIA_FLAG_VALUES;
+                      Integer(APropDefaultValue):= pPropInfo.cal.pElems[WIA_FLAG_NOM];
+                    end;
+
+               SetLength(TArrayInteger(APropListValues), numElems);
+               for i:=firstElem to firstElem+numElems-1 do
+                 TArrayInteger(APropListValues)[i-firstElem]:= Integer(pPropInfo.cal.pElems[i]);
+
+             end;
+             VT_R4: begin //4 byte real
+               Single(APropValue):= pPropVar.fltVal;
+             end;
+             VT_R8: begin //8 byte real
+               Double(APropValue):= pPropVar.dblVal;
+             end;
+             VT_CY: begin //currency
+               CURRENCY(APropValue):= pPropVar.cyVal;
+             end;
+             VT_DATE: begin //date
+               Double(APropValue):= pPropVar.date;
+             end;
+             VT_BSTR: begin //OLE Automation string
+               String(APropValue):= pPropVar.bstrVal;
+             end;
+//           VT_DISPATCH         [V][T]   [S]  IDispatch *
+//           VT_ERROR            [V][T][P][S]  SCODE
+             VT_BOOL: begin //True=-1, False=0
+               Boolean(APropValue):= pPropVar.boolVal;
+             end;
+//           VT_VARIANT          [V][T][P][S]  VARIANT *
+//           VT_UNKNOWN          [V][T]   [S]  IUnknown *
+//           VT_DECIMAL          [V][T]   [S]  16 byte fixed point
+//           VT_RECORD           [V]   [P][S]  user defined type
+             VT_I1: begin //signed AnsiChar
+               { #note -oMaxM : Delphi has wrong declaration of cVal as ShortInt, correct one is Char }
+               AnsiChar(APropValue):= AnsiChar(pPropVar.cVal);
+             end;
+             VT_UI1: begin //unsigned AnsiChar
+               Byte(APropValue):= pPropVar.bVal;
+             end;
+             VT_UI2: begin //unsigned short
+               Word(APropValue):= pPropVar.uiVal;
+             end;
+             VT_UI4, VT_UINT : begin //unsigned long
+               LongWord(APropValue):= pPropVar.ulVal;
+             end;
+             VT_I8 : begin //signed 64-bit int
+               LARGE_INTEGER(APropValue):= pPropVar.hVal;
+             end;
+             VT_UI8 : begin //unsigned 64-bit int
+               ULARGE_INTEGER(APropValue):= pPropVar.uhVal;
+             end;
+(*           VT_INT_PTR             [T]        signed machine register size width
+         VT_UINT_PTR            [T]        unsigned machine register size width
+         VT_VOID                [T]        C style void
+         VT_HRESULT             [T]        Standard return type
+         VT_PTR                 [T]        pointer type
+         VT_SAFEARRAY           [T]        (use VT_ARRAY in VARIANT)
+         VT_CARRAY              [T]        C style array
+         VT_USERDEFINED         [T]        user defined type
+*)
+             VT_LPSTR  : begin //null terminated string, wide null terminated string
+               String(APropValue):= pPropVar.pszVal;
+             end;
+             VT_LPWSTR : begin //wide null terminated string
+               String(APropValue):= pPropVar.pwszVal;
+             end;
+(*           VT_FILETIME               [P]     FILETIME
+         VT_BLOB                   [P]     Length prefixed bytes
+         VT_STREAM                 [P]     Name of the stream follows
+         VT_STORAGE                [P]     Name of the storage follows
+         VT_STREAMED_OBJECT        [P]     Stream contains an object
+         VT_STORED_OBJECT          [P]     Storage contains an object
+         VT_VERSIONED_STREAM       [P]     Stream with a GUID version
+         VT_BLOB_OBJECT            [P]     Blob contains an object
+         VT_CF                     [P]     Clipboard format
+         VT_CLSID                  [P]     A Class ID
+         VT_VECTOR                 [P]     simple counted array
+         VT_ARRAY            [V]           SAFEARRAY*
+         VT_BYREF            [V]           void* for local use
+         VT_BSTR_BLOB                      Reserved for system use
+*)
+           end;
+         end;
+       end;
+     end;
+
+  except
+  end;
 end;
 
 function TWIADevice.SetProperty(APropId: PROPID; propType: TVarType; const APropValue; useRoot: Boolean): Boolean;
@@ -838,7 +991,7 @@ begin
 //         VT_DECIMAL          [V][T]   [S]  16 byte fixed point
 //         VT_RECORD           [V]   [P][S]  user defined type
          VT_I1: begin //signed AnsiChar
-           { #note -oMaxM : Lazarus and Delphi has different Declaration? }
+           { #note -oMaxM : Delphi has wrong declaration of cVal as ShortInt, correct one is Char }
            {$ifdef fpc}
            pPropVar.cVal:= AnsiChar(APropValue);
            {$else}

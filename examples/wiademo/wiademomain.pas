@@ -247,21 +247,54 @@ end;
 
 procedure TForm1.btIntCapClick(Sender: TObject);
 var
-   i, k: Integer;
-   test :IWiaItem2;
    curDev: TWIADevice;
+   i, k: Integer;
+   pWiaPropertyStorage: IWiaPropertyStorage;
+   (*
+   test :IWiaItem2;
    OleStrID :POleStr;
    pWiaDevice: IWiaItem2;
    pWIA_DevMgr: WIA_LH.IWiaDevMgr2;
-   pWiaPropertyStorage: IWiaPropertyStorage;
    pPropIDS: array [0..3] of PROPID;
    pPropNames: array [0..3] of POLESTR;
    pPropSpec: array [0..3] of PROPSPEC;
    pPropVar: array [0..3] of PROPVARIANT;
    pFlags: array[0..3] of ULONG;
    sPropNames: array [0..3] of String;
+*)
    fStr: String;
-   tt: TWIAPropertyFlags;
+   propFlags: TWIAPropertyFlags;
+   propType: TVarType;
+   propValue,
+   propDefaultValue: Integer;
+   propListValues: TArrayInteger;
+
+   procedure WriteMemo;
+   var
+      i: Integer;
+
+   begin
+     if not(propFlags = []) then
+     begin
+      fStr:='  Flags: ';
+      if (WIAProp_READ in propFlags) then fStr:= fStr+'R,';
+      if (WIAProp_WRITE in propFlags) then fStr:= fStr+'W,';
+      if (WIAProp_SYNC_REQUIRED in propFlags) then fStr:= fStr+'S,';
+      if (WIAProp_NONE in propFlags) then fStr:= fStr+'N,';
+      if (WIAProp_RANGE in propFlags) then fStr:= fStr+'RANGE,';
+      if (WIAProp_LIST in propFlags) then fStr:= fStr+'LIST,';
+      if (WIAProp_FLAG in propFlags) then fStr:= fStr+'FLAG,';
+      if (WIAProp_CACHEABLE in propFlags) then fStr:= fStr+'C';
+
+      Memo2.Lines.Add(fStr+#13#10'  DefaultValue: '+IntToStr(propDefaultValue));
+      Memo2.Lines.Add('  CurrentValue: '+IntToStr(propValue));
+      fStr:='  Values: ';
+      for i:=0 to Length(propListValues)-1 do fStr:= fStr+IntToStr(propListValues[i])+', ';
+     end
+     else fStr:='  Error';
+
+     Memo2.Lines.Add(fStr);
+   end;
 
 begin
   try
@@ -279,6 +312,7 @@ begin
       exit;
      end;
 
+(* Direct Code
 //     pWiaPropertyStorage:= curDev.RootProperties;
 
      //WIA_IPS_PAGE_SIZE
@@ -320,8 +354,6 @@ begin
         for i:=0 to Length(pPropSpec)-1 do
         begin
           fStr:=' '+sPropNames[i]+' ';
-
-          tt:=WIAPropertyFlags(pFlags[i]);
 
           if (pFlags[i] and WIA_PROP_READ <> 0) then fStr:= fStr+'R,';
           if (pFlags[i] and WIA_PROP_WRITE <> 0) then fStr:= fStr+'W,';
@@ -371,6 +403,34 @@ begin
       end;
 
 //     pWiaPropertyStorage :=nil;
+*)
+  //Class Code
+(*  Memo2.Lines.Add(#13#10'PropertyAttributes (WIA_DPS_PAGE_SIZE):');
+  propFlags:= curDev.GetProperty(WIA_DPS_PAGE_SIZE, propType, propValue, propDefaultValue, propListValues);
+  WriteMemo;
+*)
+  Memo2.Lines.Add(#13#10'PropertyAttributes (WIA_IPS_XRES):');
+  propFlags:= curDev.GetProperty(WIA_IPS_XRES, propType, propValue, propDefaultValue, propListValues);
+  WriteMemo;
+
+  Memo2.Lines.Add(#13#10'PropertyAttributes (WIA_IPA_DEPTH):');
+  propFlags:= curDev.GetProperty(WIA_IPA_DEPTH, propType, propValue, propDefaultValue, propListValues);
+  WriteMemo;
+
+  Memo2.Lines.Add(#13#10'PropertyAttributes (WIA_IPA_DATATYPE):');
+  propFlags:= curDev.GetProperty(WIA_IPA_DATATYPE, propType, propValue, propDefaultValue, propListValues);
+  WriteMemo;
+
+  //WIA_IPS_BRIGHTNESS for Range Test
+  Memo2.Lines.Add(#13#10'PropertyAttributes (WIA_IPS_BRIGHTNESS):');
+  propFlags:= curDev.GetProperty(WIA_IPS_BRIGHTNESS, propType, propValue, propDefaultValue, propListValues);
+  WriteMemo;
+
+  //WIA_IPS_DOCUMENT_HANDLING_SELECT for Flag/Error Test
+  Memo2.Lines.Add(#13#10'PropertyAttributes (WIA_IPA_ACCESS_RIGHTS):');
+  propFlags:= curDev.GetProperty(WIA_IPA_ACCESS_RIGHTS, propType, propValue, propDefaultValue, propListValues);
+  WriteMemo;
+
   finally
   end;
 end;

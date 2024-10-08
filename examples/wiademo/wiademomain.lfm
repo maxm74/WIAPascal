@@ -23,7 +23,7 @@ object Form1: TForm1
     Top = 72
     Width = 40
     TabOrder = 1
-    Text = '1'
+    Text = '0'
   end
   object Label1: TLabel
     Left = 419
