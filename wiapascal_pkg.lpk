@@ -10,9 +10,14 @@
       <SearchPaths>
         <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
+      <CodeGeneration>
+        <Optimizations>
+          <OptimizationLevel Value="0"/>
+        </Optimizations>
+      </CodeGeneration>
     </CompilerOptions>
     <Description Value="WIA and STI features for Free Pascal"/>
-    <Version Release="1"/>
+    <Version Release="2"/>
     <Files>
       <Item>
         <Filename Value="WIA_LH.pas"/>
@@ -46,8 +51,15 @@
         <Filename Value="WIA_SelectForm.pas"/>
         <UnitName Value="WIA_SelectForm"/>
       </Item>
+      <Item>
+        <Filename Value="WIA_SettingsForm.pas"/>
+        <UnitName Value="WIA_SettingsForm"/>
+      </Item>
     </Files>
     <RequiredPkgs>
+      <Item>
+        <PackageName Value="LCL"/>
+      </Item>
       <Item>
         <PackageName Value="LCLBase"/>
       </Item>

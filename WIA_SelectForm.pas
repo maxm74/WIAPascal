@@ -1,20 +1,20 @@
-(****************************************************************************
-*                FreePascal \ Delphi WIA Implementation
-*
-*  FILE: WIA_SelectForm.pas
-*
-*  VERSION:     0.0.1
-*
-*  DESCRIPTION:
-*    WIA Select Device Dialog.
-*
-*****************************************************************************
-*
-*  (c) 2024 Massimo Magnano
-*
-*  See changelog.txt for Change Log
-*
-*****************************************************************************)
+(******************************************************************************
+*                FreePascal \ Delphi WIA Implementation                       *
+*                                                                             *
+*  FILE: WIA_SelectForm.pas                                                   *
+*                                                                             *
+*  VERSION:     0.0.1                                                         *
+*                                                                             *
+*  DESCRIPTION:                                                               *
+*    WIA Select Device Dialog.                                                *
+*                                                                             *
+*******************************************************************************
+*                                                                             *
+*  (c) 2024 Massimo Magnano                                                   *
+*                                                                             *
+*  See changelog.txt for Change Log                                           *
+*                                                                             *
+*******************************************************************************)
 
 unit WIA_SelectForm;
 
@@ -24,7 +24,7 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, Buttons,
-  ComCtrls, WIA;
+  ComCtrls, StdCtrls, WIA;
 
 type
   { TWIASelectForm }

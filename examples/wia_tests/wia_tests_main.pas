@@ -1,4 +1,4 @@
-unit wiademomain;
+unit wia_tests_main;
 
 {$ifdef fpc}
 {$mode delphi}
@@ -17,9 +17,9 @@ uses
 
 type
 
-  { TForm1 }
+  { TFormWIATests }
 
-  TForm1 = class(TForm)
+  TFormWIATests = class(TForm)
     btIntCap: TButton;
     btIntList: TButton;
     btDownload: TButton;
@@ -54,7 +54,7 @@ type
   end;
 
 var
-  Form1: TForm1;
+  FormWIATests: TFormWIATests;
 
 implementation
 
@@ -64,9 +64,9 @@ implementation
   {$R *.dfm}
 {$endif}
 
-{ TForm1 }
+{ TFormWIATests }
 
-procedure TForm1.btIntListClick(Sender: TObject);
+procedure TFormWIATests.btIntListClick(Sender: TObject);
 var
   i:integer;
   curDev: TWIADevice;
@@ -198,7 +198,7 @@ begin
   end;
 end;
 
-procedure TForm1.btSelectClick(Sender: TObject);
+procedure TFormWIATests.btSelectClick(Sender: TObject);
 var
    newIndex: Integer;
 
@@ -211,7 +211,7 @@ begin
   end;
 end;
 
-procedure TForm1.btDownloadClick(Sender: TObject);
+procedure TFormWIATests.btDownloadClick(Sender: TObject);
 var
    test :IWiaItem2;
    curDev: TWIADevice;
@@ -245,7 +245,7 @@ begin
   end;
 end;
 
-procedure TForm1.btIntCapClick(Sender: TObject);
+procedure TFormWIATests.btIntCapClick(Sender: TObject);
 var
    curDev: TWIADevice;
    i, k: Integer;
@@ -435,7 +435,7 @@ begin
   end;
 end;
 
-procedure TForm1.btListChildsClick(Sender: TObject);
+procedure TFormWIATests.btListChildsClick(Sender: TObject);
 var
    i: Integer;
    curDev: TWIADevice;
@@ -453,7 +453,7 @@ begin
   end;
 end;
 
-procedure TForm1.FormCreate(Sender: TObject);
+procedure TFormWIATests.FormCreate(Sender: TObject);
 begin
   //FWIA_DevMgr :=WIA_TLB.CoDeviceManager.Create;
  // FWIA_DevMgr :=nil;
@@ -463,14 +463,14 @@ begin
   FWia.OnAfterDeviceTransfer:= DeviceTransferEvent;
 end;
 
-procedure TForm1.FormDestroy(Sender: TObject);
+procedure TFormWIATests.FormDestroy(Sender: TObject);
 begin
  //if FWIA_DevMgr<>nil then FWIA_DevMgr :=nil;
 
-  FWia.Free;
+  if (FWIA<>nil) then FWia.Free;
 end;
 
-function TForm1.DeviceTransferEvent(AWiaManager: TWIAManager; AWiaDevice: TWIADevice; lFlags: LONG;
+function TFormWIATests.DeviceTransferEvent(AWiaManager: TWIAManager; AWiaDevice: TWIADevice; lFlags: LONG;
   pWiaTransferParams: PWiaTransferParams): Boolean;
 begin
   Result:= True;

@@ -1,7 +1,7 @@
-object Form1: TForm1
+object FormWIATests: TFormWIATests
   Left = 391
   Top = 158
-  Caption = 'WIA Demos'
+  Caption = 'WIA Tests'
   ClientHeight = 260
   ClientWidth = 544
   Color = clBtnFace

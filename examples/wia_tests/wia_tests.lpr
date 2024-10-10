@@ -1,4 +1,4 @@
-program wiademo;
+program wia_tests;
 
 {$mode objfpc}{$H+}
 
@@ -7,14 +7,14 @@ uses
   cthreads,
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, wiademomain;
+  Forms, wia_tests_main;
 
 {$R *.res}
 
 begin
   RequireDerivedFormResource := True;
   Application.Initialize;
-  Application.CreateForm(TForm1, Form1);
+  Application.CreateForm(TFormWIATests, FormWIATests);
   Application.Run;
 end.
 

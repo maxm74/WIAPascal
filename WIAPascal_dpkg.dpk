@@ -30,7 +30,8 @@ package WIAPascal_dpkg;
 
 requires
   rtl,
-  vcl;
+  vcl,
+  VclSmp;
 
 contains
   WIA in 'WIA.pas',
@@ -39,6 +40,7 @@ contains
   WIA_TLB in 'WIA_TLB.pas',
   WiaDef in 'WiaDef.pas',
   WiaDevD in 'WiaDevD.pas',
-  WIA_SelectForm in 'WIA_SelectForm.pas' {WIASelectForm};
+  WIA_SelectForm in 'WIA_SelectForm.pas' {WIASelectForm},
+  WIA_SettingsForm in 'WIA_SettingsForm.pas' {WIASettingsSource};
 
 end.

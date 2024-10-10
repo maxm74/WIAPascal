@@ -1,9 +1,9 @@
-object Form1: TForm1
+object FormWIATests: TFormWIATests
   Left = 391
   Height = 260
   Top = 158
   Width = 544
-  Caption = 'WIA Demos'
+  Caption = 'WIA Tests'
   ClientHeight = 260
   ClientWidth = 544
   LCLVersion = '3.99.0.0'

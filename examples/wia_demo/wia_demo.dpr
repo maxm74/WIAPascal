@@ -1,14 +1,14 @@
-program wiademo;
+program wia_demo;
 
 uses
   Vcl.Forms,
-  wiademomain in 'wiademomain.pas' {Form1};
+  WIA_Demo_Form in 'WIA_Demo_Form.pas' {FormWIADemo};
 
 {$R *.res}
 
 begin
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
-  Application.CreateForm(TForm1, Form1);
+  Application.CreateForm(TFormWIADemo, FormWIADemo);
   Application.Run;
 end.
