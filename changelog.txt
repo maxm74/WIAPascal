@@ -1,7 +1,8 @@
 WIAPASCAL CHANGE LOG
 ======================
 
-2024/10/10 Added WIA_Settings Form (empty)
+2024/10/11 First Settings Form code; Added PaperSizes (that does not works)
+        10 Added WIA_Settings Form (empty)
            Renamed Demo as Tests and Added a real Demo 
         08 TWIADevice.GetProperty with Default and List of possible Values (Integer)
         04 TWIADevice GetProperty, SetProperty with Formal Type

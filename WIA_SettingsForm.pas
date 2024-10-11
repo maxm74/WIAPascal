@@ -25,17 +25,20 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, Buttons,
   ComCtrls, StdCtrls, Spin,
-  (* Twain, DelphiTwain, DelphiTwainTypes, *)
+  WIA,
   ImgList {$ifndef fpc}, ImageList{$endif};
 
 type
-  { TWIASettingsSource }
+  TInitialItemValues = (initDefault, initParams, initCurrent);
 
+  { TWIASettingsSource }
   TWIASettingsSource = class(TForm)
     btCancel: TBitBtn;
     btOrientation: TSpeedButton;
-    btRefresh: TBitBtn;
+    btRefreshUndo: TBitBtn;
     btOk: TBitBtn;
+    btRefreshCurrent: TBitBtn;
+    btRefreshDefault: TBitBtn;
     cbBitDepth: TComboBox;
     cbSourceItem: TComboBox;
     cbPaperSize: TComboBox;
@@ -63,14 +66,15 @@ type
     procedure trBrightnessChange(Sender: TObject);
     procedure trContrastChange(Sender: TObject);
   private
-   (* Twain: TCustomDelphiTwain;
-    TwainSource: TTwainSource;
-    *)
-    SelectedSourceIndex:Integer;
+    WIASource: TWIADevice;
+    WIASelectedItemIndex: Integer;
+    WIACap: TWIAParamsCapabilities;
+    WIAParams: TWIAParams;
 
   public
-     class function Execute(useDeviceDefault: Boolean (*; TwainCap:TTwainParamsCapabilities;
-                            var AParams:TTwainParams*) ): Boolean;
+     class function Execute(AWIASource: TWIADevice;
+                            var ASelectedItemIndex: Integer; { #note -oMaxM : Eventualmente Filtri per quali Item Mostrare }
+                            initItemValues: TInitialItemValues; var AParams: TWIAParams): Boolean;
   end;
 
 var
@@ -83,6 +87,8 @@ implementation
 {$else}
   {$R *.dfm}
 {$endif}
+
+uses WIA_PaperSizes;
 
 { TWIASettingsSource }
 
@@ -106,43 +112,63 @@ begin
   edContrast.Value:=trContrast.Position;
 end;
 
-class function TWIASettingsSource.Execute(useDeviceDefault: Boolean (*; TwainCap: TTwainParamsCapabilities;
-                                            var AParams: TTwainParams*) ): Boolean;
+class function TWIASettingsSource.Execute(AWIASource: TWIADevice; var ASelectedItemIndex: Integer;
+  initItemValues: TInitialItemValues; var AParams: TWIAParams): Boolean;
 var
- (* paperI: TTwainPaperSize;
-  pixelI:TTwainPixelType;
-  *)
+  paperI: TWIAPaperSize;
+//  pixelI:TTwainPixelType;
   i, cbSelected: Integer;
-
+  (*  TwainSource:TTwainSource;
+    bitCurrent: Integer;
+    paperCurrent: TTwainPaperSize;
+    pixelCurrent:TTwainPixelType;
+    resolutionCurrent:Single;
+  *)
 begin
   if (WIASettingsSource=nil)
   then WIASettingsSource :=TWIASettingsSource.Create(nil);
 
   with WIASettingsSource do
   begin
+    WIASource:= AWIASource;
+    WIASelectedItemIndex:= ASelectedItemIndex;
+    WIAParams:= AParams;
+
+    { #note -oMaxM : Eventualmente Muovere nella Classe TWIADevice }
+    //Get current Selected Item Default Values
+    with WIACap do
+    begin
+      WIASource.GetPaperSizeSet(PaperSizeCurrent, PaperSizeDefault, PaperSizeSet);
+    end;
+
 (*    cbSourceItem.Clear;
     if (pfFlatbed in TwainCap.PaperFeedingSet) then cbSourceItem.Items.AddObject('Flatbed', TObject(PtrUInt(pfFlatbed)));
     if (pfFeeder in TwainCap.PaperFeedingSet) then cbSourceItem.Items.AddObject('Feeder', TObject(PtrUInt(pfFeeder)));
     cbSourceItem.ItemIndex:=cbSourceItem.Items.IndexOfObject(TObject(PtrUInt(AParams.PaperFeed)));
-
+*)
     //Fill List of Papers
     cbPaperSize.Clear;
     cbSelected :=0;
-    cbPaperSize.Items.AddObject('Full Scanner size', TObject(PtrUInt(tpsNONE)));
-    for paperI in TwainCap.PaperSizeSet do
+    cbPaperSize.Items.AddObject('Full size', TObject(PtrUInt(wpsMAX)));
+    for paperI in WIACap.PaperSizeSet do
     begin
-      if (paperI<>tpsNONE) and (paperI<>tpsMAXSIZE)
-      then cbPaperSize.Items.AddObject(PaperSizesTwain[paperI].name+
-             ' ('+FloatToStrF(PaperSizesTwain[paperI].w, ffFixed, 15, 2)+' x '+
-                  FloatToStrF(PaperSizesTwain[paperI].h, ffFixed, 15, 2)+')',
+      Case paperI of
+      wpsCUSTOM: cbPaperSize.Items.AddObject('Custom size', TObject(PtrUInt(wpsCUSTOM)));
+      wpsAUTO: cbPaperSize.Items.AddObject('Auto size', TObject(PtrUInt(wpsAUTO)));
+      else cbPaperSize.Items.AddObject(PaperSizesWIA[paperI].name+
+             ' ('+FloatToStrF(PaperSizesWIA[paperI].w, ffFixed, 15, 2)+' x '+
+                  FloatToStrF(PaperSizesWIA[paperI].h, ffFixed, 15, 2)+')',
              TObject(PtrUInt(paperI)));
+      end;
 
-      if useDeviceDefault
-      then begin if (paperI = TwainCap.PaperSizeDefault) then cbSelected :=cbPaperSize.Items.Count-1; end
-      else begin if (paperI = AParams.PaperSize) then cbSelected :=cbPaperSize.Items.Count-1; end;
+      case initItemValues of
+      initDefault: begin if (paperI = WIACap.PaperSizeDefault) then cbSelected :=cbPaperSize.Items.Count-1; end;
+      initParams:  begin if (paperI = AParams.PaperSize) then cbSelected :=cbPaperSize.Items.Count-1; end;
+      initCurrent: begin if (paperI = WIACap.PaperSizeCurrent) then cbSelected :=cbPaperSize.Items.Count-1; end;
+      end;
     end;
     cbPaperSize.ItemIndex:=cbSelected;
-
+(*
     //Fill List of Bit Depth
     cbBitDepth.Clear;
     cbSelected :=0;
@@ -197,10 +223,10 @@ begin
       if (cbSourceItem.ItemIndex>-1)
       then AParams.PaperFeed:=TTwainPaperFeeding(PtrUInt(cbSourceItem.Items.Objects[cbSourceItem.ItemIndex]));
       { #todo -oMaxM : else Predefined Value }
-
+*)
       if (cbPaperSize.ItemIndex>-1)
-      then AParams.PaperSize:=TTwainPaperSize(PtrUInt(cbPaperSize.Items.Objects[cbPaperSize.ItemIndex]));
-
+      then AParams.PaperSize:=TWIAPaperSize(PtrUInt(cbPaperSize.Items.Objects[cbPaperSize.ItemIndex]));
+(*
       if (cbBitDepth.ItemIndex>-1)
       then AParams.BitDepth:=PtrUInt(cbBitDepth.Items.Objects[cbBitDepth.ItemIndex]);
 

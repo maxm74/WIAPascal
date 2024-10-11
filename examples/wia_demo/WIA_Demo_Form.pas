@@ -30,8 +30,6 @@ type
     (*
     rTwain:TDelphiTwain;
     capRet: TCapabilityRet;
-    TwainCap: TTwainParamsCapabilities;
-    TwainParams: TTwainParams;
 
     function getTwain: TDelphiTwain;
 
@@ -46,6 +44,8 @@ type
 
     lres: HResult;
     FWia: TWIAManager;
+    WIACap: TWIAParamsCapabilities;
+    WIAParams: TWIAParams;
 
     function DeviceTransferEvent(AWiaManager: TWIAManager; AWiaDevice: TWIADevice;
                                  lFlags: LONG; pWiaTransferParams: PWiaTransferParams): Boolean;
@@ -159,18 +159,59 @@ procedure TFormWIADemo.btAcquireClick(Sender: TObject);
 var
    aPath: String;
    WIASource: TWIADevice;
-   c: Integer;
+   SelectedItemIndex,
+   NewItemIndex: Integer;
+   c, p: Integer;
+   capRet: Boolean;
+   t: TVarType;
 
 begin
-  //WIASource:= FWia.SelectedDevice;
-  WIASource:= FWia.Devices[0];
+  WIASource:= FWia.SelectedDevice;
+//  WIASource:= FWia.Devices[0];
 
   if (WIASource <> nil) then
   try
+    SelectedItemIndex:= WIASource.SelectedItemIndex;
+    NewItemIndex:= SelectedItemIndex;
+
     //Select Scanner Setting to use
-    if TWIASettingsSource.Execute(True) then
+    if TWIASettingsSource.Execute(WIASource, NewItemIndex, initCurrent, WIAParams) then
     begin
+      if (NewItemIndex <> SelectedItemIndex) then
+      begin
+        //Sub Item Changed do Something
+      end;
+
       aPath:= ExtractFilePath(ParamStr(0));
+
+      with WIAParams do
+      begin
+        //capRet :=WIASource.SetPaperSize(PaperSize); DON'T Works
+
+        { #todo 10 -oMaxM : The PaperSizes does not works, use the XEntent = pagesize * xres / 1000 }
+        p:= 200;
+        capRet:= WIASource.SetProperty(WIA_IPS_XRES, VT_I4, p);
+        capRet:= WIASource.SetProperty(WIA_IPS_YRES, VT_I4, p);
+
+        capRet:= WIASource.GetProperty(WIA_IPS_MAX_HORIZONTAL_SIZE, t, p);
+        capRet:= WIASource.GetProperty(WIA_IPS_MAX_VERTICAL_SIZE, t, p);
+
+        p:= Trunc(8267 * 200 / 1000);
+        capRet:= WIASource.SetProperty(WIA_IPS_XEXTENT, VT_I4, p);
+        p:=0;
+        capRet:= WIASource.SetProperty(WIA_IPS_XPOS, VT_I4, p);
+        p:= Trunc(11692 * 200 / 1000);
+        capRet:= WIASource.SetProperty(WIA_IPS_YEXTENT, VT_I4, p);
+
+(*        capRet :=TwainSource.SetIPixelType(PixelType);
+
+        capRet :=TwainSource.SetIXResolution(Resolution);
+        capRet :=TwainSource.SetIYResolution(Resolution);
+        capRet :=TwainSource.SetContrast(Contrast);
+        capRet :=TwainSource.SetBrightness(Brightness);
+*)
+      end;
+
       c:= WIASource.Download(aPath, 'test_wia.bmp');
 
       if (c>0)

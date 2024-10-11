@@ -55,6 +55,10 @@
         <Filename Value="WIA_SettingsForm.pas"/>
         <UnitName Value="WIA_SettingsForm"/>
       </Item>
+      <Item>
+        <Filename Value="WIA_PaperSizes.pas"/>
+        <UnitName Value="WIA_PaperSizes"/>
+      </Item>
     </Files>
     <RequiredPkgs>
       <Item>

@@ -53,6 +53,99 @@ type
   );
   TWIAPropertyFlags = set of TWIAPropertyFlag;
 
+  {Paper size}
+  TPaperSize = packed record
+    name:String[16];
+    w, h:Single;
+  end;
+
+  TWIAPaperSize = (
+   wpsMAX = $FF, // Use  WIA_IPS_MAX_HORIZONTAL/VERTICAL_SIZE
+   wpsA4 = WIA_PAGE_A4, //  8267 x 11692
+   wpsLETTER = WIA_PAGE_LETTER, //  8500 x 11000
+   wpsCUSTOM = WIA_PAGE_CUSTOM, // Use a Range from  WIA_IPS_MIN_*_SIZE to WIA_IPS_MAX_*_SIZE
+   wpsUSLEGAL = WIA_PAGE_USLEGAL, //  8500 x 14000
+   wpsUSLEDGER = WIA_PAGE_USLEDGER, // 11000 x 17000
+   wpsUSSTATEMENT = WIA_PAGE_USSTATEMENT, //  5500 x  8500
+   wpsBUSINESSCARD = WIA_PAGE_BUSINESSCARD, //  3543 x  2165
+   wpsISO_A0 = WIA_PAGE_ISO_A0, // 33110 x 46811
+   wpsISO_A1 = WIA_PAGE_ISO_A1, // 23385 x 33110
+   wpsISO_A2 = WIA_PAGE_ISO_A2, // 16535 x 23385
+   wpsISO_A3 = WIA_PAGE_ISO_A3, // 11692 x 16535
+   wpsISO_A5 = WIA_PAGE_ISO_A5, //  5826 x  8267
+   wpsISO_A6 = WIA_PAGE_ISO_A6, //  4133 x  5826
+   wpsISO_A7 = WIA_PAGE_ISO_A7, //  2913 x  4133
+   wpsISO_A8 = WIA_PAGE_ISO_A8, //  2047 x  2913
+   wpsISO_A9 = WIA_PAGE_ISO_A9, //  1456 x  2047
+   wpsISO_A10 = WIA_PAGE_ISO_A10, //  1023 x  1456
+   wpsISO_B0 = WIA_PAGE_ISO_B0, //  39370 x 55669
+   wpsISO_B1 = WIA_PAGE_ISO_B1, //  27834 x 39370
+   wpsISO_B2 = WIA_PAGE_ISO_B2, //  19685 x 27834
+   wpsISO_B3 = WIA_PAGE_ISO_B3, //  13897 x 19685
+   wpsISO_B4 = WIA_PAGE_ISO_B4, //   9842 x 13897
+   wpsISO_B5 = WIA_PAGE_ISO_B5, //   6929 x  9842
+   wpsISO_B6 = WIA_PAGE_ISO_B6, //   4921 x  6929
+   wpsISO_B7 = WIA_PAGE_ISO_B7, //   3464 x  4921
+   wpsISO_B8 = WIA_PAGE_ISO_B8, //   2440 x  3464
+   wpsISO_B9 = WIA_PAGE_ISO_B9, //   1732 x  2440
+   wpsISO_B10 = WIA_PAGE_ISO_B10, //   1220 x  1732
+   wpsISO_C0 = WIA_PAGE_ISO_C0, //  36102 x 51062
+   wpsISO_C1 = WIA_PAGE_ISO_C1, //  25511 x 36102
+   wpsISO_C2 = WIA_PAGE_ISO_C2, //  18031 x 25511
+   wpsISO_C3 = WIA_PAGE_ISO_C3, //  12755 x 18031
+   wpsISO_C4 = WIA_PAGE_ISO_C4, //   9015 x 12755 (unfolded)
+   wpsISO_C5 = WIA_PAGE_ISO_C5, //   6377 x  9015 (folded once)
+   wpsISO_C6 = WIA_PAGE_ISO_C6, //   4488 x  6377 (folded twice)
+   wpsISO_C7 = WIA_PAGE_ISO_C7, //   3188 x  4488
+   wpsISO_C8 = WIA_PAGE_ISO_C8, //   2244 x  3188
+   wpsISO_C9 = WIA_PAGE_ISO_C9, //   1574 x  2244
+   wpsISO_C10 = WIA_PAGE_ISO_C10, //   1102 x  1574
+   wpsJIS_B0 = WIA_PAGE_JIS_B0, //  40551 x 57322
+   wpsJIS_B1 = WIA_PAGE_JIS_B1, //  28661 x 40551
+   wpsJIS_B2 = WIA_PAGE_JIS_B2, //  20275 x 28661
+   wpsJIS_B3 = WIA_PAGE_JIS_B3, //  14330 x 20275
+   wpsJIS_B4 = WIA_PAGE_JIS_B4, //  10118 x 14330
+   wpsJIS_B5 = WIA_PAGE_JIS_B5, //   7165 x 10118
+   wpsJIS_B6 = WIA_PAGE_JIS_B6, //   5039 x  7165
+   wpsJIS_B7 = WIA_PAGE_JIS_B7, //   3582 x  5039
+   wpsJIS_B8 = WIA_PAGE_JIS_B8, //   2519 x  3582
+   wpsJIS_B9 = WIA_PAGE_JIS_B9, //   1771 x  2519
+   wpsJIS_B10 = WIA_PAGE_JIS_B10, //   1259 x  1771
+   wpsJIS_2A = WIA_PAGE_JIS_2A, //  46811 x 66220
+   wpsJIS_4A = WIA_PAGE_JIS_4A, //  66220 x  93622
+   wpsDIN_2B = WIA_PAGE_DIN_2B, //  55669 x 78740
+   wpsDIN_4B = WIA_PAGE_DIN_4B, //  78740 x 111338
+   wpsAUTO = WIA_PAGE_AUTO
+  );
+  TWIAPaperSizeSet = set of TWIAPaperSize;
+
+  TWIAParams = packed record
+      PaperSize: TWIAPaperSize;
+      Resolution,
+      Contrast,
+      Brightness: Integer;
+      BitDepth: Integer;
+//      PixelType:TWIAPixelType;
+  end;
+
+  TWIAParamsCapabilities = packed record
+    PaperSizeSet: TWIAPaperSizeSet;
+    PaperSizeCurrent,
+    PaperSizeDefault: TWIAPaperSize;
+(*    PixelType:TTwainPixelTypeSet;
+    PixelTypeDefault:TTwainPixelType;
+
+    ResolutionDefault: Single;
+    BitDepthDefault,
+    ResolutionArraySize,
+    BitDepthArraySize: Integer;
+
+    //Array MUST be at the end so then 32bit server can write up to BitDepthArraySize with a single write
+    ResolutionArray: TTwainResolution;
+    BitDepthArray: TArrayInteger;
+*)
+  end;
+
   { TWIADevice }
 
   TWIADevice = class(TNoRefCountObject, IWiaTransferCallback)
@@ -152,6 +245,11 @@ type
 
    //function GetResolution();
    //function SetResolution();
+
+   //Get Available Paper Sizes
+   function GetPaperSizeSet(var Current, Default:TWIAPaperSize; var Values:TWIAPaperSizeSet; useRoot: Boolean=False): Boolean;
+   //Set paper size
+   function SetPaperSize(const Value: TWIAPaperSize; useRoot: Boolean=False): Boolean;
 
     property ID: String read rID;
     property Manufacturer: String read rManufacturer;
@@ -1050,6 +1148,43 @@ begin
        Result:= (lres = S_OK);
      end;
   except
+  end;
+end;
+
+function TWIADevice.GetPaperSizeSet(var Current, Default: TWIAPaperSize; var Values: TWIAPaperSizeSet; useRoot: Boolean): Boolean;
+var
+   i: Integer;
+   intValues: TArrayInteger;
+   propType: TVarType;
+   pFlags: TWIAPropertyFlags;
+
+begin
+  Result:= False;
+  try
+     Values:= [];
+     propType:= VT_I4;
+
+     //WIA_IPS_PAGE_SIZE DON'T WORKS
+     pFlags:= GetProperty(WIA_IPS_PAGE_SIZE, propType, Current, Default, intValues, useRoot);
+     if (WIAProp_READ in pFlags) then
+     begin
+       { #note 2 -oMaxM : What If PropType is Different? }
+
+       if (WIAProp_LIST in pFlags)
+       then for i:=0 to Length(intValues)-1 do Values:= Values+[TWIAPaperSize(intValues[i])];
+     end;
+
+  finally
+    intValues:= nil;
+  end;
+end;
+
+function TWIADevice.SetPaperSize(const Value: TWIAPaperSize; useRoot: Boolean): Boolean;
+begin
+  Result:= False;
+  try
+     Result:= SetProperty(WIA_IPS_PAGE_SIZE, VT_I4, Value, useRoot);
+  finally
   end;
 end;
 
