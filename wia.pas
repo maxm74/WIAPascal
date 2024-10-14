@@ -24,7 +24,7 @@ unit WIA;
 interface
 
 uses
-  Windows, Classes, SysUtils, ComObj, ActiveX, WiaDef, WIA_LH;
+  Windows, Classes, SysUtils, ComObj, ActiveX, WiaDef, WIA_LH, Wia_PaperSizes;
 
 type
   //Dinamic Array types
@@ -53,72 +53,6 @@ type
   );
   TWIAPropertyFlags = set of TWIAPropertyFlag;
 
-  {Paper size}
-  TPaperSize = packed record
-    name:String[16];
-    w, h:Single;
-  end;
-
-  TWIAPaperSize = (
-   wpsMAX = $FF, // Use  WIA_IPS_MAX_HORIZONTAL/VERTICAL_SIZE
-   wpsA4 = WIA_PAGE_A4, //  8267 x 11692
-   wpsLETTER = WIA_PAGE_LETTER, //  8500 x 11000
-   wpsCUSTOM = WIA_PAGE_CUSTOM, // Use a Range from  WIA_IPS_MIN_*_SIZE to WIA_IPS_MAX_*_SIZE
-   wpsUSLEGAL = WIA_PAGE_USLEGAL, //  8500 x 14000
-   wpsUSLEDGER = WIA_PAGE_USLEDGER, // 11000 x 17000
-   wpsUSSTATEMENT = WIA_PAGE_USSTATEMENT, //  5500 x  8500
-   wpsBUSINESSCARD = WIA_PAGE_BUSINESSCARD, //  3543 x  2165
-   wpsISO_A0 = WIA_PAGE_ISO_A0, // 33110 x 46811
-   wpsISO_A1 = WIA_PAGE_ISO_A1, // 23385 x 33110
-   wpsISO_A2 = WIA_PAGE_ISO_A2, // 16535 x 23385
-   wpsISO_A3 = WIA_PAGE_ISO_A3, // 11692 x 16535
-   wpsISO_A5 = WIA_PAGE_ISO_A5, //  5826 x  8267
-   wpsISO_A6 = WIA_PAGE_ISO_A6, //  4133 x  5826
-   wpsISO_A7 = WIA_PAGE_ISO_A7, //  2913 x  4133
-   wpsISO_A8 = WIA_PAGE_ISO_A8, //  2047 x  2913
-   wpsISO_A9 = WIA_PAGE_ISO_A9, //  1456 x  2047
-   wpsISO_A10 = WIA_PAGE_ISO_A10, //  1023 x  1456
-   wpsISO_B0 = WIA_PAGE_ISO_B0, //  39370 x 55669
-   wpsISO_B1 = WIA_PAGE_ISO_B1, //  27834 x 39370
-   wpsISO_B2 = WIA_PAGE_ISO_B2, //  19685 x 27834
-   wpsISO_B3 = WIA_PAGE_ISO_B3, //  13897 x 19685
-   wpsISO_B4 = WIA_PAGE_ISO_B4, //   9842 x 13897
-   wpsISO_B5 = WIA_PAGE_ISO_B5, //   6929 x  9842
-   wpsISO_B6 = WIA_PAGE_ISO_B6, //   4921 x  6929
-   wpsISO_B7 = WIA_PAGE_ISO_B7, //   3464 x  4921
-   wpsISO_B8 = WIA_PAGE_ISO_B8, //   2440 x  3464
-   wpsISO_B9 = WIA_PAGE_ISO_B9, //   1732 x  2440
-   wpsISO_B10 = WIA_PAGE_ISO_B10, //   1220 x  1732
-   wpsISO_C0 = WIA_PAGE_ISO_C0, //  36102 x 51062
-   wpsISO_C1 = WIA_PAGE_ISO_C1, //  25511 x 36102
-   wpsISO_C2 = WIA_PAGE_ISO_C2, //  18031 x 25511
-   wpsISO_C3 = WIA_PAGE_ISO_C3, //  12755 x 18031
-   wpsISO_C4 = WIA_PAGE_ISO_C4, //   9015 x 12755 (unfolded)
-   wpsISO_C5 = WIA_PAGE_ISO_C5, //   6377 x  9015 (folded once)
-   wpsISO_C6 = WIA_PAGE_ISO_C6, //   4488 x  6377 (folded twice)
-   wpsISO_C7 = WIA_PAGE_ISO_C7, //   3188 x  4488
-   wpsISO_C8 = WIA_PAGE_ISO_C8, //   2244 x  3188
-   wpsISO_C9 = WIA_PAGE_ISO_C9, //   1574 x  2244
-   wpsISO_C10 = WIA_PAGE_ISO_C10, //   1102 x  1574
-   wpsJIS_B0 = WIA_PAGE_JIS_B0, //  40551 x 57322
-   wpsJIS_B1 = WIA_PAGE_JIS_B1, //  28661 x 40551
-   wpsJIS_B2 = WIA_PAGE_JIS_B2, //  20275 x 28661
-   wpsJIS_B3 = WIA_PAGE_JIS_B3, //  14330 x 20275
-   wpsJIS_B4 = WIA_PAGE_JIS_B4, //  10118 x 14330
-   wpsJIS_B5 = WIA_PAGE_JIS_B5, //   7165 x 10118
-   wpsJIS_B6 = WIA_PAGE_JIS_B6, //   5039 x  7165
-   wpsJIS_B7 = WIA_PAGE_JIS_B7, //   3582 x  5039
-   wpsJIS_B8 = WIA_PAGE_JIS_B8, //   2519 x  3582
-   wpsJIS_B9 = WIA_PAGE_JIS_B9, //   1771 x  2519
-   wpsJIS_B10 = WIA_PAGE_JIS_B10, //   1259 x  1771
-   wpsJIS_2A = WIA_PAGE_JIS_2A, //  46811 x 66220
-   wpsJIS_4A = WIA_PAGE_JIS_4A, //  66220 x  93622
-   wpsDIN_2B = WIA_PAGE_DIN_2B, //  55669 x 78740
-   wpsDIN_4B = WIA_PAGE_DIN_4B, //  78740 x 111338
-   wpsAUTO = WIA_PAGE_AUTO
-  );
-  TWIAPaperSizeSet = set of TWIAPaperSize;
-
   TWIAParams = packed record
       PaperSize: TWIAPaperSize;
       Resolution,
@@ -128,10 +62,13 @@ type
 //      PixelType:TWIAPixelType;
   end;
 
-  TWIAParamsCapabilities = packed record
+  TWIAParamsCapabilities = record
     PaperSizeSet: TWIAPaperSizeSet;
     PaperSizeCurrent,
     PaperSizeDefault: TWIAPaperSize;
+    ResolutionArray: TArrayInteger;
+    ResolutionCurrent,
+    ResolutionDefault: Integer;
 (*    PixelType:TTwainPixelTypeSet;
     PixelTypeDefault:TTwainPixelType;
 
@@ -172,6 +109,8 @@ type
     HasEnumerated: Boolean;
     rItemList : array of TWIAItem;
 
+    rXRes, rYRes: Integer; //Used with PaperSizes_Calculated, if -1 then i need to Get Values from Device
+
     rDownloaded: Boolean;
     Download_Count: Integer;
     Download_Path,
@@ -193,6 +132,9 @@ type
 
 
   public
+    //Behaviour Variables
+    PaperSizes_Calculated: Boolean;
+
     function TransferCallback(lFlags: LONG;
                               pWiaTransferParams: PWiaTransferParams): HRESULT; stdcall;
 
@@ -243,13 +185,25 @@ type
 //    procedure SetProperty(APropId: PROPID; APropValue: LPWSTR; useRoot: Boolean=False): Boolean; overload;  //VT_LPWSTR
 *)
 
-   //function GetResolution();
-   //function SetResolution();
+   //Get Available Resolutions for X
+   function GetResolutionsX(var Current, Default: Integer; var Values: TArrayInteger; useRoot: Boolean=False): Boolean;
+   //Get Available Resolutions for Y
+   function GetResolutionsY(var Current, Default: Integer; var Values: TArrayInteger; useRoot: Boolean=False): Boolean;
 
-   //Get Available Paper Sizes
-   function GetPaperSizeSet(var Current, Default:TWIAPaperSize; var Values:TWIAPaperSizeSet; useRoot: Boolean=False): Boolean;
-   //Set paper size
-   function SetPaperSize(const Value: TWIAPaperSize; useRoot: Boolean=False): Boolean;
+   //Get Current Resolutions
+   function GetResolution(var AXRes, AYRes: Integer; useRoot: Boolean=False): Boolean;
+
+   //Set Current Resolutions
+   function SetResolution(const AXRes, AYRes: Integer; useRoot: Boolean=False): Boolean;
+
+    //Get Max Paper Width, Height
+    function GetPaperSizeMax(var AMaxWidth, AMaxHeight: Integer; useRoot: Boolean=False): Boolean;
+
+    //Get Available Paper Sizes
+    function GetPaperSizeSet(var Current, Default:TWIAPaperSize; var Values:TWIAPaperSizeSet; useRoot: Boolean=False): Boolean;
+
+    //Set paper size
+    function SetPaperSize(const Value: TWIAPaperSize; useRoot: Boolean=False): Boolean;
 
     property ID: String read rID;
     property Manufacturer: String read rManufacturer;
@@ -620,6 +574,12 @@ begin
   Download_BaseFileName:= '';
   Download_Count:= 0;
   rDownloaded:= False;
+
+  //By Default is True because Microsoft Documentation says:
+  //"Note   Flatbed and Film child items must support only the WIA_IPS_X* Properties"
+  //So the WIA_IPS_PAGE_SIZE it's useless
+  PaperSizes_Calculated:= True;
+  rXRes:= -1; rYRes:= -1;
 end;
 
 destructor TWIADevice.Destroy;
@@ -1151,8 +1111,80 @@ begin
   end;
 end;
 
+function TWIADevice.GetResolutionsX(var Current, Default: Integer; var Values: TArrayInteger; useRoot: Boolean): Boolean;
+var
+   propType: TVarType;
+   pFlags: TWIAPropertyFlags;
+
+begin
+  Result:= False;
+  try
+     pFlags:= GetProperty(WIA_IPS_XRES, propType, Current, Default, Values, useRoot);
+     if not(WIAProp_READ in pFlags) then Exit;
+     { #note 5 -oMaxM : what to do if the propType is not the expected one VT_I4}
+     Result:= True;
+
+  finally
+  end;
+end;
+
+function TWIADevice.GetResolutionsY(var Current, Default: Integer; var Values: TArrayInteger; useRoot: Boolean): Boolean;
+var
+   propType: TVarType;
+   pFlags: TWIAPropertyFlags;
+
+begin
+  Result:= False;
+  try
+     pFlags:= GetProperty(WIA_IPS_YRES, propType, Current, Default, Values, useRoot);
+     if not(WIAProp_READ in pFlags) then Exit;
+     { #note 5 -oMaxM : what to do if the propType is not the expected one VT_I4}
+     Result:= True;
+
+  finally
+  end;
+end;
+
+function TWIADevice.GetResolution(var AXRes, AYRes: Integer; useRoot: Boolean): Boolean;
+var
+   propType: TVarType;
+
+begin
+  Result:= GetProperty(WIA_IPS_XRES, propType, AXRes, useRoot) and
+           GetProperty(WIA_IPS_YRES, propType, AYRes, useRoot);
+  { #note 5 -oMaxM : what to do if the propType is not the expected one VT_I4}
+end;
+
+function TWIADevice.SetResolution(const AXRes, AYRes: Integer; useRoot: Boolean): Boolean;
+begin
+  { #todo 2 -oMaxM : Check if in Valid Values }
+  Result:= SetProperty(WIA_IPS_XRES, VT_I4, AXRes, useRoot);
+  if Result
+  then rXRes:= AXRes
+  else Exit;
+
+  Result:= SetProperty(WIA_IPS_YRES, VT_I4, AYRes, useRoot);
+  if Result then rYRes:= AXRes;
+end;
+
+function TWIADevice.GetPaperSizeMax(var AMaxWidth, AMaxHeight: Integer; useRoot: Boolean): Boolean;
+var
+   propType: TVarType;
+
+begin
+  if (rVersion = 1)
+  then { #todo -oMaxM : if Feeder Use DPS_HORIZONTAL_SHEET_FEED_SIZE, DPS_VERTICAL_SHEET_FEED_SIZE }
+       Result:= GetProperty(WIA_DPS_HORIZONTAL_BED_SIZE, propType, AMaxWidth, useRoot) and
+                GetProperty(WIA_DPS_VERTICAL_BED_SIZE, propType, AMaxHeight, useRoot)
+  else Result:= GetProperty(WIA_IPS_MAX_HORIZONTAL_SIZE, propType, AMaxWidth, useRoot) and
+                GetProperty(WIA_IPS_MAX_VERTICAL_SIZE, propType, AMaxHeight, useRoot);
+  { #note 5 -oMaxM : what to do if the propType is not the expected one VT_I4}
+end;
+
 function TWIADevice.GetPaperSizeSet(var Current, Default: TWIAPaperSize; var Values: TWIAPaperSizeSet; useRoot: Boolean): Boolean;
 var
+   iMaxWidth,
+   iMaxHeight,
    i: Integer;
    intValues: TArrayInteger;
    propType: TVarType;
@@ -1162,17 +1194,40 @@ begin
   Result:= False;
   try
      Values:= [];
-     propType:= VT_I4;
 
-     //WIA_IPS_PAGE_SIZE DON'T WORKS
-     pFlags:= GetProperty(WIA_IPS_PAGE_SIZE, propType, Current, Default, intValues, useRoot);
-     if (WIAProp_READ in pFlags) then
-     begin
-       { #note 2 -oMaxM : What If PropType is Different? }
+     //WIA_IPS_PAGE_SIZE does NOT work, so we calculate this set using
+     // WIA_IPS_MAX_HORIZONTAL/VERTICAL_SIZE and PaperSizesWIA Array
+     //if the user still wants to use it he can set PaperSizes_Calculated to False.
 
-       if (WIAProp_LIST in pFlags)
-       then for i:=0 to Length(intValues)-1 do Values:= Values+[TWIAPaperSize(intValues[i])];
-     end;
+     if PaperSizes_Calculated
+     then begin
+            propType:= VT_I4;
+
+            Result:= GetPaperSizeMax(iMaxWidth, iMaxHeight);
+            if not(Result) then Exit;
+
+            Values:= CalculatePaperSizeSet(iMaxWidth, iMaxHeight);
+
+            //Current (Reuse the Max Variables)
+            Current:= wpsA4;
+            if GetProperty(WIA_IPS_PAGE_WIDTH, propType, iMaxWidth, useRoot) and
+               GetProperty(WIA_IPS_PAGE_HEIGHT, propType, iMaxHeight, useRoot)
+            then Current:= CalculatePaperSize(iMaxWidth, iMaxHeight);  { #note 5 -oMaxM : Always return False }
+
+            { #todo -oMaxM : How to Calculate Default Value??? }
+            Default:= wpsA4;
+          end
+     else begin
+            pFlags:= GetProperty(WIA_IPS_PAGE_SIZE, propType, Current, Default, intValues, useRoot);
+            if not(WIAProp_READ in pFlags) then Exit;
+
+            { #note 5 -oMaxM : what to do if the propType is not the expected one VT_I4}
+
+            if (WIAProp_LIST in pFlags)
+            then for i:=0 to Length(intValues)-1 do Values:= Values+[TWIAPaperSize(intValues[i])];
+          end;
+
+     Result:= True;
 
   finally
     intValues:= nil;
@@ -1180,10 +1235,38 @@ begin
 end;
 
 function TWIADevice.SetPaperSize(const Value: TWIAPaperSize; useRoot: Boolean): Boolean;
+var
+   propType: TVarType;
+   pFlags: TWIAPropertyFlags;
+   iMaxWidth,
+   iMaxHeight,
+   iPixels: Integer;
+
 begin
   Result:= False;
   try
-     Result:= SetProperty(WIA_IPS_PAGE_SIZE, VT_I4, Value, useRoot);
+     if PaperSizes_Calculated
+     then begin
+            Result:= GetPaperSizeMax(iMaxWidth, iMaxHeight, useRoot);
+            if not(Result) then Exit;
+
+            if (PaperSizesWIA[Value].w > iMaxWidth) or
+               (PaperSizesWIA[Value].h > iMaxHeight) then Exit;
+
+            if rXRes = -1
+            then if not(GetResolution(rXRes, rYRes)) then Exit;
+
+            iPixels:= Trunc(PaperSizesWIA[Value].w * rXRes / 1000);
+            if not(SetProperty(WIA_IPS_XEXTENT, VT_I4, iPixels, useRoot)) then Exit;
+
+            iPixels:= 0;
+            if not(SetProperty(WIA_IPS_XPOS, VT_I4, iPixels, useRoot)) then Exit;
+
+            iPixels:= Trunc(PaperSizesWIA[Value].h * rYRes / 1000);
+            Result:= SetProperty(WIA_IPS_YEXTENT, VT_I4, iPixels, useRoot);
+
+          end
+     else Result:= SetProperty(WIA_IPS_PAGE_SIZE, VT_I4, Value, useRoot);
   finally
   end;
 end;

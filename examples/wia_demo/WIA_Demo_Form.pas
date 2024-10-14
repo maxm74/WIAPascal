@@ -171,6 +171,7 @@ begin
 
   if (WIASource <> nil) then
   try
+   //WIASource.SelectItem('Feeder');
     SelectedItemIndex:= WIASource.SelectedItemIndex;
     NewItemIndex:= SelectedItemIndex;
 
@@ -186,8 +187,10 @@ begin
 
       with WIAParams do
       begin
-        //capRet :=WIASource.SetPaperSize(PaperSize); DON'T Works
+        capRet:= WIASource.SetResolution(Resolution, Resolution);
+        capRet:= WIASource.SetPaperSize(PaperSize);
 
+        (*
         { #todo 10 -oMaxM : The PaperSizes does not works, use the XEntent = pagesize * xres / 1000 }
         p:= 200;
         capRet:= WIASource.SetProperty(WIA_IPS_XRES, VT_I4, p);
@@ -202,6 +205,7 @@ begin
         capRet:= WIASource.SetProperty(WIA_IPS_XPOS, VT_I4, p);
         p:= Trunc(11692 * 200 / 1000);
         capRet:= WIASource.SetProperty(WIA_IPS_YEXTENT, VT_I4, p);
+        *)
 
 (*        capRet :=TwainSource.SetIPixelType(PixelType);
 

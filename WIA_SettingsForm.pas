@@ -25,8 +25,12 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, Buttons,
   ComCtrls, StdCtrls, Spin,
-  WIA,
+  WIA, WIA_PaperSizes,
   ImgList {$ifndef fpc}, ImageList{$endif};
+
+const
+  //False to display then measurement in Inchs
+  WIASettings_Unit_cm: Boolean = True; //fucks inch
 
 type
   TInitialItemValues = (initDefault, initParams, initCurrent);
@@ -88,8 +92,6 @@ implementation
   {$R *.dfm}
 {$endif}
 
-uses WIA_PaperSizes;
-
 { TWIASettingsSource }
 
 procedure TWIASettingsSource.trBrightnessChange(Sender: TObject);
@@ -139,6 +141,7 @@ begin
     with WIACap do
     begin
       WIASource.GetPaperSizeSet(PaperSizeCurrent, PaperSizeDefault, PaperSizeSet);
+      WiaSource.GetResolutionsX(ResolutionCurrent, ResolutionDefault, ResolutionArray);
     end;
 
 (*    cbSourceItem.Clear;
@@ -153,12 +156,20 @@ begin
     for paperI in WIACap.PaperSizeSet do
     begin
       Case paperI of
+      wpsMAX:begin end;
       wpsCUSTOM: cbPaperSize.Items.AddObject('Custom size', TObject(PtrUInt(wpsCUSTOM)));
       wpsAUTO: cbPaperSize.Items.AddObject('Auto size', TObject(PtrUInt(wpsAUTO)));
-      else cbPaperSize.Items.AddObject(PaperSizesWIA[paperI].name+
-             ' ('+FloatToStrF(PaperSizesWIA[paperI].w, ffFixed, 15, 2)+' x '+
-                  FloatToStrF(PaperSizesWIA[paperI].h, ffFixed, 15, 2)+')',
-             TObject(PtrUInt(paperI)));
+      else begin
+             if WIASettings_Unit_cm
+             then cbPaperSize.Items.AddObject(PaperSizesWIA[paperI].name+' ('+
+                                              THInchToCmStr(PaperSizesWIA[paperI].w)+' x '+
+                                              THInchToCmStr(PaperSizesWIA[paperI].h)+' cm)',
+                                              TObject(PtrUInt(paperI)))
+             else cbPaperSize.Items.AddObject(PaperSizesWIA[paperI].name+' ('+
+                                              THInchToInchStr(PaperSizesWIA[paperI].w)+' x '+
+                                              THInchToInchStr(PaperSizesWIA[paperI].h)+' in)',
+                                              TObject(PtrUInt(paperI)))
+           end;
       end;
 
       case initItemValues of
@@ -194,21 +205,24 @@ begin
       else begin if (pixelI = AParams.PixelType) then cbSelected :=cbPixelType.Items.Count-1; end;
     end;
     cbPixelType.ItemIndex:=cbSelected;
-
+*)
     //Fill List of Resolution (Y Resolution=X Resolution)
     cbResolution.Clear;
     cbSelected :=0;
-    for i:=0 to TwainCap.ResolutionArraySize-1 do
+    { #todo 5 -oMaxM : Maybe a Range }
+    for i:=0 to Length(WIACap.ResolutionArray)-1 do
     begin
-      cbResolution.Items.AddObject(FloatToStr(TwainCap.ResolutionArray[i]), TObject(PtrUInt(i)));
+      cbResolution.Items.AddObject(IntToStr(WIACap.ResolutionArray[i]), TObject(PtrUInt(i)));
 
-      if useDeviceDefault
-      then begin if (TwainCap.ResolutionArray[i] = TwainCap.ResolutionDefault) then cbSelected :=cbResolution.Items.Count-1; end
-      else begin if (TwainCap.ResolutionArray[i] = AParams.Resolution) then cbSelected :=cbResolution.Items.Count-1; end;
+      case initItemValues of
+      initDefault: begin if (WIACap.ResolutionArray[i] = WIACap.ResolutionDefault) then cbSelected :=cbResolution.Items.Count-1; end;
+      initParams:  begin if (WIACap.ResolutionArray[i] = AParams.Resolution) then cbSelected :=cbResolution.Items.Count-1; end;
+      initCurrent: begin if (WIACap.ResolutionArray[i] = WIACap.ResolutionCurrent) then cbSelected :=cbResolution.Items.Count-1; end;
+      end;
     end;
     cbResolution.ItemIndex:=cbSelected;
 
-    { #todo -oMaxM 2 : is an Single or an Integer? }
+(*
     trContrast.Position:=Trunc(AParams.Contrast);
     edContrast.Value:=Trunc(AParams.Contrast);
     trBrightness.Position:=Trunc(AParams.Brightness);
@@ -232,10 +246,10 @@ begin
 
       if (cbPixelType.ItemIndex>-1)
       then AParams.PixelType:=TTwainPixelType(PtrUInt(cbPixelType.Items.Objects[cbPixelType.ItemIndex]));
-
+*)
       if (cbResolution.ItemIndex>-1)
-      then AParams.Resolution:=TwainCap.ResolutionArray[PtrUInt(cbResolution.Items.Objects[cbResolution.ItemIndex])];
-
+      then AParams.Resolution:=WIACap.ResolutionArray[PtrUInt(cbResolution.Items.Objects[cbResolution.ItemIndex])];
+(*
       AParams.Contrast:=edContrast.Value;
       AParams.Brightness:=edBrightness.Value;
 *)
