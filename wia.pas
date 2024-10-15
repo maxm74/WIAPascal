@@ -3,7 +3,7 @@
 *
 *  FILE: WIA.pas
 *
-*  VERSION:     0.0.1
+*  VERSION:     0.0.2
 *
 *  DESCRIPTION:
 *    WIA Base classes.
@@ -67,8 +67,20 @@ type
     PaperSizeCurrent,
     PaperSizeDefault: TWIAPaperSize;
     ResolutionArray: TArrayInteger;
+    ResolutionRange: Boolean;
     ResolutionCurrent,
-    ResolutionDefault: Integer;
+    ResolutionDefault,
+    BrightnessCurrent,
+    BrightnessDefault,
+    BrightnessMin,
+    BrightnessMax,
+    BrightnessStep,
+    ContrastCurrent,
+    ContrastDefault,
+    ContrastMin,
+    ContrastMax,
+    ContrastStep    : Integer;
+
 (*    PixelType:TTwainPixelTypeSet;
     PixelTypeDefault:TTwainPixelType;
 
@@ -130,7 +142,6 @@ type
 
     function CreateDestinationStream(FileName: String; var ppDestination: IStream): HRESULT;
 
-
   public
     //Behaviour Variables
     PaperSizes_Calculated: Boolean;
@@ -158,16 +169,21 @@ type
     //Get Current, Default and Possible Values of a Property given the ID,
     //  Depending on the type returned in propType
     //  APropListValues can be a Dynamic Array of Integers, Real, etc... user must free it
-    //  if Result contain the Flag WIAProp_RANGE then APropListValues[0] is the Min Value, APropListValues[1] is the Max Value
+    //  if Result contain the Flag WIAProp_RANGE then use WIA_RANGE_XXX Indexes to get MIN/MAX/STEP Values
     function GetProperty(APropId: PROPID; var propType: TVarType;
-                         var APropValue; var APropDefaultValue;
+                         var APropValue, APropDefaultValue;
                          var APropListValues;
                          useRoot: Boolean=False): TWIAPropertyFlags; overload;
+
+    //Get a Range Property with Current, Default, Min, Max, Step Values  { #note 5 -oMaxM : do I keep it? }
+    function GetProperty(APropId: PROPID; var propType: TVarType;
+                         var APropValue, APropDefault, APropMin, APropMax, APropStep;
+                         useRoot: Boolean=False): Boolean; overload;
 
     //Set the Property Value given the ID, the user must know the correct type to use
     function SetProperty(APropId: PROPID; propType: TVarType; const APropValue; useRoot: Boolean=False): Boolean;
 
-{ #note -oMaxM : Do I need to build overloaded functions for Set/Get Property? }
+{ #note -oMaxM : Build overloaded functions for Set/Get Property? }
 (*
     function SetProperty(APropId: PROPID; APropValue: Smallint; useRoot: Boolean=False): Boolean; overload;  //VT_I2
     function SetProperty(APropId: PROPID; APropValue: Integer; useRoot: Boolean=False): Boolean; overload;   //VT_I4, VT_INT
@@ -185,15 +201,16 @@ type
 //    procedure SetProperty(APropId: PROPID; APropValue: LPWSTR; useRoot: Boolean=False): Boolean; overload;  //VT_LPWSTR
 *)
 
-   //Get Available Resolutions for X
-   function GetResolutionsX(var Current, Default: Integer; var Values: TArrayInteger; useRoot: Boolean=False): Boolean;
+   //Get Available Valid Values for XResolution,
+   //  if Result contain the Flag WIAProp_RANGE then use WIA_RANGE_XXX Indexes to get MIN/MAX/STEP Values
+   function GetResolutionsX(var Current, Default: Integer; var Values: TArrayInteger; useRoot: Boolean=False): TWIAPropertyFlags;
    //Get Available Resolutions for Y
-   function GetResolutionsY(var Current, Default: Integer; var Values: TArrayInteger; useRoot: Boolean=False): Boolean;
+   function GetResolutionsY(var Current, Default: Integer; var Values: TArrayInteger; useRoot: Boolean=False): TWIAPropertyFlags;
 
    //Get Current Resolutions
    function GetResolution(var AXRes, AYRes: Integer; useRoot: Boolean=False): Boolean;
 
-   //Set Current Resolutions
+   //Set Current Resolutions, The user is responsible for checking the validity of the values
    function SetResolution(const AXRes, AYRes: Integer; useRoot: Boolean=False): Boolean;
 
     //Get Max Paper Width, Height
@@ -202,8 +219,26 @@ type
     //Get Available Paper Sizes
     function GetPaperSizeSet(var Current, Default:TWIAPaperSize; var Values:TWIAPaperSizeSet; useRoot: Boolean=False): Boolean;
 
-    //Set paper size
+    //Set paper size, if PaperSizes_Calculated=False The user is responsible for checking the validity of the value
     function SetPaperSize(const Value: TWIAPaperSize; useRoot: Boolean=False): Boolean;
+
+    //Get Current Brightness
+    function GetBrightness(var Current: Integer; useRoot: Boolean=False): Boolean; overload;
+    //Get Current, Default and Range Values for Brightness
+    function GetBrightness(var Current, Default, AMin, AMax, AStep: Integer; useRoot: Boolean=False): Boolean; overload;
+
+    //Set Current Brightness, The user is responsible for checking the validity of the value
+    function SetBrightness(const Value: Integer; useRoot: Boolean=False): Boolean;
+
+    //Get Current Contrast
+    function GetContrast(var Current: Integer; useRoot: Boolean=False): Boolean; overload;
+    //Get Current, Default and Range Values for Contrast
+    function GetContrast(var Current, Default, AMin, AMax, AStep: Integer; useRoot: Boolean=False): Boolean; overload;
+
+    //Set Current Contrast, The user is responsible for checking the validity of the value
+    function SetContrast(const Value: Integer; useRoot: Boolean=False): Boolean;
+
+    function GetParamsCapabilities(var Value: TWIAParamsCapabilities): Boolean;
 
     property ID: String read rID;
     property Manufacturer: String read rManufacturer;
@@ -213,7 +248,15 @@ type
 
     property ItemCount: Integer read GetItemCount;
 
-    //Returns a Item
+    //Returns an Item by it's Index
+    // Note:
+    //   In WIA 1.0, the root device only has a single child, "Scan"
+    //     https://docs.microsoft.com/en-us/windows-hardware/drivers/image/wia-scanner-tree
+    //   In WIA 2.0, the root device may have multiple children, i.e. "Flatbed" and "Feeder"
+    //     https://docs.microsoft.com/en-us/windows-hardware/drivers/image/non-duplex-capable-document-feeder
+    //     The "Feeder" child may also have a pair of children (for front/back sides with duplex)
+    //     https://docs.microsoft.com/en-us/windows-hardware/drivers/image/simple-duplex-capable-document-feeder
+
     property Items[Index: Integer]: PWIAItem read GeItem;
 
     property RootItem: IWiaItem2 read GetRootItem;
@@ -291,6 +334,8 @@ const
   );
 
 function WIAPropertyFlags(pFlags: ULONG): TWIAPropertyFlags;
+function WIACopyCurrentValues(const WIACap: TWIAParamsCapabilities): TWIAParams;
+function WIACopyDefaultValues(const WIACap: TWIAParamsCapabilities): TWIAParams;
 
 implementation
 
@@ -337,6 +382,32 @@ begin
   if (pFlags and WIA_PROP_LIST <> 0) then Result:= Result+[WIAProp_LIST];
   if (pFlags and WIA_PROP_FLAG <> 0) then Result:= Result+[WIAProp_FLAG];
   if (pFlags and WIA_PROP_CACHEABLE <> 0) then Result:= Result+[WIAProp_CACHEABLE];
+end;
+
+function WIACopyCurrentValues(const WIACap: TWIAParamsCapabilities): TWIAParams;
+begin
+  with Result do
+  begin
+    PaperSize:= WIACap.PaperSizeCurrent;
+    Resolution:= WIACap.ResolutionCurrent;
+    Contrast:= WiaCap.ContrastCurrent;
+    Brightness:= WIACap.BrightnessCurrent;
+    //BitDepth:= WIACap.BitDepthCurrent;
+    //PixelType:= WIACap.PixelTypeCurrent;
+  end;
+end;
+
+function WIACopyDefaultValues(const WIACap: TWIAParamsCapabilities): TWIAParams;
+begin
+  with Result do
+  begin
+    PaperSize:= WIACap.PaperSizeDefault;
+    Resolution:= WIACap.ResolutionDefault;
+    Contrast:= WiaCap.ContrastDefault;
+    Brightness:= WIACap.BrightnessDefault;
+    //BitDepth:= WIACap.BitDepthDefault;
+    //PixelType:= WIACap.PixelTypeDefault;
+  end;
 end;
 
 { TWIADevice }
@@ -542,7 +613,6 @@ begin
   Result:= S_OK;
 
   //  Return a new stream for this item's data.
-  //
   if (Download_Count = 0)
   then Result:= CreateDestinationStream(Download_Path+Download_BaseFileName, ppDestination)
   else begin
@@ -628,26 +698,6 @@ begin
   then Result:= EnumerateItems;
 end;
 
-(*
-            if (device.Version == WiaVersion.Wia10)
-            {
-                // In WIA 1.0, the root device only has a single child, "Scan"
-                // https://docs.microsoft.com/en-us/windows-hardware/drivers/image/wia-scanner-tree
-                return device.GetSubItems().First();
-            }
-            else
-            {
-                // In WIA 2.0, the root device may have multiple children, i.e. "Flatbed" and "Feeder"
-                // https://docs.microsoft.com/en-us/windows-hardware/drivers/image/non-duplex-capable-document-feeder
-                // The "Feeder" child may also have a pair of children (for front/back sides with duplex)
-                // https://docs.microsoft.com/en-us/windows-hardware/drivers/image/simple-duplex-capable-document-feeder
-                var items = device.GetSubItems();
-                var preferredItemName = _options.PaperSource == PaperSource.Flatbed ? "Flatbed" : "Feeder";
-                return items.FirstOrDefault(x => x.Name() == preferredItemName) ?? items.First();
-            }
-
-*)
-
 function TWIADevice.Download(APath, ABaseFileName: String): Integer;
 var
    pWiaTransfer: IWiaTransfer;
@@ -660,15 +710,6 @@ begin
   if (pSelectedItem = nil) then GetSelectedItem;
   if (pSelectedItem <> nil) then
   begin
-(*    //Vedi Nota Sopra...
-    Case rVersion of
-      1: begin
-
-      end;
-      2: begin
-      end;
-    end;
-*)
     lres:= pSelectedItem.QueryInterface(IID_IWiaTransfer, pWiaTransfer);
     if (lres = S_OK) and (pWiaTransfer <> nil) then
     begin
@@ -748,7 +789,7 @@ begin
        begin
          propType:= pPropVar.vt;
 
-         { #todo 5 -oMaxM : Convert all the Common used Types to APropValue,
+         { #todo 10 -oMaxM : Convert ONLY the Types Used in WIA to APropValue,
           The Overloaded Version also the APropDefaultValue and APropListValuesArray
          }
          Case propType of
@@ -839,7 +880,7 @@ begin
 end;
 
 function TWIADevice.GetProperty(APropId: PROPID; var propType: TVarType;
-                                var APropValue; var APropDefaultValue;
+                                var APropValue, APropDefaultValue;
                                 var APropListValues; useRoot: Boolean): TWIAPropertyFlags;
 var
    pPropSpec: PROPSPEC;
@@ -877,6 +918,8 @@ begin
            lres:= curProp.ReadMultiple(1, @pPropSpec, @pPropVar);
            propType:= pPropVar.vt;
            { #todo -oMaxM : What to do if the two types (pPropVar and pPropInfo) are different? }
+
+           { #todo 10 -oMaxM : Convert ONLY the Types Used in WIA }
 
            if (lres = S_OK) then
            Case propType of
@@ -997,6 +1040,40 @@ begin
   end;
 end;
 
+function TWIADevice.GetProperty(APropId: PROPID; var propType: TVarType;
+                                var APropValue, APropDefault, APropMin, APropMax, APropStep;
+                                useRoot: Boolean): Boolean;
+var
+   pFlags: TWIAPropertyFlags;
+   iValues: Pointer;
+
+begin
+  Result:= False;
+  try
+     pFlags:= GetProperty(APropId, propType, APropValue, APropDefault, iValues, useRoot);
+
+     Result:= (WIAProp_RANGE in pFlags);
+
+     if Result then
+     begin
+       Case propType of
+         VT_I4, VT_INT: begin
+            Result:= (Length(TArrayInteger(iValues)) = WIA_RANGE_NUM_ELEMS);
+            if Result then
+            begin
+              Integer(APropMin):= TArrayInteger(iValues)[WIA_RANGE_MIN];
+              Integer(APropMax):= TArrayInteger(iValues)[WIA_RANGE_MAX];
+              Integer(APropStep):= TArrayInteger(iValues)[WIA_RANGE_STEP];
+            end;
+         end;
+       end;
+     end;
+
+  finally
+    iValues:= nil;
+  end;
+end;
+
 function TWIADevice.SetProperty(APropId: PROPID; propType: TVarType; const APropValue; useRoot: Boolean): Boolean;
 var
    pPropSpec: PROPSPEC;
@@ -1017,6 +1094,7 @@ begin
        pPropSpec.propid:= APropId;
        pPropVar.vt:= propType;
 
+       { #todo 10 -oMaxM : Convert ONLY the Types Used in WIA }
        Case propType of
          VT_I2: begin //2 byte signed int
            pPropVar.iVal:= SmallInt(APropValue);
@@ -1111,35 +1189,29 @@ begin
   end;
 end;
 
-function TWIADevice.GetResolutionsX(var Current, Default: Integer; var Values: TArrayInteger; useRoot: Boolean): Boolean;
+function TWIADevice.GetResolutionsX(var Current, Default: Integer; var Values: TArrayInteger; useRoot: Boolean): TWIAPropertyFlags;
 var
    propType: TVarType;
-   pFlags: TWIAPropertyFlags;
 
 begin
-  Result:= False;
+  Result:= [];
   try
-     pFlags:= GetProperty(WIA_IPS_XRES, propType, Current, Default, Values, useRoot);
-     if not(WIAProp_READ in pFlags) then Exit;
+     Result:= GetProperty(WIA_IPS_XRES, propType, Current, Default, Values, useRoot);
      { #note 5 -oMaxM : what to do if the propType is not the expected one VT_I4}
-     Result:= True;
 
   finally
   end;
 end;
 
-function TWIADevice.GetResolutionsY(var Current, Default: Integer; var Values: TArrayInteger; useRoot: Boolean): Boolean;
+function TWIADevice.GetResolutionsY(var Current, Default: Integer; var Values: TArrayInteger; useRoot: Boolean): TWIAPropertyFlags;
 var
    propType: TVarType;
-   pFlags: TWIAPropertyFlags;
 
 begin
-  Result:= False;
+  Result:= [];
   try
-     pFlags:= GetProperty(WIA_IPS_YRES, propType, Current, Default, Values, useRoot);
-     if not(WIAProp_READ in pFlags) then Exit;
+     Result:= GetProperty(WIA_IPS_YRES, propType, Current, Default, Values, useRoot);
      { #note 5 -oMaxM : what to do if the propType is not the expected one VT_I4}
-     Result:= True;
 
   finally
   end;
@@ -1157,7 +1229,6 @@ end;
 
 function TWIADevice.SetResolution(const AXRes, AYRes: Integer; useRoot: Boolean): Boolean;
 begin
-  { #todo 2 -oMaxM : Check if in Valid Values }
   Result:= SetProperty(WIA_IPS_XRES, VT_I4, AXRes, useRoot);
   if Result
   then rXRes:= AXRes
@@ -1268,6 +1339,112 @@ begin
           end
      else Result:= SetProperty(WIA_IPS_PAGE_SIZE, VT_I4, Value, useRoot);
   finally
+  end;
+end;
+
+function TWIADevice.GetBrightness(var Current: Integer; useRoot: Boolean): Boolean;
+var
+   propType: TVarType;
+
+begin
+  Result:= GetProperty(WIA_IPS_BRIGHTNESS, propType, Current, useRoot);
+end;
+
+function TWIADevice.GetBrightness(var Current, Default, AMin, AMax, AStep: Integer; useRoot: Boolean): Boolean;
+var
+   propType: TVarType;
+   pFlags: TWIAPropertyFlags;
+   intValues: TArrayInteger;
+
+begin
+  Result:= False;
+  try
+     pFlags:= GetProperty(WIA_IPS_BRIGHTNESS, propType, Current, Default, intValues, useRoot);
+     { #note 5 -oMaxM : what to do if the propType is not the expected one VT_I4}
+
+     Result:= (WIAProp_RANGE in pFlags) and (Length(intValues) = WIA_RANGE_NUM_ELEMS);
+
+     if Result then
+     begin
+       AMin:= intValues[WIA_RANGE_MIN];
+       AMax:= intValues[WIA_RANGE_MAX];
+       AStep:= intValues[WIA_RANGE_STEP];
+     end;
+
+  finally
+    intValues:= nil;
+  end;
+end;
+
+function TWIADevice.SetBrightness(const Value: Integer; useRoot: Boolean): Boolean;
+begin
+  Result:= SetProperty(WIA_IPS_BRIGHTNESS, VT_I4, Value, useRoot);
+end;
+
+function TWIADevice.GetContrast(var Current: Integer; useRoot: Boolean): Boolean;
+var
+   propType: TVarType;
+
+begin
+  Result:= GetProperty(WIA_IPS_CONTRAST, propType, Current, useRoot);
+end;
+
+function TWIADevice.GetContrast(var Current, Default, AMin, AMax, AStep: Integer; useRoot: Boolean): Boolean;
+var
+   propType: TVarType;
+   pFlags: TWIAPropertyFlags;
+   intValues: TArrayInteger;
+
+begin
+  Result:= False;
+  try
+     pFlags:= GetProperty(WIA_IPS_CONTRAST, propType, Current, Default, intValues, useRoot);
+     { #note 5 -oMaxM : what to do if the propType is not the expected one VT_I4}
+
+     Result:= (WIAProp_RANGE in pFlags) and (Length(intValues) = WIA_RANGE_NUM_ELEMS);
+
+     if Result then
+     begin
+       AMin:= intValues[WIA_RANGE_MIN];
+       AMax:= intValues[WIA_RANGE_MAX];
+       AStep:= intValues[WIA_RANGE_STEP];
+     end;
+
+  finally
+    intValues:= nil;
+  end;
+end;
+
+function TWIADevice.SetContrast(const Value: Integer; useRoot: Boolean): Boolean;
+begin
+  Result:= SetProperty(WIA_IPS_CONTRAST, VT_I4, Value, useRoot);
+end;
+
+function TWIADevice.GetParamsCapabilities(var Value: TWIAParamsCapabilities): Boolean;
+var
+   pFlags: TWIAPropertyFlags;
+
+begin
+  try
+     Result:= False;
+
+     with Value do
+     begin
+       Result:= GetPaperSizeSet(PaperSizeCurrent, PaperSizeDefault, PaperSizeSet);
+       if not(Result) then exit;
+
+       pFlags:= GetResolutionsX(ResolutionCurrent, ResolutionDefault, ResolutionArray);
+       Result:= WIAProp_READ in pFlags;
+       if not(Result) then exit;
+
+       ResolutionRange:= WIAProp_RANGE in pFlags;
+       Result:= GetBrightness(BrightnessCurrent, BrightnessDefault, BrightnessMin, BrightnessMax, BrightnessStep);
+       if not(Result) then exit;
+
+       Result:= GetContrast(ContrastCurrent, ContrastDefault, ContrastMin, ContrastMax, ContrastStep);
+     end;
+
+  except
   end;
 end;
 

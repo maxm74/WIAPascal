@@ -50,6 +50,7 @@ type
     cbResolution: TComboBox;
     cbUseNativeUI: TCheckBox;
     edBrightness: TSpinEdit;
+    edResolution: TSpinEdit;
     edContrast: TSpinEdit;
     imgList: TImageList;
     Label1: TLabel;
@@ -64,6 +65,7 @@ type
     panelButtons: TPanel;
     tbSource_Scanner: TTabSheet;
     trBrightness: TTrackBar;
+    trResolution: TTrackBar;
     trContrast: TTrackBar;
     procedure edBrightnessChange(Sender: TObject);
     procedure edContrastChange(Sender: TObject);
@@ -77,7 +79,7 @@ type
 
   public
      class function Execute(AWIASource: TWIADevice;
-                            var ASelectedItemIndex: Integer; { #note -oMaxM : Eventualmente Filtri per quali Item Mostrare }
+                            var ASelectedItemIndex: Integer; { #todo -oMaxM : Possibly Filters for which Items Kinds to Show }
                             initItemValues: TInitialItemValues; var AParams: TWIAParams): Boolean;
   end;
 
@@ -91,6 +93,8 @@ implementation
 {$else}
   {$R *.dfm}
 {$endif}
+
+uses WiaDef;
 
 { TWIASettingsSource }
 
@@ -117,6 +121,7 @@ end;
 class function TWIASettingsSource.Execute(AWIASource: TWIADevice; var ASelectedItemIndex: Integer;
   initItemValues: TInitialItemValues; var AParams: TWIAParams): Boolean;
 var
+  pFlags: TWIAPropertyFlags;
   paperI: TWIAPaperSize;
 //  pixelI:TTwainPixelType;
   i, cbSelected: Integer;
@@ -130,7 +135,7 @@ begin
   if (WIASettingsSource=nil)
   then WIASettingsSource :=TWIASettingsSource.Create(nil);
 
-  with WIASettingsSource do
+  with WIASettingsSource, WIACap do
   begin
     WIASource:= AWIASource;
     WIASelectedItemIndex:= ASelectedItemIndex;
@@ -138,11 +143,8 @@ begin
 
     { #note -oMaxM : Eventualmente Muovere nella Classe TWIADevice }
     //Get current Selected Item Default Values
-    with WIACap do
-    begin
-      WIASource.GetPaperSizeSet(PaperSizeCurrent, PaperSizeDefault, PaperSizeSet);
-      WiaSource.GetResolutionsX(ResolutionCurrent, ResolutionDefault, ResolutionArray);
-    end;
+    Result:= WIASource.GetParamsCapabilities(WIACap);
+    if not(Result) then raise Exception.Create('Cannot Get Capabilities for Device'#13#10+WIASource.Name);
 
 (*    cbSourceItem.Clear;
     if (pfFlatbed in TwainCap.PaperFeedingSet) then cbSourceItem.Items.AddObject('Flatbed', TObject(PtrUInt(pfFlatbed)));
@@ -153,7 +155,7 @@ begin
     cbPaperSize.Clear;
     cbSelected :=0;
     cbPaperSize.Items.AddObject('Full size', TObject(PtrUInt(wpsMAX)));
-    for paperI in WIACap.PaperSizeSet do
+    for paperI in PaperSizeSet do
     begin
       Case paperI of
       wpsMAX:begin end;
@@ -173,9 +175,9 @@ begin
       end;
 
       case initItemValues of
-      initDefault: begin if (paperI = WIACap.PaperSizeDefault) then cbSelected :=cbPaperSize.Items.Count-1; end;
+      initDefault: begin if (paperI = PaperSizeDefault) then cbSelected :=cbPaperSize.Items.Count-1; end;
       initParams:  begin if (paperI = AParams.PaperSize) then cbSelected :=cbPaperSize.Items.Count-1; end;
-      initCurrent: begin if (paperI = WIACap.PaperSizeCurrent) then cbSelected :=cbPaperSize.Items.Count-1; end;
+      initCurrent: begin if (paperI = PaperSizeCurrent) then cbSelected :=cbPaperSize.Items.Count-1; end;
       end;
     end;
     cbPaperSize.ItemIndex:=cbSelected;
@@ -206,28 +208,72 @@ begin
     end;
     cbPixelType.ItemIndex:=cbSelected;
 *)
-    //Fill List of Resolution (Y Resolution=X Resolution)
-    cbResolution.Clear;
-    cbSelected :=0;
-    { #todo 5 -oMaxM : Maybe a Range }
-    for i:=0 to Length(WIACap.ResolutionArray)-1 do
-    begin
-      cbResolution.Items.AddObject(IntToStr(WIACap.ResolutionArray[i]), TObject(PtrUInt(i)));
+    if ResolutionRange
+    then begin
+           trResolution.Visible:= True; edResolution.Visible:= True;
+           cbResolution.Visible:= False;
 
-      case initItemValues of
-      initDefault: begin if (WIACap.ResolutionArray[i] = WIACap.ResolutionDefault) then cbSelected :=cbResolution.Items.Count-1; end;
-      initParams:  begin if (WIACap.ResolutionArray[i] = AParams.Resolution) then cbSelected :=cbResolution.Items.Count-1; end;
-      initCurrent: begin if (WIACap.ResolutionArray[i] = WIACap.ResolutionCurrent) then cbSelected :=cbResolution.Items.Count-1; end;
-      end;
+           trResolution.Min:= ResolutionArray[WIA_RANGE_MIN];
+           trResolution.Max:= ResolutionArray[WIA_RANGE_MAX];
+           trResolution.LineSize:= ResolutionArray[WIA_RANGE_STEP];
+           case initItemValues of
+           initDefault: trResolution.Position:= ResolutionDefault;
+           initParams:  trResolution.Position:= AParams.Resolution;
+           initCurrent: trResolution.Position:= ResolutionCurrent;
+           end;
+           edResolution.MinValue:= ResolutionArray[WIA_RANGE_MIN];
+           edResolution.MaxValue:= ResolutionArray[WIA_RANGE_MAX];
+           edResolution.Increment:= ResolutionArray[WIA_RANGE_STEP];
+           edResolution.Value:= trResolution.Position;
+         end
+    else begin
+           trResolution.Visible:= False; edResolution.Visible:= False;
+           cbResolution.Visible:= True;
+
+           //Fill List of Resolution (Y Resolution=X Resolution)
+           cbResolution.Clear;
+           cbSelected :=0;
+           for i:=0 to Length(ResolutionArray)-1 do
+           begin
+             cbResolution.Items.AddObject(IntToStr(ResolutionArray[i]), TObject(PtrUInt(i)));
+
+             case initItemValues of
+             initDefault: begin if (ResolutionArray[i] = ResolutionDefault) then cbSelected :=cbResolution.Items.Count-1; end;
+             initParams:  begin if (ResolutionArray[i] = AParams.Resolution) then cbSelected :=cbResolution.Items.Count-1; end;
+             initCurrent: begin if (ResolutionArray[i] = ResolutionCurrent) then cbSelected :=cbResolution.Items.Count-1; end;
+             end;
+           end;
+           cbResolution.ItemIndex:=cbSelected;
+         end;
+
+    //Brightness
+    trBrightness.Min:= BrightnessMin;
+    trBrightness.Max:= BrightnessMax;
+    trBrightness.LineSize:= BrightnessStep;
+    case initItemValues of
+    initDefault: trBrightness.Position:= BrightnessDefault;
+    initParams:  trBrightness.Position:= AParams.Brightness;
+    initCurrent: trBrightness.Position:= BrightnessCurrent;
     end;
-    cbResolution.ItemIndex:=cbSelected;
+    edBrightness.MinValue:= BrightnessMin;
+    edBrightness.MaxValue:= BrightnessMax;
+    edBrightness.Increment:= BrightnessStep;
+    edBrightness.Value:= trBrightness.Position;
 
-(*
-    trContrast.Position:=Trunc(AParams.Contrast);
-    edContrast.Value:=Trunc(AParams.Contrast);
-    trBrightness.Position:=Trunc(AParams.Brightness);
-    edBrightness.Value:=Trunc(AParams.Brightness);
-*)
+    //Contrast
+    trContrast.Min:= ContrastMin;
+    trContrast.Max:= ContrastMax;
+    trContrast.LineSize:= ContrastStep;
+    case initItemValues of
+    initDefault: trContrast.Position:= ContrastDefault;
+    initParams:  trContrast.Position:= AParams.Contrast;
+    initCurrent: trContrast.Position:= ContrastCurrent;
+    end;
+    edContrast.MinValue:= ContrastMin;
+    edContrast.MaxValue:= ContrastMax;
+    edContrast.Increment:= ContrastStep;
+    edContrast.Value:= trContrast.Position;
+
     Result := (ShowModal=mrOk);
 
     if Result then
@@ -249,10 +295,9 @@ begin
 *)
       if (cbResolution.ItemIndex>-1)
       then AParams.Resolution:=WIACap.ResolutionArray[PtrUInt(cbResolution.Items.Objects[cbResolution.ItemIndex])];
-(*
+
       AParams.Contrast:=edContrast.Value;
       AParams.Brightness:=edBrightness.Value;
-*)
     end;
   end;
 end;

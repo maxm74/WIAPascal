@@ -1,7 +1,13 @@
 WIAPASCAL CHANGE LOG
 ======================
 
-2024/10/14 functions in WIA_PaperSizes unit to Calculate Values;
+2024/10/
+        15 Changed Return type of TWiaDevice.GetResolutions to TWIAPropertyFlags; 
+	   Added Brightness, Contrast and GetParamsCapabilities in TWiaDevice
+	   Added WIACopyCurrent/DefaultValues;
+	   Updated SettingsForm;
+	   Cleaned up the code a bit
+        14 functions in WIA_PaperSizes unit to Calculate Values;
            GetPaperSizeSet use Calculated Values; 
            SetPaperSize use Calculated Pixel Values (WIA_IPS_XEXTENT, etc);
            GetResolutions for List of Valid Values;

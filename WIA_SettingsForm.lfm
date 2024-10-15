@@ -516,14 +516,14 @@ object WIASettingsSource: TWIASettingsSource
         object Label3: TLabel
           Left = 2
           Height = 15
-          Top = 151
+          Top = 135
           Width = 62
           Caption = 'Resolution :'
         end
         object cbResolution: TComboBox
           Left = 2
           Height = 23
-          Top = 168
+          Top = 152
           Width = 192
           ItemHeight = 15
           Style = csDropDownList
@@ -532,7 +532,7 @@ object WIASettingsSource: TWIASettingsSource
         object trBrightness: TTrackBar
           Left = 230
           Height = 25
-          Top = 16
+          Top = 17
           Width = 144
           Max = 1000
           Min = -1000
@@ -551,7 +551,7 @@ object WIASettingsSource: TWIASettingsSource
         object edBrightness: TSpinEdit
           Left = 372
           Height = 23
-          Top = 16
+          Top = 17
           Width = 50
           MaxValue = 1000
           MinValue = -1000
@@ -561,7 +561,7 @@ object WIASettingsSource: TWIASettingsSource
         object trContrast: TTrackBar
           Left = 231
           Height = 25
-          Top = 64
+          Top = 62
           Width = 144
           Max = 1000
           Min = -1000
@@ -573,7 +573,7 @@ object WIASettingsSource: TWIASettingsSource
         object edContrast: TSpinEdit
           Left = 372
           Height = 23
-          Top = 66
+          Top = 62
           Width = 50
           MaxValue = 1000
           MinValue = -1000
@@ -583,7 +583,7 @@ object WIASettingsSource: TWIASettingsSource
         object Label5: TLabel
           Left = 237
           Height = 15
-          Top = 49
+          Top = 45
           Width = 51
           Caption = 'Contrast :'
         end
@@ -605,14 +605,14 @@ object WIASettingsSource: TWIASettingsSource
         object Label6: TLabel
           Left = 2
           Height = 15
-          Top = 47
+          Top = 45
           Width = 55
           Caption = 'Bit Depth :'
         end
         object cbBitDepth: TComboBox
           Left = 2
           Height = 23
-          Top = 64
+          Top = 62
           Width = 192
           ItemHeight = 15
           Style = csDropDownList
@@ -621,18 +621,40 @@ object WIASettingsSource: TWIASettingsSource
         object Label7: TLabel
           Left = 2
           Height = 15
-          Top = 95
+          Top = 90
           Width = 66
           Caption = 'Image Type :'
         end
         object cbPixelType: TComboBox
           Left = 2
           Height = 23
-          Top = 112
+          Top = 107
           Width = 192
           ItemHeight = 15
           Style = csDropDownList
           TabOrder = 7
+        end
+        object trResolution: TTrackBar
+          Left = 2
+          Height = 25
+          Top = 152
+          Width = 144
+          Max = 1000
+          Min = -1000
+          Position = 0
+          ShowSelRange = False
+          TabOrder = 8
+          Visible = False
+        end
+        object edResolution: TSpinEdit
+          Left = 144
+          Height = 23
+          Top = 152
+          Width = 50
+          MaxValue = 1000
+          MinValue = -1000
+          TabOrder = 9
+          Visible = False
         end
       end
     end

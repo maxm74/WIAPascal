@@ -3,6 +3,7 @@ object WIASelectForm: TWIASelectForm
   Height = 321
   Top = 222
   Width = 458
+  ActiveControl = lvSources
   BorderStyle = bsSizeToolWin
   Caption = 'Select WIA Device'
   ClientHeight = 321
