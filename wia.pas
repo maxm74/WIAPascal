@@ -31,6 +31,7 @@ type
   TArraySingle = array of Single;
   TArrayInteger = array of Integer;
   TStringArray = array of String;
+  TArrayGUID = array of TGUID;
 
   TWIAManager = class;
 
@@ -41,17 +42,42 @@ type
   PWIAItem = ^TWIAItem;
 
   TWIADeviceType = (
-      WIADeviceTypeDefault          = StiDeviceTypeDefault,
-      WIADeviceTypeScanner          = StiDeviceTypeScanner,
-      WIADeviceTypeDigitalCamera    = StiDeviceTypeDigitalCamera,
-      WIADeviceTypeStreamingVideo   = StiDeviceTypeStreamingVideo
+    WIADeviceTypeDefault          = StiDeviceTypeDefault,
+    WIADeviceTypeScanner          = StiDeviceTypeScanner,
+    WIADeviceTypeDigitalCamera    = StiDeviceTypeDigitalCamera,
+    WIADeviceTypeStreamingVideo   = StiDeviceTypeStreamingVideo
   );
 
   TWIAPropertyFlag = (
-      WIAProp_READ, WIAProp_WRITE, WIAProp_SYNC_REQUIRED, WIAProp_NONE,
-      WIAProp_RANGE, WIAProp_LIST, WIAProp_FLAG, WIAProp_CACHEABLE
+    WIAProp_READ, WIAProp_WRITE, WIAProp_SYNC_REQUIRED, WIAProp_NONE,
+    WIAProp_RANGE, WIAProp_LIST, WIAProp_FLAG, WIAProp_CACHEABLE
   );
   TWIAPropertyFlags = set of TWIAPropertyFlag;
+
+  TWiaImageFormat = (
+    wif_UNDEFINED,
+    wif_RAWRGB,
+    wif_MEMORYBMP,
+    wif_BMP,
+    wif_EMF,
+    wif_WMF,
+    wif_JPEG,
+    wif_PNG,
+    wif_GIF,
+    wif_TIFF,
+    wif_EXIF,
+    wif_PHOTOCD,
+    wif_FLASHPIX,
+    wif_ICO,
+    wif_CIFF,
+    wif_PICT,
+    wif_JPEG2K,
+    wif_JPEG2KX,
+    wif_RAW,
+    wif_JBIG,
+    wif_JBIG2
+  );
+  TWiaImageFormatSet = set of TWiaImageFormat;
 
   TWIAParams = packed record
       PaperSize: TWIAPaperSize;
@@ -201,25 +227,27 @@ type
 //    procedure SetProperty(APropId: PROPID; APropValue: LPWSTR; useRoot: Boolean=False): Boolean; overload;  //VT_LPWSTR
 *)
 
-   //Get Available Valid Values for XResolution,
-   //  if Result contain the Flag WIAProp_RANGE then use WIA_RANGE_XXX Indexes to get MIN/MAX/STEP Values
-   function GetResolutionsX(var Current, Default: Integer; var Values: TArrayInteger; useRoot: Boolean=False): TWIAPropertyFlags;
-   //Get Available Resolutions for Y
-   function GetResolutionsY(var Current, Default: Integer; var Values: TArrayInteger; useRoot: Boolean=False): TWIAPropertyFlags;
+    //Get Available Valid Values for XResolution,
+    //  if Result contain the Flag WIAProp_RANGE then use WIA_RANGE_XXX Indexes to get MIN/MAX/STEP Values
+    function GetResolutionsX(var Current, Default: Integer; var Values: TArrayInteger; useRoot: Boolean=False): TWIAPropertyFlags;
+    //Get Available Resolutions for Y
+    function GetResolutionsY(var Current, Default: Integer; var Values: TArrayInteger; useRoot: Boolean=False): TWIAPropertyFlags;
 
-   //Get Current Resolutions
-   function GetResolution(var AXRes, AYRes: Integer; useRoot: Boolean=False): Boolean;
+    //Get Current Resolutions
+    function GetResolution(var AXRes, AYRes: Integer; useRoot: Boolean=False): Boolean;
 
-   //Set Current Resolutions, The user is responsible for checking the validity of the values
-   function SetResolution(const AXRes, AYRes: Integer; useRoot: Boolean=False): Boolean;
+    //Set Current Resolutions, The user is responsible for checking the validity of the values
+    function SetResolution(const AXRes, AYRes: Integer; useRoot: Boolean=False): Boolean;
 
     //Get Max Paper Width, Height
     function GetPaperSizeMax(var AMaxWidth, AMaxHeight: Integer; useRoot: Boolean=False): Boolean;
 
+    //Get Current Paper Size
+    function GetPaperSize(var Current: TWIAPaperSize; useRoot: Boolean=False): Boolean; overload;
     //Get Available Paper Sizes
-    function GetPaperSizeSet(var Current, Default:TWIAPaperSize; var Values:TWIAPaperSizeSet; useRoot: Boolean=False): Boolean;
+    function GetPaperSize(var Current, Default: TWIAPaperSize; var Values: TWIAPaperSizeSet; useRoot: Boolean=False): Boolean; overload;
 
-    //Set paper size, if PaperSizes_Calculated=False The user is responsible for checking the validity of the value
+    //Set Current Paper Size, if PaperSizes_Calculated=False The user is responsible for checking the validity of the value
     function SetPaperSize(const Value: TWIAPaperSize; useRoot: Boolean=False): Boolean;
 
     //Get Current Brightness
@@ -237,6 +265,14 @@ type
 
     //Set Current Contrast, The user is responsible for checking the validity of the value
     function SetContrast(const Value: Integer; useRoot: Boolean=False): Boolean;
+
+    //Get Current Image Format
+    function GetImageFormat(var Current: TWIAImageFormat; useRoot: Boolean=False): Boolean; overload;
+    //Get Available Image Formats
+    function GetImageFormat(var Current, Default: TWIAImageFormat; var Values: TWIAImageFormatSet; useRoot: Boolean=False): Boolean; overload;
+
+    //Set Current Image Format
+    function SetImageFormat(const Value: TWIAImageFormat; useRoot: Boolean=False): Boolean;
 
     function GetParamsCapabilities(var Value: TWIAParamsCapabilities): Boolean;
 
@@ -333,9 +369,37 @@ const
     'Default', 'Scanner', 'Digital Camera', 'Streaming Video'
   );
 
+  WiaImageFormat : array [TWiaImageFormat] of TGUID = (
+    '{b96b3ca9-0728-11d3-9d7b-0000f81ef32e}',
+    '{bca48b55-f272-4371-b0f1-4a150d057bb4}',
+    '{b96b3caa-0728-11d3-9d7b-0000f81ef32e}',
+    '{b96b3cab-0728-11d3-9d7b-0000f81ef32e}',
+    '{b96b3cac-0728-11d3-9d7b-0000f81ef32e}',
+    '{b96b3cad-0728-11d3-9d7b-0000f81ef32e}',
+    '{b96b3cae-0728-11d3-9d7b-0000f81ef32e}',
+    '{b96b3caf-0728-11d3-9d7b-0000f81ef32e}',
+    '{b96b3cb0-0728-11d3-9d7b-0000f81ef32e}',
+    '{b96b3cb1-0728-11d3-9d7b-0000f81ef32e}',
+    '{b96b3cb2-0728-11d3-9d7b-0000f81ef32e}',
+    '{b96b3cb3-0728-11d3-9d7b-0000f81ef32e}',
+    '{b96b3cb4-0728-11d3-9d7b-0000f81ef32e}',
+    '{b96b3cb5-0728-11d3-9d7b-0000f81ef32e}',
+    '{9821a8ab-3a7e-4215-94e0-d27a460c03b2}',
+    '{a6bc85d8-6b3e-40ee-a95c-25d482e41adc}',
+    '{344ee2b2-39db-4dde-8173-c4b75f8f1e49}',
+    '{43e14614-c80a-4850-baf3-4b152dc8da27}',
+    '{6f120719-f1a8-4e07-9ade-9b64c63a3dcc}',
+    '{41e8dd92-2f0a-43d4-8636-f1614ba11e46}',
+    '{bb8e7e67-283c-4235-9e59-0b9bf94ca687}'
+  );
+
+
 function WIAPropertyFlags(pFlags: ULONG): TWIAPropertyFlags;
+
 function WIACopyCurrentValues(const WIACap: TWIAParamsCapabilities): TWIAParams;
 function WIACopyDefaultValues(const WIACap: TWIAParamsCapabilities): TWIAParams;
+
+function WIAImageFormat_To_wif(const AGUID: TGUID; var Value: TWiaImageFormat): Boolean;
 
 implementation
 
@@ -410,6 +474,22 @@ begin
   end;
 end;
 
+function WIAImageFormat_To_wif(const AGUID: TGUID; var Value: TWiaImageFormat): Boolean;
+var
+   i: TWiaImageFormat;
+
+begin
+  Result:= False;
+
+  for i in TWiaImageFormat do
+    if (WiaImageFormat[i] = AGUID) then
+    begin
+      Value:= i;
+      Result:= True;
+      break;
+    end;
+end;
+
 { TWIADevice }
 
 function TWIADevice.GetRootItem: IWiaItem2;
@@ -434,7 +514,8 @@ begin
   if not(HasEnumerated)
   then HasEnumerated:= EnumerateItems;
 
-  if (rSelectedItemIndex >= 0) and (rSelectedItemIndex < GetItemCount)
+  if HasEnumerated and
+     (rSelectedItemIndex >= 0) and (rSelectedItemIndex < GetItemCount)
   then Result:= pSelectedItem
   else Result:= nil;
 end;
@@ -475,7 +556,9 @@ begin
   if not(HasEnumerated)
   then HasEnumerated:= EnumerateItems;
 
-  Result:= Length(rItemList);
+  if HasEnumerated
+  then Result:= Length(rItemList)
+  else Result:= 0;
 end;
 
 procedure TWIADevice.SetSelectedItemIndex(AValue: Integer);
@@ -498,7 +581,8 @@ var
 
 begin
   Result :=False;
-  SetLength(rItemList, 0);
+  try
+  rItemList:= nil;
 
   lres:= GetRootItem.EnumChildItems(nil, pIEnumItem);
   if (lres = S_OK) then
@@ -518,8 +602,6 @@ begin
         pSelectedItem:= nil;
         pSelectedProperties:= nil;
       end;
-
-      Result :=True;
 
       for i:=0 to iCount-1 do
       begin
@@ -558,9 +640,16 @@ begin
         end
         else break;
       end;
+
+      Result :=True;
     end;
 
     pIEnumItem:= nil;
+  end;
+
+  except
+    rItemList:= nil;
+    Result:= False;
   end;
 end;
 
@@ -766,15 +855,14 @@ var
    curProp: IWiaPropertyStorage;
 
 begin
-  try
-     Result:= False;
+  Result:= False;
 
-     if useRoot
-     then curProp:= GetRootProperties
-     else curProp:= GetSelectedProperties;
+  if useRoot
+  then curProp:= GetRootProperties
+  else curProp:= GetSelectedProperties;
 
-     if (curProp <> nil) then
-     begin
+  if (curProp <> nil) then
+  begin
        pPropSpec.ulKind:= PRSPEC_PROPID;
        pPropSpec.propid:= APropId;
 
@@ -802,27 +890,24 @@ begin
            VT_R4: begin //4 byte real
              Single(APropValue):= pPropVar.fltVal;
            end;
-           VT_R8: begin //8 byte real
-             Double(APropValue):= pPropVar.dblVal;
+           VT_R8, VT_DATE: begin //8 byte real, date
+             if (propType = VT_R8)
+             then Double(APropValue):= pPropVar.dblVal
+             else Double(APropValue):= pPropVar.date;
            end;
            VT_CY: begin //currency
              CURRENCY(APropValue):= pPropVar.cyVal;
            end;
-           VT_DATE: begin //date
-             Double(APropValue):= pPropVar.date;
+           VT_BSTR, VT_LPSTR, VT_LPWSTR: begin //OLE Automation string, null terminated string, wide null terminated string
+             case propType of
+             VT_BSTR: String(APropValue):= pPropVar.bstrVal;
+             VT_LPSTR: String(APropValue):= pPropVar.pszVal;
+             VT_LPWSTR: String(APropValue):= pPropVar.pwszVal;
+             end;
            end;
-           VT_BSTR: begin //OLE Automation string
-             String(APropValue):= pPropVar.bstrVal;
-           end;
-//         VT_DISPATCH         [V][T]   [S]  IDispatch *
-//         VT_ERROR            [V][T][P][S]  SCODE
            VT_BOOL: begin //True=-1, False=0
              Boolean(APropValue):= pPropVar.boolVal;
            end;
-//         VT_VARIANT          [V][T][P][S]  VARIANT *
-//         VT_UNKNOWN          [V][T]   [S]  IUnknown *
-//         VT_DECIMAL          [V][T]   [S]  16 byte fixed point
-//         VT_RECORD           [V]   [P][S]  user defined type
            VT_I1: begin //signed AnsiChar
              { #note -oMaxM : Delphi has wrong declaration of cVal as ShortInt, correct one is Char }
              AnsiChar(APropValue):= AnsiChar(pPropVar.cVal);
@@ -842,40 +927,11 @@ begin
            VT_UI8 : begin //unsigned 64-bit int
              ULARGE_INTEGER(APropValue):= pPropVar.uhVal;
            end;
-(*         VT_INT_PTR             [T]        signed machine register size width
-         VT_UINT_PTR            [T]        unsigned machine register size width
-         VT_VOID                [T]        C style void
-         VT_HRESULT             [T]        Standard return type
-         VT_PTR                 [T]        pointer type
-         VT_SAFEARRAY           [T]        (use VT_ARRAY in VARIANT)
-         VT_CARRAY              [T]        C style array
-         VT_USERDEFINED         [T]        user defined type
-*)
-           VT_LPSTR  : begin //null terminated string, wide null terminated string
-             String(APropValue):= pPropVar.pszVal;
+           VT_CLSID : begin //A Class ID
+             TGUID(APropValue):= pPropVar.puuid^;
            end;
-           VT_LPWSTR : begin //wide null terminated string
-             String(APropValue):= pPropVar.pwszVal;
-           end;
-(*         VT_FILETIME               [P]     FILETIME
-         VT_BLOB                   [P]     Length prefixed bytes
-         VT_STREAM                 [P]     Name of the stream follows
-         VT_STORAGE                [P]     Name of the storage follows
-         VT_STREAMED_OBJECT        [P]     Stream contains an object
-         VT_STORED_OBJECT          [P]     Storage contains an object
-         VT_VERSIONED_STREAM       [P]     Stream with a GUID version
-         VT_BLOB_OBJECT            [P]     Blob contains an object
-         VT_CF                     [P]     Clipboard format
-         VT_CLSID                  [P]     A Class ID
-         VT_VECTOR                 [P]     simple counted array
-         VT_ARRAY            [V]           SAFEARRAY*
-         VT_BYREF            [V]           void* for local use
-         VT_BSTR_BLOB                      Reserved for system use
-*)
        end;
      end;
-     end;
-  except
   end;
 end;
 
@@ -893,15 +949,14 @@ var
    firstElem: DWord;
 
 begin
-  try
-     Result:= [];
+  Result:= [];
 
-     if useRoot
-     then curProp:= GetRootProperties
-     else curProp:= GetSelectedProperties;
+  if useRoot
+  then curProp:= GetRootProperties
+  else curProp:= GetSelectedProperties;
 
-     if (curProp <> nil) then
-     begin
+  if (curProp <> nil) then
+  begin
        pPropSpec.ulKind:= PRSPEC_PROPID;
        pPropSpec.propid:= APropId;
 
@@ -961,27 +1016,24 @@ begin
              VT_R4: begin //4 byte real
                Single(APropValue):= pPropVar.fltVal;
              end;
-             VT_R8: begin //8 byte real
-               Double(APropValue):= pPropVar.dblVal;
+             VT_R8, VT_DATE: begin //8 byte real, date
+               if (propType = VT_R8)
+               then Double(APropValue):= pPropVar.dblVal
+               else Double(APropValue):= pPropVar.date;
              end;
              VT_CY: begin //currency
                CURRENCY(APropValue):= pPropVar.cyVal;
              end;
-             VT_DATE: begin //date
-               Double(APropValue):= pPropVar.date;
+             VT_BSTR, VT_LPSTR, VT_LPWSTR: begin //OLE Automation string, null terminated string, wide null terminated string
+               case propType of
+               VT_BSTR: String(APropValue):= pPropVar.bstrVal;
+               VT_LPSTR: String(APropValue):= pPropVar.pszVal;
+               VT_LPWSTR: String(APropValue):= pPropVar.pwszVal;
+               end;
              end;
-             VT_BSTR: begin //OLE Automation string
-               String(APropValue):= pPropVar.bstrVal;
-             end;
-//           VT_DISPATCH         [V][T]   [S]  IDispatch *
-//           VT_ERROR            [V][T][P][S]  SCODE
              VT_BOOL: begin //True=-1, False=0
                Boolean(APropValue):= pPropVar.boolVal;
              end;
-//           VT_VARIANT          [V][T][P][S]  VARIANT *
-//           VT_UNKNOWN          [V][T]   [S]  IUnknown *
-//           VT_DECIMAL          [V][T]   [S]  16 byte fixed point
-//           VT_RECORD           [V]   [P][S]  user defined type
              VT_I1: begin //signed AnsiChar
                { #note -oMaxM : Delphi has wrong declaration of cVal as ShortInt, correct one is Char }
                AnsiChar(APropValue):= AnsiChar(pPropVar.cVal);
@@ -1001,42 +1053,30 @@ begin
              VT_UI8 : begin //unsigned 64-bit int
                ULARGE_INTEGER(APropValue):= pPropVar.uhVal;
              end;
-(*           VT_INT_PTR             [T]        signed machine register size width
-         VT_UINT_PTR            [T]        unsigned machine register size width
-         VT_VOID                [T]        C style void
-         VT_HRESULT             [T]        Standard return type
-         VT_PTR                 [T]        pointer type
-         VT_SAFEARRAY           [T]        (use VT_ARRAY in VARIANT)
-         VT_CARRAY              [T]        C style array
-         VT_USERDEFINED         [T]        user defined type
-*)
-             VT_LPSTR  : begin //null terminated string, wide null terminated string
-               String(APropValue):= pPropVar.pszVal;
-             end;
-             VT_LPWSTR : begin //wide null terminated string
-               String(APropValue):= pPropVar.pwszVal;
-             end;
-(*           VT_FILETIME               [P]     FILETIME
-         VT_BLOB                   [P]     Length prefixed bytes
-         VT_STREAM                 [P]     Name of the stream follows
-         VT_STORAGE                [P]     Name of the storage follows
-         VT_STREAMED_OBJECT        [P]     Stream contains an object
-         VT_STORED_OBJECT          [P]     Storage contains an object
-         VT_VERSIONED_STREAM       [P]     Stream with a GUID version
-         VT_BLOB_OBJECT            [P]     Blob contains an object
-         VT_CF                     [P]     Clipboard format
-         VT_CLSID                  [P]     A Class ID
-         VT_VECTOR                 [P]     simple counted array
-         VT_ARRAY            [V]           SAFEARRAY*
-         VT_BYREF            [V]           void* for local use
-         VT_BSTR_BLOB                      Reserved for system use
-*)
+             VT_CLSID : begin //A Class ID
+               //TGUID(APropValue):= pPropVar.puuid^; //it should be this assign but it isn't
+               TGUID(APropValue):= GUID_NULL;
+
+               numElems:= 0;
+               firstElem:= 0;
+               TGUID(APropDefaultValue):= GUID_NULL;
+
+               if (WIAProp_LIST in Result)
+               then begin
+                      //MaxM: I don't understand the logic but in this case the WIA_LIST_XXX indexes are not valid
+                      numElems:= pPropInfo.cauuid.cElems;
+                      firstElem:= 0;
+                      //TGUID(APropDefaultValue):= pPropInfo.cauuid.pElems[WIA_LIST_NOM];
+
+                      SetLength(TArrayGUID(APropListValues), numElems);
+                      for i:=firstElem to firstElem+numElems-1 do
+                        TArrayGUID(APropListValues)[i-firstElem]:= TGUID(pPropInfo.cauuid.pElems[i]);
+                    end;
+               //else APropListValues:= nil; //a Range of TGUID is impossible (i think)
+            end;
            end;
          end;
        end;
-     end;
-
-  except
   end;
 end;
 
@@ -1081,15 +1121,14 @@ var
    curProp: IWiaPropertyStorage;
 
 begin
-  try
-     Result:= False;
+  Result:= False;
 
-     if useRoot
-     then curProp:= GetRootProperties
-     else curProp:= GetSelectedProperties;
+  if useRoot
+  then curProp:= GetRootProperties
+  else curProp:= GetSelectedProperties;
 
-     if (curProp <> nil) then
-     begin
+  if (curProp <> nil) then
+  begin
        pPropSpec.ulKind:= PRSPEC_PROPID;
        pPropSpec.propid:= APropId;
        pPropVar.vt:= propType;
@@ -1105,27 +1144,25 @@ begin
          VT_R4: begin //4 byte real
            pPropVar.fltVal:= Single(APropValue);
          end;
-         VT_R8: begin //8 byte real
-           pPropVar.dblVal:= Double(APropValue);
+         VT_R8, VT_DATE: begin //8 byte real , date
+           if (propType = VT_R8)
+           then pPropVar.dblVal:= Double(APropValue)
+           else pPropVar.date:= Double(APropValue);
          end;
          VT_CY: begin //currency
            pPropVar.cyVal:= CURRENCY(APropValue);
          end;
-         VT_DATE: begin //date
-           pPropVar.date:= Double(APropValue);
+         VT_BSTR, VT_LPSTR, VT_LPWSTR: begin //OLE Automation string, null terminated string, wide null terminated string
+            { #note 5 -oMaxM : Test this Casts }
+           case propType of
+           VT_BSTR: pPropVar.bstrVal:= PWideChar(String(APropValue));
+           VT_LPSTR: pPropVar.pszVal:= PAnsiChar(String(APropValue));
+           VT_LPWSTR: pPropVar.pwszVal:= PWideChar(String(APropValue));
+           end;
          end;
-         VT_BSTR: begin //OLE Automation string
-           pPropVar.bstrVal:= PWideChar(String(APropValue)); { #note 5 -oMaxM : Test this Cast }
-         end;
-//         VT_DISPATCH         [V][T]   [S]  IDispatch *
-//         VT_ERROR            [V][T][P][S]  SCODE
          VT_BOOL: begin //True=-1, False=0
            pPropVar.boolVal:= Boolean(APropValue);
          end;
-//         VT_VARIANT          [V][T][P][S]  VARIANT *
-//         VT_UNKNOWN          [V][T]   [S]  IUnknown *
-//         VT_DECIMAL          [V][T]   [S]  16 byte fixed point
-//         VT_RECORD           [V]   [P][S]  user defined type
          VT_I1: begin //signed AnsiChar
            { #note -oMaxM : Delphi has wrong declaration of cVal as ShortInt, correct one is Char }
            {$ifdef fpc}
@@ -1149,43 +1186,14 @@ begin
          VT_UI8 : begin //unsigned 64-bit int
            pPropVar.uhVal:= ULARGE_INTEGER(APropValue);
          end;
-(*         VT_INT_PTR             [T]        signed machine register size width
-       VT_UINT_PTR            [T]        unsigned machine register size width
-       VT_VOID                [T]        C style void
-       VT_HRESULT             [T]        Standard return type
-       VT_PTR                 [T]        pointer type
-       VT_SAFEARRAY           [T]        (use VT_ARRAY in VARIANT)
-       VT_CARRAY              [T]        C style array
-       VT_USERDEFINED         [T]        user defined type
-*)
-         VT_LPSTR  : begin //null terminated string, wide null terminated string
-           pPropVar.pszVal:= PAnsiChar(String(APropValue)); { #note 5 -oMaxM : Test this Cast }
+         VT_CLSID : begin //A Class ID
+           pPropVar.puuid:= @TGUID(APropValue); { #note 5 -oMaxM : Test this Cast }
          end;
-         VT_LPWSTR : begin //wide null terminated string
-           pPropVar.pwszVal:= PWideChar(String(APropValue)); { #note 5 -oMaxM : Test this Cast }
-         end;
-(*         VT_FILETIME               [P]     FILETIME
-       VT_BLOB                   [P]     Length prefixed bytes
-       VT_STREAM                 [P]     Name of the stream follows
-       VT_STORAGE                [P]     Name of the storage follows
-       VT_STREAMED_OBJECT        [P]     Stream contains an object
-       VT_STORED_OBJECT          [P]     Storage contains an object
-       VT_VERSIONED_STREAM       [P]     Stream with a GUID version
-       VT_BLOB_OBJECT            [P]     Blob contains an object
-       VT_CF                     [P]     Clipboard format
-       VT_CLSID                  [P]     A Class ID
-       VT_VECTOR                 [P]     simple counted array
-       VT_ARRAY            [V]           SAFEARRAY*
-       VT_BYREF            [V]           void* for local use
-       VT_BSTR_BLOB                      Reserved for system use
-*)
      end;
 
-       lres:= curProp.WriteMultiple(1, @pPropSpec, @pPropVar, 2);
+     lres:= curProp.WriteMultiple(1, @pPropSpec, @pPropVar, 2);
 
-       Result:= (lres = S_OK);
-     end;
-  except
+     Result:= (lres = S_OK);
   end;
 end;
 
@@ -1194,13 +1202,8 @@ var
    propType: TVarType;
 
 begin
-  Result:= [];
-  try
-     Result:= GetProperty(WIA_IPS_XRES, propType, Current, Default, Values, useRoot);
-     { #note 5 -oMaxM : what to do if the propType is not the expected one VT_I4}
-
-  finally
-  end;
+  Result:= GetProperty(WIA_IPS_XRES, propType, Current, Default, Values, useRoot);
+  { #note 5 -oMaxM : what to do if the propType is not the expected one VT_I4}
 end;
 
 function TWIADevice.GetResolutionsY(var Current, Default: Integer; var Values: TArrayInteger; useRoot: Boolean): TWIAPropertyFlags;
@@ -1208,13 +1211,8 @@ var
    propType: TVarType;
 
 begin
-  Result:= [];
-  try
-     Result:= GetProperty(WIA_IPS_YRES, propType, Current, Default, Values, useRoot);
-     { #note 5 -oMaxM : what to do if the propType is not the expected one VT_I4}
-
-  finally
-  end;
+  Result:= GetProperty(WIA_IPS_YRES, propType, Current, Default, Values, useRoot);
+  { #note 5 -oMaxM : what to do if the propType is not the expected one VT_I4}
 end;
 
 function TWIADevice.GetResolution(var AXRes, AYRes: Integer; useRoot: Boolean): Boolean;
@@ -1241,18 +1239,59 @@ end;
 function TWIADevice.GetPaperSizeMax(var AMaxWidth, AMaxHeight: Integer; useRoot: Boolean): Boolean;
 var
    propType: TVarType;
+   curSource: Integer;
 
 begin
   if (rVersion = 1)
-  then { #todo -oMaxM : if Feeder Use DPS_HORIZONTAL_SHEET_FEED_SIZE, DPS_VERTICAL_SHEET_FEED_SIZE }
-       Result:= GetProperty(WIA_DPS_HORIZONTAL_BED_SIZE, propType, AMaxWidth, useRoot) and
-                GetProperty(WIA_DPS_VERTICAL_BED_SIZE, propType, AMaxHeight, useRoot)
+  then begin
+         Result:= GetProperty(WIA_DPS_DOCUMENT_HANDLING_SELECT, propType, curSource, True);
+         if Result then
+         begin
+           if (curSource and FEEDER <> 0)
+           then Result:= GetProperty(WIA_DPS_HORIZONTAL_SHEET_FEED_SIZE, propType, AMaxWidth, True) and
+                         GetProperty(WIA_DPS_VERTICAL_SHEET_FEED_SIZE, propType, AMaxHeight, True)
+           else Result:= GetProperty(WIA_DPS_HORIZONTAL_BED_SIZE, propType, AMaxWidth, True) and
+                         GetProperty(WIA_DPS_VERTICAL_BED_SIZE, propType, AMaxHeight, True);
+         end;
+       end
   else Result:= GetProperty(WIA_IPS_MAX_HORIZONTAL_SIZE, propType, AMaxWidth, useRoot) and
                 GetProperty(WIA_IPS_MAX_VERTICAL_SIZE, propType, AMaxHeight, useRoot);
-  { #note 5 -oMaxM : what to do if the propType is not the expected one VT_I4}
 end;
 
-function TWIADevice.GetPaperSizeSet(var Current, Default: TWIAPaperSize; var Values: TWIAPaperSizeSet; useRoot: Boolean): Boolean;
+function TWIADevice.GetPaperSize(var Current: TWIAPaperSize; useRoot: Boolean): Boolean;
+var
+   iMaxWidth,
+   iMaxHeight,
+   iWidth,
+   iHeight: Integer;
+   propType: TVarType;
+
+begin
+  Result:= False;
+
+  //WIA_IPS_PAGE_SIZE does NOT work, so we calculate the Page Size using
+  // WIA_IPS_PAGE_WIDTH/WIA_IPS_PAGE_HEIGHT and PaperSizesWIA Array
+  //if the user still wants to use it he can set PaperSizes_Calculated to False.
+
+  if PaperSizes_Calculated
+  then begin
+        Result:= GetProperty(WIA_IPS_PAGE_WIDTH, propType, iWidth, useRoot) and
+                 GetProperty(WIA_IPS_PAGE_HEIGHT, propType, iHeight, useRoot); { #note 5 -oMaxM : Always return False ?}
+        if Result
+        then begin
+               Result:= GetPaperSizeMax(iMaxWidth, iMaxHeight);
+               if (iWidth >= iMaxWidth) or (iHeight >= iMaxHeight)
+               then Current:= wpsMAX
+               else Current:= CalculatePaperSize(iWidth, iHeight);
+             end
+        else Current:= wpsCUSTOM;
+
+        Result:= True;
+       end
+  else Result:= GetProperty(WIA_IPS_PAGE_SIZE, propType, Current, useRoot);
+end;
+
+function TWIADevice.GetPaperSize(var Current, Default: TWIAPaperSize; var Values: TWIAPaperSizeSet; useRoot: Boolean): Boolean;
 var
    iMaxWidth,
    iMaxHeight,
@@ -1272,21 +1311,22 @@ begin
 
      if PaperSizes_Calculated
      then begin
-            propType:= VT_I4;
-
             Result:= GetPaperSizeMax(iMaxWidth, iMaxHeight);
             if not(Result) then Exit;
 
             Values:= CalculatePaperSizeSet(iMaxWidth, iMaxHeight);
 
             //Current (Reuse the Max Variables)
-            Current:= wpsA4;
-            if GetProperty(WIA_IPS_PAGE_WIDTH, propType, iMaxWidth, useRoot) and
-               GetProperty(WIA_IPS_PAGE_HEIGHT, propType, iMaxHeight, useRoot)
-            then Current:= CalculatePaperSize(iMaxWidth, iMaxHeight);  { #note 5 -oMaxM : Always return False }
+            Result:= GetProperty(WIA_IPS_PAGE_WIDTH, propType, iMaxWidth, useRoot) and
+                     GetProperty(WIA_IPS_PAGE_HEIGHT, propType, iMaxHeight, useRoot);{ #note 5 -oMaxM : Always return False in HP ?}
+            if Result
+            then Current:= CalculatePaperSize(iMaxWidth, iMaxHeight)
+            else Current:= wpsCUSTOM;
 
             { #todo -oMaxM : How to Calculate Default Value??? }
             Default:= wpsA4;
+
+            Result:= True;
           end
      else begin
             pFlags:= GetProperty(WIA_IPS_PAGE_SIZE, propType, Current, Default, intValues, useRoot);
@@ -1296,9 +1336,9 @@ begin
 
             if (WIAProp_LIST in pFlags)
             then for i:=0 to Length(intValues)-1 do Values:= Values+[TWIAPaperSize(intValues[i])];
-          end;
 
-     Result:= True;
+            Result:= True;
+          end;
 
   finally
     intValues:= nil;
@@ -1311,35 +1351,63 @@ var
    pFlags: TWIAPropertyFlags;
    iMaxWidth,
    iMaxHeight,
+   iWidth,
+   iHeight,
    iPixels: Integer;
 
 begin
   Result:= False;
-  try
-     if PaperSizes_Calculated
-     then begin
-            Result:= GetPaperSizeMax(iMaxWidth, iMaxHeight, useRoot);
-            if not(Result) then Exit;
 
-            if (PaperSizesWIA[Value].w > iMaxWidth) or
-               (PaperSizesWIA[Value].h > iMaxHeight) then Exit;
+  if PaperSizes_Calculated
+  then begin
+         Result:= GetPaperSizeMax(iMaxWidth, iMaxHeight, useRoot);
+         if not(Result) then Exit;
 
-            if rXRes = -1
-            then if not(GetResolution(rXRes, rYRes)) then Exit;
+         //check if wpsMAX assigns the entire area, otherwise check if its dimensions fits within the area
+         if (Value = wpsMAX)
+         then begin
+                iWidth:= iMaxWidth;
+                iHeight:= iMaxHeight;
+              end
+         else begin
+                iWidth:= PaperSizesWIA[Value].w;
+                iHeight:= PaperSizesWIA[Value].h;
+                if (iWidth > iMaxWidth) or (iHeight > iMaxHeight) then Exit;
+              end;
 
-            iPixels:= Trunc(PaperSizesWIA[Value].w * rXRes / 1000);
-            if not(SetProperty(WIA_IPS_XEXTENT, VT_I4, iPixels, useRoot)) then Exit;
+         if rXRes = -1
+         then if not(GetResolution(rXRes, rYRes)) then Exit;
 
-            iPixels:= 0;
-            if not(SetProperty(WIA_IPS_XPOS, VT_I4, iPixels, useRoot)) then Exit;
+         iPixels:= Trunc(iWidth * rXRes / 1000);
+         if not(SetProperty(WIA_IPS_XEXTENT, VT_I4, iPixels, useRoot)) then Exit;
 
-            iPixels:= Trunc(PaperSizesWIA[Value].h * rYRes / 1000);
-            Result:= SetProperty(WIA_IPS_YEXTENT, VT_I4, iPixels, useRoot);
+         iPixels:= 0;
+         if not(SetProperty(WIA_IPS_XPOS, VT_I4, iPixels, useRoot)) then Exit;
 
-          end
-     else Result:= SetProperty(WIA_IPS_PAGE_SIZE, VT_I4, Value, useRoot);
-  finally
-  end;
+         iPixels:= Trunc(iHeight * rYRes / 1000);
+         Result:= SetProperty(WIA_IPS_YEXTENT, VT_I4, iPixels, useRoot);
+       end
+  else begin
+         if (Value = wpsMAX)
+         then begin
+                //assigns the entire area
+                Result:= GetPaperSizeMax(iMaxWidth, iMaxHeight, useRoot);
+                if not(Result) then Exit;
+
+                if rXRes = -1
+                then if not(GetResolution(rXRes, rYRes)) then Exit;
+
+                iPixels:= Trunc(iMaxWidth * rXRes / 1000);
+                if not(SetProperty(WIA_IPS_XEXTENT, VT_I4, iPixels, useRoot)) then Exit;
+
+                iPixels:= 0;
+                if not(SetProperty(WIA_IPS_XPOS, VT_I4, iPixels, useRoot)) then Exit;
+
+                iPixels:= Trunc(iMaxHeight * rYRes / 1000);
+                Result:= SetProperty(WIA_IPS_YEXTENT, VT_I4, iPixels, useRoot);
+              end
+         else Result:= SetProperty(WIA_IPS_PAGE_SIZE, VT_I4, Value, useRoot);
+       end;
 end;
 
 function TWIADevice.GetBrightness(var Current: Integer; useRoot: Boolean): Boolean;
@@ -1420,31 +1488,85 @@ begin
   Result:= SetProperty(WIA_IPS_CONTRAST, VT_I4, Value, useRoot);
 end;
 
+function TWIADevice.GetImageFormat(var Current: TWIAImageFormat; useRoot: Boolean): Boolean;
+var
+   propType: TVarType;
+   gValue: TGUID;
+
+begin
+  Result:= GetProperty(WIA_IPA_FORMAT, propType, gValue, useRoot);
+  if Result
+  then Result:= WIAImageFormat_To_wif(gValue, Current);
+end;
+
+function TWIADevice.GetImageFormat(var Current, Default: TWIAImageFormat; var Values: TWIAImageFormatSet; useRoot: Boolean): Boolean;
+var
+   i: Integer;
+   gValues: TArrayGUID;
+   propType: TVarType;
+   pFlags: TWIAPropertyFlags;
+   curValue: TWIAImageFormat;
+   gValue: TGUID;
+
+begin
+  Result:= False;
+  try
+     Values:= [];
+
+     //Does not return the Current and Default Values
+     pFlags:= GetProperty(WIA_IPA_FORMAT, propType, Current, Default, gValues, useRoot);
+     if not(WIAProp_READ in pFlags) then Exit;
+
+     if (WIAProp_LIST in pFlags) then
+     for i:=0 to Length(gValues)-1 do
+     begin
+       Result:= WIAImageFormat_To_wif(gValues[i], curValue);
+       if Result
+       then Values:= Values+[curValue];
+       { #todo 2 -oMaxM : else Ignore it or return False? }
+     end;
+
+     //Default Values are not valid so we must take it in this way
+     Current:= wif_UNDEFINED;
+     Default:= wif_UNDEFINED;
+     Result:= GetProperty(WIA_IPA_FORMAT, propType, gValue, useRoot) and
+              WIAImageFormat_To_wif(gValue, Current);
+     if not(Result) then exit;
+
+     Result:= GetProperty(WIA_IPA_PREFERRED_FORMAT, propType, gValue, useRoot) and
+              WIAImageFormat_To_wif(gValue, Default);
+
+  finally
+    gValues:= nil;
+  end;
+end;
+
+function TWIADevice.SetImageFormat(const Value: TWIAImageFormat; useRoot: Boolean): Boolean;
+begin
+  Result:= SetProperty(WIA_IPA_FORMAT, VT_CLSID, WiaImageFormat[Value], useRoot);
+end;
+
 function TWIADevice.GetParamsCapabilities(var Value: TWIAParamsCapabilities): Boolean;
 var
    pFlags: TWIAPropertyFlags;
 
 begin
-  try
-     Result:= False;
+  Result:= False;
 
-     with Value do
-     begin
-       Result:= GetPaperSizeSet(PaperSizeCurrent, PaperSizeDefault, PaperSizeSet);
-       if not(Result) then exit;
+  with Value do
+  begin
+    Result:= GetPaperSize(PaperSizeCurrent, PaperSizeDefault, PaperSizeSet);
+    if not(Result) then exit;
 
-       pFlags:= GetResolutionsX(ResolutionCurrent, ResolutionDefault, ResolutionArray);
-       Result:= WIAProp_READ in pFlags;
-       if not(Result) then exit;
+    pFlags:= GetResolutionsX(ResolutionCurrent, ResolutionDefault, ResolutionArray);
+    Result:= WIAProp_READ in pFlags;
+    if not(Result) then exit;
 
-       ResolutionRange:= WIAProp_RANGE in pFlags;
-       Result:= GetBrightness(BrightnessCurrent, BrightnessDefault, BrightnessMin, BrightnessMax, BrightnessStep);
-       if not(Result) then exit;
+    ResolutionRange:= WIAProp_RANGE in pFlags;
+    Result:= GetBrightness(BrightnessCurrent, BrightnessDefault, BrightnessMin, BrightnessMax, BrightnessStep);
+    if not(Result) then exit;
 
-       Result:= GetContrast(ContrastCurrent, ContrastDefault, ContrastMin, ContrastMax, ContrastStep);
-     end;
-
-  except
+    Result:= GetContrast(ContrastCurrent, ContrastDefault, ContrastMin, ContrastMax, ContrastStep);
   end;
 end;
 

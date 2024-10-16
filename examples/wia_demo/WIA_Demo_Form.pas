@@ -31,6 +31,10 @@ type
     FWia: TWIAManager;
     WIACap: TWIAParamsCapabilities;
     WIAParams: TWIAParams;
+    WIAformat,
+    WIAformatDef: TWiaImageFormat;
+    WIAFormatSet: TWiaImageFormatSet;
+    WIAformatStr: String;
 
     function DeviceTransferEvent(AWiaManager: TWIAManager; AWiaDevice: TWIADevice;
                                  lFlags: LONG; pWiaTransferParams: PWiaTransferParams): Boolean;
@@ -97,6 +101,7 @@ var
   WIASource:TWIADevice;
   i,
   newIndex: Integer;
+  propType: TVarType;
 
 begin
     btAcquire.Enabled :=False;
@@ -109,11 +114,16 @@ begin
       FWia.SelectedDeviceIndex:= newIndex;
 
       WIASource:= FWia.SelectedDevice;
+      if (WIASource <> nil) then
+      begin
+        btAcquire.Enabled := WiaSource.GetParamsCapabilities(WIACap);
 
-      btAcquire.Enabled := (WIASource <> nil) and WiaSource.GetParamsCapabilities(WIACap);
+        WIASource.GetImageFormat(WIAformat, WIAformatDef, WIAFormatSet);
 
-      WIAParams:= WIACopyDefaultValues(WIACap);
-      //WIAParams:= WIACopyCurrentValues(WIACap);
+        WIAParams:= WIACopyDefaultValues(WIACap);
+        //WIAParams:= WIACopyCurrentValues(WIACap);
+      end
+      else MessageDlg('Error Connecting Device', mtError, [mbOk], 0);
     end;
 end;
 
@@ -150,11 +160,21 @@ begin
       with WIAParams do
       begin
         capRet:= WIASource.SetResolution(Resolution, Resolution);
+        if not(capRet) then raise Exception.Create('SetResolution');
+
         capRet:= WIASource.SetPaperSize(PaperSize);
+        if not(capRet) then raise Exception.Create('SetPaperSize');
+
         capRet:= WIASource.SetBrightness(Brightness);
+        if not(capRet) then raise Exception.Create('SetBrightness');
+
         capRet:= WIASource.SetContrast(Contrast);
+        if not(capRet) then raise Exception.Create('SetContrast');
 
       end;
+
+      capRet:= WIASource.SetImageFormat(wif_BMP);
+      if not(capRet) then raise Exception.Create('SetImageFormat');
 
       c:= WIASource.Download(aPath, 'test_wia.bmp');
 

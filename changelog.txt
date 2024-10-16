@@ -2,6 +2,10 @@ WIAPASCAL CHANGE LOG
 ======================
 
 2024/10/
+        16 Added  ImageFormat functions and Methods;
+	   Renamed GetPaperSizeSet to GetPaperSize;
+	   Deleted and merged some propTypes into GetProperty/GetPropertyAttributes;
+	   Changed some Exception Handling 
         15 Changed Return type of TWiaDevice.GetResolutions to TWIAPropertyFlags; 
 	   Added Brightness, Contrast and GetParamsCapabilities in TWiaDevice
 	   Added WIACopyCurrent/DefaultValues;
