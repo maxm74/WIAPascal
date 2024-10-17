@@ -53,5 +53,13 @@ object FormWIADemo: TFormWIADemo
       Width = 350
       TabOrder = 2
     end
+    object cbTest: TCheckBox
+      Left = 561
+      Height = 19
+      Top = 8
+      Width = 44
+      Caption = 'Tests'
+      TabOrder = 3
+    end
   end
 end

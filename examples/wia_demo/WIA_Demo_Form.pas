@@ -19,6 +19,7 @@ type
   TFormWIADemo = class(TForm)
     btAcquire: TButton;
     btSelect: TButton;
+    cbTest: TCheckBox;
     ImageHolder: TImage;
     Panel1: TPanel;
     progressBar: TProgressBar;
@@ -147,6 +148,9 @@ begin
     SelectedItemIndex:= WIASource.SelectedItemIndex;
     NewItemIndex:= SelectedItemIndex;
 
+    //For Test BitDepth Dependencies
+    if cbTest.Checked then WIASource.SetDataType(wdtBN);
+
     //Select Scanner Setting to use
     if TWIASettingsSource.Execute(WIASource, NewItemIndex, initParams, WIAParams) then
     begin
@@ -171,9 +175,25 @@ begin
         capRet:= WIASource.SetContrast(Contrast);
         if not(capRet) then raise Exception.Create('SetContrast');
 
+        if cbTest.Checked then
+        begin
+             //For Tests, NO Errors on SetBitDepth?
+             capRet:= WIASource.SetDataType(DataType);
+             if not(capRet) then raise Exception.Create('SetDataType');
+        end;
+
+        capRet:= WIASource.SetBitDepth(BitDepth);
+        if not(capRet) then raise Exception.Create('SetBitDepth');
+
+         { #note 10 -oMaxM : Bit Depth depends on DataType, so DataType must be last }
+        if not(cbTest.Checked) then
+        begin
+             capRet:= WIASource.SetDataType(DataType);
+             if not(capRet) then raise Exception.Create('SetDataType');
+        end;
       end;
 
-      capRet:= WIASource.SetImageFormat(wif_BMP);
+      capRet:= WIASource.SetImageFormat(wifBMP);
       if not(capRet) then raise Exception.Create('SetImageFormat');
 
       c:= WIASource.Download(aPath, 'test_wia.bmp');

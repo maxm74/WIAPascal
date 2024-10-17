@@ -55,29 +55,46 @@ type
   TWIAPropertyFlags = set of TWIAPropertyFlag;
 
   TWiaImageFormat = (
-    wif_UNDEFINED,
-    wif_RAWRGB,
-    wif_MEMORYBMP,
-    wif_BMP,
-    wif_EMF,
-    wif_WMF,
-    wif_JPEG,
-    wif_PNG,
-    wif_GIF,
-    wif_TIFF,
-    wif_EXIF,
-    wif_PHOTOCD,
-    wif_FLASHPIX,
-    wif_ICO,
-    wif_CIFF,
-    wif_PICT,
-    wif_JPEG2K,
-    wif_JPEG2KX,
-    wif_RAW,
-    wif_JBIG,
-    wif_JBIG2
+    wifUNDEFINED,
+    wifRAWRGB,
+    wifMEMORYBMP,
+    wifBMP,
+    wifEMF,
+    wifWMF,
+    wifJPEG,
+    wifPNG,
+    wifGIF,
+    wifTIFF,
+    wifEXIF,
+    wifPHOTOCD,
+    wifFLASHPIX,
+    wifICO,
+    wifCIFF,
+    wifPICT,
+    wifJPEG2K,
+    wifJPEG2KX,
+    wifRAW,
+    wifJBIG,
+    wifJBIG2
   );
   TWiaImageFormatSet = set of TWiaImageFormat;
+
+  TWiaDataType = (
+    wdtBN = WIA_DATA_THRESHOLD,
+    wdtDITHER = WIA_DATA_DITHER,
+    wdtGRAYSCALE = WIA_DATA_GRAYSCALE,
+    wdtCOLOR = WIA_DATA_COLOR,
+    wdtCOLOR_THRESHOLD = WIA_DATA_COLOR_THRESHOLD,
+    wdtCOLOR_DITHER = WIA_DATA_COLOR_DITHER,
+    wdtRAW_RGB = WIA_DATA_RAW_RGB,
+    wdtRAW_BGR = WIA_DATA_RAW_BGR,
+    wdtRAW_YUV = WIA_DATA_RAW_YUV,
+    wdtRAW_YUVK = WIA_DATA_RAW_YUVK,
+    wdtRAW_CMY = WIA_DATA_RAW_CMY,
+    wdtRAW_CMYK = WIA_DATA_RAW_CMYK,
+    wdtAUTO = WIA_DATA_AUTO
+  );
+  TWiaDataTypeSet = set of TWiaDataType;
 
   TWIAParams = packed record
       PaperSize: TWIAPaperSize;
@@ -85,7 +102,7 @@ type
       Contrast,
       Brightness: Integer;
       BitDepth: Integer;
-//      PixelType:TWIAPixelType;
+      DataType: TWIADataType;
   end;
 
   TWIAParamsCapabilities = record
@@ -105,20 +122,13 @@ type
     ContrastDefault,
     ContrastMin,
     ContrastMax,
-    ContrastStep    : Integer;
-
-(*    PixelType:TTwainPixelTypeSet;
-    PixelTypeDefault:TTwainPixelType;
-
-    ResolutionDefault: Single;
-    BitDepthDefault,
-    ResolutionArraySize,
-    BitDepthArraySize: Integer;
-
-    //Array MUST be at the end so then 32bit server can write up to BitDepthArraySize with a single write
-    ResolutionArray: TTwainResolution;
+    ContrastStep,
+    BitDepthCurrent,
+    BitDepthDefault: Integer;
     BitDepthArray: TArrayInteger;
-*)
+    DataTypeCurrent,
+    DataTypeDefault: TWiaDataType;
+    DataTypeSet: TWiaDataTypeSet;
   end;
 
   { TWIADevice }
@@ -227,10 +237,10 @@ type
 //    procedure SetProperty(APropId: PROPID; APropValue: LPWSTR; useRoot: Boolean=False): Boolean; overload;  //VT_LPWSTR
 *)
 
-    //Get Available Valid Values for XResolution,
+    //Get Available Values for XResolution,
     //  if Result contain the Flag WIAProp_RANGE then use WIA_RANGE_XXX Indexes to get MIN/MAX/STEP Values
     function GetResolutionsX(var Current, Default: Integer; var Values: TArrayInteger; useRoot: Boolean=False): TWIAPropertyFlags;
-    //Get Available Resolutions for Y
+    //Get Available Values for YResolutions
     function GetResolutionsY(var Current, Default: Integer; var Values: TArrayInteger; useRoot: Boolean=False): TWIAPropertyFlags;
 
     //Get Current Resolutions
@@ -273,6 +283,23 @@ type
 
     //Set Current Image Format
     function SetImageFormat(const Value: TWIAImageFormat; useRoot: Boolean=False): Boolean;
+
+     //Get Current Image DataType
+    function GetDataType(var Current: TWiaDataType; useRoot: Boolean=False): Boolean; overload;
+    //Get Available Image DataTypes
+    function GetDataType(var Current, Default: TWiaDataType; var Values: TWiaDataTypeSet; useRoot: Boolean=False): Boolean; overload;
+
+    //Set Current Image DataType
+    function SetDataType(const Value: TWiaDataType; useRoot: Boolean=False): Boolean;
+
+    //Get Available Values for BitDepth
+    function GetBitDepth(var Current, Default: Integer; var Values: TArrayInteger; useRoot: Boolean=False): TWIAPropertyFlags; overload;
+    //Get Current BitDepth
+    function GetBitDepth(var Current: Integer; useRoot: Boolean=False): Boolean; overload;
+
+    //Set Current BitDepth, The user is responsible for checking the validity of the value
+    function SetBitDepth(const Value: Integer; useRoot: Boolean=False): Boolean;
+
 
     function GetParamsCapabilities(var Value: TWIAParamsCapabilities): Boolean;
 
@@ -393,6 +420,21 @@ const
     '{bb8e7e67-283c-4235-9e59-0b9bf94ca687}'
   );
 
+  WIADataTypeStr: array [wdtBN..wdtRAW_CMYK] of String = (
+    'Black & White',
+    'Gray scale (Dither)',
+    'Gray scale',
+    'Color (RGB)',
+    'Color (BN)',
+    'Color (Dither)',
+    'Color (RAW RGB)',
+    'Color (RAW BGR)',
+    'Color (RAW YUV)',
+    'Color (RAW YUVK)',
+    'Color (RAW CMY)',
+    'Color (RAW CMYK)'
+  );
+
 
 function WIAPropertyFlags(pFlags: ULONG): TWIAPropertyFlags;
 
@@ -463,14 +505,15 @@ end;
 
 function WIACopyDefaultValues(const WIACap: TWIAParamsCapabilities): TWIAParams;
 begin
+  FillChar(Result, Sizeof(Result), 0);
   with Result do
   begin
     PaperSize:= WIACap.PaperSizeDefault;
     Resolution:= WIACap.ResolutionDefault;
     Contrast:= WiaCap.ContrastDefault;
     Brightness:= WIACap.BrightnessDefault;
-    //BitDepth:= WIACap.BitDepthDefault;
-    //PixelType:= WIACap.PixelTypeDefault;
+    BitDepth:= WIACap.BitDepthDefault;
+    DataType:= WIACap.DataTypeDefault;
   end;
 end;
 
@@ -1527,8 +1570,8 @@ begin
      end;
 
      //Default Values are not valid so we must take it in this way
-     Current:= wif_UNDEFINED;
-     Default:= wif_UNDEFINED;
+     Current:= wifUNDEFINED;
+     Default:= wifUNDEFINED;
      Result:= GetProperty(WIA_IPA_FORMAT, propType, gValue, useRoot) and
               WIAImageFormat_To_wif(gValue, Current);
      if not(Result) then exit;
@@ -1546,6 +1589,67 @@ begin
   Result:= SetProperty(WIA_IPA_FORMAT, VT_CLSID, WiaImageFormat[Value], useRoot);
 end;
 
+function TWIADevice.GetDataType(var Current: TWiaDataType; useRoot: Boolean): Boolean;
+var
+   propType: TVarType;
+
+begin
+  Result:= GetProperty(WIA_IPA_DATATYPE, propType, Current, useRoot);
+end;
+
+function TWIADevice.GetDataType(var Current, Default: TWiaDataType; var Values: TWiaDataTypeSet; useRoot: Boolean): Boolean;
+var
+   i: Integer;
+   intValues: TArrayInteger;
+   propType: TVarType;
+   pFlags: TWIAPropertyFlags;
+
+begin
+  Result:= False;
+  try
+     Values:= [];
+
+     pFlags:= GetProperty(WIA_IPA_DATATYPE, propType, Current, Default, intValues, useRoot);
+     if not(WIAProp_READ in pFlags) then Exit;
+
+     { #note 5 -oMaxM : what to do if the propType is not the expected one VT_I4}
+
+     if (WIAProp_LIST in pFlags)
+     then for i:=0 to Length(intValues)-1 do Values:= Values+[TWiaDataType(intValues[i])];
+
+     Result:= True;
+
+  finally
+    intValues:= nil;
+  end;
+end;
+
+function TWIADevice.SetDataType(const Value: TWiaDataType; useRoot: Boolean): Boolean;
+begin
+  Result:= SetProperty(WIA_IPA_DATATYPE, VT_I4, Value, useRoot);
+end;
+
+function TWIADevice.GetBitDepth(var Current, Default: Integer; var Values: TArrayInteger; useRoot: Boolean): TWIAPropertyFlags;
+var
+   propType: TVarType;
+
+begin
+  Result:= GetProperty(WIA_IPA_DEPTH, propType, Current, Default, Values, useRoot);
+end;
+
+function TWIADevice.GetBitDepth(var Current: Integer; useRoot: Boolean): Boolean;
+var
+   propType: TVarType;
+
+begin
+  Result:= GetProperty(WIA_IPA_DEPTH, propType, Current, useRoot);
+end;
+
+function TWIADevice.SetBitDepth(const Value: Integer; useRoot: Boolean): Boolean;
+begin
+  Result:= SetProperty(WIA_IPA_DEPTH, VT_I4, Value, useRoot);
+end;
+
 function TWIADevice.GetParamsCapabilities(var Value: TWIAParamsCapabilities): Boolean;
 var
    pFlags: TWIAPropertyFlags;
@@ -1559,14 +1663,21 @@ begin
     if not(Result) then exit;
 
     pFlags:= GetResolutionsX(ResolutionCurrent, ResolutionDefault, ResolutionArray);
-    Result:= WIAProp_READ in pFlags;
+    Result:= (WIAProp_READ in pFlags);
     if not(Result) then exit;
-
     ResolutionRange:= WIAProp_RANGE in pFlags;
+
     Result:= GetBrightness(BrightnessCurrent, BrightnessDefault, BrightnessMin, BrightnessMax, BrightnessStep);
     if not(Result) then exit;
 
     Result:= GetContrast(ContrastCurrent, ContrastDefault, ContrastMin, ContrastMax, ContrastStep);
+    if not(Result) then exit;
+
+    pFlags:= GetBitDepth(BitDepthCurrent, BitDepthDefault, BitDepthArray);
+    Result:= (WIAProp_READ in pFlags);
+    if not(Result) then exit;
+
+    Result:= GetDataType(DataTypeCurrent, DataTypeDefault, DataTypeSet);
   end;
 end;
 

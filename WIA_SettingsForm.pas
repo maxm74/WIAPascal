@@ -46,7 +46,7 @@ type
     cbBitDepth: TComboBox;
     cbSourceItem: TComboBox;
     cbPaperSize: TComboBox;
-    cbPixelType: TComboBox;
+    cbDataType: TComboBox;
     cbResolution: TComboBox;
     cbUseNativeUI: TCheckBox;
     edBrightness: TSpinEdit;
@@ -121,16 +121,10 @@ end;
 class function TWIASettingsSource.Execute(AWIASource: TWIADevice; var ASelectedItemIndex: Integer;
   initItemValues: TInitialItemValues; var AParams: TWIAParams): Boolean;
 var
-  pFlags: TWIAPropertyFlags;
   paperI: TWIAPaperSize;
-//  pixelI:TTwainPixelType;
+  dataI: TWIADataType;
   i, cbSelected: Integer;
-  (*  TwainSource:TTwainSource;
-    bitCurrent: Integer;
-    paperCurrent: TTwainPaperSize;
-    pixelCurrent:TTwainPixelType;
-    resolutionCurrent:Single;
-  *)
+
 begin
   if (WIASettingsSource=nil)
   then WIASettingsSource :=TWIASettingsSource.Create(nil);
@@ -181,33 +175,50 @@ begin
       end;
     end;
     cbPaperSize.ItemIndex:=cbSelected;
-(*
-    //Fill List of Bit Depth
+
+    { #todo 10 -oMaxM : In theory the selectable BitDepths depend on ImageType,
+                        but WIA does not give me an error when I set for example
+                        "Black and White" and BitDepht to 24 bit but I get a damaged Image.
+                        Change automatically from the Form? }
+
+    //Fill List of Image Bit Depth
     cbBitDepth.Clear;
     cbSelected :=0;
-    for i:=0 to TwainCap.BitDepthArraySize-1 do
+    for i:=0 to Length(BitDepthArray)-1 do
     begin
-      cbBitDepth.Items.AddObject(IntToStr(TwainCap.BitDepthArray[i])+' Bit', TObject(PtrUInt(TwainCap.BitDepthArray[i])));
+      if (BitDepthArray[i] = 0)
+      then cbBitDepth.Items.AddObject('Auto', nil)
+      else cbBitDepth.Items.AddObject(IntToStr(BitDepthArray[i])+' Bit', TObject(PtrUInt(BitDepthArray[i])));
 
-      if useDeviceDefault
-      then begin if (TwainCap.BitDepthArray[i] = TwainCap.BitDepthDefault) then cbSelected :=cbBitDepth.Items.Count-1; end
-      else begin if (TwainCap.BitDepthArray[i] = AParams.BitDepth) then cbSelected :=cbBitDepth.Items.Count-1; end;
+      case initItemValues of
+      initDefault: begin if (BitDepthArray[i] = BitDepthDefault) then cbSelected :=cbBitDepth.Items.Count-1; end;
+      initParams:  begin if (BitDepthArray[i] = AParams.BitDepth) then cbSelected :=cbBitDepth.Items.Count-1; end;
+      initCurrent: begin if (BitDepthArray[i] = BitDepthCurrent) then cbSelected :=cbBitDepth.Items.Count-1; end;
+      end;
     end;
     cbBitDepth.ItemIndex:=cbSelected;
 
-    //Fill List of Pixel Type
-    cbPixelType.Clear;
+    //Fill List of Image Data Type
+    cbDataType.Clear;
     cbSelected :=0;
-    for pixelI in TwainCap.PixelType do
+    for dataI in DataTypeSet do
     begin
-      cbPixelType.Items.AddObject(TwainPixelTypes[pixelI], TObject(PtrUInt(pixelI)));
+      Case dataI of
+      wdtAUTO: cbDataType.Items.AddObject('Auto type', TObject(PtrUInt(wdtAUTO)));
+      wdtDITHER, wdtCOLOR_DITHER: begin end;
+      else begin
+             cbDataType.Items.AddObject(WIADataTypeStr[dataI], TObject(PtrUInt(dataI)));
 
-      if useDeviceDefault
-      then begin if (pixelI = TwainCap.PixelTypeDefault) then cbSelected :=cbPixelType.Items.Count-1; end
-      else begin if (pixelI = AParams.PixelType) then cbSelected :=cbPixelType.Items.Count-1; end;
+             case initItemValues of
+             initDefault: begin if (dataI = DataTypeDefault) then cbSelected :=cbDataType.Items.Count-1; end;
+             initParams:  begin if (dataI = AParams.DataType) then cbSelected :=cbDataType.Items.Count-1; end;
+             initCurrent: begin if (dataI = DataTypeCurrent) then cbSelected :=cbDataType.Items.Count-1; end;
+             end;
+           end;
+      end;
     end;
-    cbPixelType.ItemIndex:=cbSelected;
-*)
+    cbDataType.ItemIndex:=cbSelected;
+
     if ResolutionRange
     then begin
            trResolution.Visible:= True; edResolution.Visible:= True;
@@ -286,13 +297,13 @@ begin
 *)
       if (cbPaperSize.ItemIndex>-1)
       then AParams.PaperSize:=TWIAPaperSize(PtrUInt(cbPaperSize.Items.Objects[cbPaperSize.ItemIndex]));
-(*
+
       if (cbBitDepth.ItemIndex>-1)
       then AParams.BitDepth:=PtrUInt(cbBitDepth.Items.Objects[cbBitDepth.ItemIndex]);
 
-      if (cbPixelType.ItemIndex>-1)
-      then AParams.PixelType:=TTwainPixelType(PtrUInt(cbPixelType.Items.Objects[cbPixelType.ItemIndex]));
-*)
+      if (cbDataType.ItemIndex>-1)
+      then AParams.DataType:=TWIADataType(PtrUInt(cbDataType.Items.Objects[cbDataType.ItemIndex]));
+
       if (cbResolution.ItemIndex>-1)
       then AParams.Resolution:=WIACap.ResolutionArray[PtrUInt(cbResolution.Items.Objects[cbResolution.ItemIndex])];
 

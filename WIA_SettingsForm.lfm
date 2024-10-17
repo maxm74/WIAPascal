@@ -625,7 +625,7 @@ object WIASettingsSource: TWIASettingsSource
           Width = 66
           Caption = 'Image Type :'
         end
-        object cbPixelType: TComboBox
+        object cbDataType: TComboBox
           Left = 2
           Height = 23
           Top = 107
