@@ -488,7 +488,7 @@ object WIASettingsSource: TWIASettingsSource
       Left = 8
       Height = 248
       Top = 48
-      Width = 440
+      Width = 528
       ActivePage = tbSource_Scanner
       ShowTabs = False
       TabIndex = 0
@@ -496,7 +496,7 @@ object WIASettingsSource: TWIASettingsSource
       object tbSource_Scanner: TTabSheet
         Caption = 'tbSource_Scanner'
         ClientHeight = 240
-        ClientWidth = 432
+        ClientWidth = 520
         object Label2: TLabel
           Left = 2
           Height = 15
@@ -516,14 +516,14 @@ object WIASettingsSource: TWIASettingsSource
         object Label3: TLabel
           Left = 2
           Height = 15
-          Top = 135
+          Top = 90
           Width = 62
           Caption = 'Resolution :'
         end
         object cbResolution: TComboBox
           Left = 2
           Height = 23
-          Top = 152
+          Top = 107
           Width = 192
           ItemHeight = 15
           Style = csDropDownList
@@ -605,30 +605,32 @@ object WIASettingsSource: TWIASettingsSource
         object Label6: TLabel
           Left = 2
           Height = 15
-          Top = 45
+          Top = 136
           Width = 55
           Caption = 'Bit Depth :'
+          Visible = False
         end
         object cbBitDepth: TComboBox
           Left = 2
           Height = 23
-          Top = 62
+          Top = 153
           Width = 192
           ItemHeight = 15
           Style = csDropDownList
           TabOrder = 6
+          Visible = False
         end
         object Label7: TLabel
           Left = 2
           Height = 15
-          Top = 90
+          Top = 45
           Width = 66
           Caption = 'Image Type :'
         end
         object cbDataType: TComboBox
           Left = 2
           Height = 23
-          Top = 107
+          Top = 62
           Width = 192
           ItemHeight = 15
           Style = csDropDownList
@@ -637,7 +639,7 @@ object WIASettingsSource: TWIASettingsSource
         object trResolution: TTrackBar
           Left = 2
           Height = 25
-          Top = 152
+          Top = 107
           Width = 144
           Max = 1000
           Min = -1000
@@ -649,12 +651,61 @@ object WIASettingsSource: TWIASettingsSource
         object edResolution: TSpinEdit
           Left = 144
           Height = 23
-          Top = 152
+          Top = 107
           Width = 50
           MaxValue = 1000
           MinValue = -1000
           TabOrder = 9
           Visible = False
+        end
+        object btBrightness0: TSpeedButton
+          Tag = 1
+          Left = 424
+          Height = 13
+          Top = 17
+          Width = 16
+          Caption = '0'
+          Flat = True
+          OnClick = bt0Click
+        end
+        object btBrightnessD: TSpeedButton
+          Tag = 1
+          Left = 424
+          Height = 13
+          Top = 30
+          Width = 16
+          Caption = 'd'
+          Flat = True
+          OnClick = btDClick
+        end
+        object btContrast0: TSpeedButton
+          Tag = 2
+          Left = 424
+          Height = 13
+          Top = 62
+          Width = 16
+          Caption = '0'
+          Flat = True
+          OnClick = bt0Click
+        end
+        object btContrastD: TSpeedButton
+          Tag = 2
+          Left = 424
+          Height = 13
+          Top = 75
+          Width = 16
+          Caption = 'd'
+          Flat = True
+          OnClick = btDClick
+        end
+        object btResolutionD: TSpeedButton
+          Left = 196
+          Height = 13
+          Top = 112
+          Width = 16
+          Caption = 'd'
+          Flat = True
+          OnClick = btDClick
         end
       end
     end
@@ -673,6 +724,7 @@ object WIASettingsSource: TWIASettingsSource
       ItemHeight = 15
       Style = csDropDownList
       TabOrder = 2
+      OnChange = cbSourceItemChange
     end
   end
   object imgList: TImageList

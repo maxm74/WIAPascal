@@ -61,5 +61,12 @@ object FormWIADemo: TFormWIADemo
       Caption = 'Tests'
       TabOrder = 3
     end
+    object edTests: TEdit
+      Left = 611
+      Height = 23
+      Top = 8
+      Width = 56
+      TabOrder = 4
+    end
   end
 end

@@ -20,6 +20,7 @@ type
     btAcquire: TButton;
     btSelect: TButton;
     cbTest: TCheckBox;
+    edTests: TEdit;
     ImageHolder: TImage;
     Panel1: TPanel;
     progressBar: TProgressBar;
@@ -31,7 +32,7 @@ type
     lres: HResult;
     FWia: TWIAManager;
     WIACap: TWIAParamsCapabilities;
-    WIAParams: TWIAParams;
+    WIAParams: TArrayWIAParams;
     WIAformat,
     WIAformatDef: TWiaImageFormat;
     WIAFormatSet: TWiaImageFormatSet;
@@ -121,7 +122,8 @@ begin
 
         WIASource.GetImageFormat(WIAformat, WIAformatDef, WIAFormatSet);
 
-        WIAParams:= WIACopyDefaultValues(WIACap);
+        SetLength(WIAParams, 1);
+        WIAParams[0]:= WIACopyDefaultValues(WIACap);
         //WIAParams:= WIACopyCurrentValues(WIACap);
       end
       else MessageDlg('Error Connecting Device', mtError, [mbOk], 0);
@@ -148,20 +150,20 @@ begin
     SelectedItemIndex:= WIASource.SelectedItemIndex;
     NewItemIndex:= SelectedItemIndex;
 
-    //For Test BitDepth Dependencies
-    if cbTest.Checked then WIASource.SetDataType(wdtBN);
-
     //Select Scanner Setting to use
     if TWIASettingsSource.Execute(WIASource, NewItemIndex, initParams, WIAParams) then
     begin
       if (NewItemIndex <> SelectedItemIndex) then
       begin
         //Sub Item Changed do Something
+        SelectedItemIndex:= NewItemIndex;
+
       end;
+      WIASource.SelectedItemIndex:= SelectedItemIndex;
 
       aPath:= ExtractFilePath(ParamStr(0));
 
-      with WIAParams do
+      with WIAParams[SelectedItemIndex] do
       begin
         capRet:= WIASource.SetResolution(Resolution, Resolution);
         if not(capRet) then raise Exception.Create('SetResolution');
@@ -177,24 +179,18 @@ begin
 
         if cbTest.Checked then
         begin
-             //For Tests, NO Errors on SetBitDepth?
-             capRet:= WIASource.SetDataType(DataType);
-             if not(capRet) then raise Exception.Create('SetDataType');
+          capRet:= WIASource.SetBitDepth(StrToInt(edTests.Text));
+          if not(capRet) then raise Exception.Create('SetBitDepth');
         end;
 
-        capRet:= WIASource.SetBitDepth(BitDepth);
-        if not(capRet) then raise Exception.Create('SetBitDepth');
+         capRet:= WIASource.SetDataType(DataType);
+         if not(capRet) then raise Exception.Create('SetDataType');
 
-         { #note 10 -oMaxM : Bit Depth depends on DataType, so DataType must be last }
-        if not(cbTest.Checked) then
-        begin
-             capRet:= WIASource.SetDataType(DataType);
-             if not(capRet) then raise Exception.Create('SetDataType');
+         if DataType in [wdtRAW_RGB..wdtRAW_CMYK]
+         then capRet:= WIASource.SetImageFormat(wifRAW)
+         else capRet:= WIASource.SetImageFormat(wifBMP);
+         if not(capRet) then raise Exception.Create('SetImageFormat');
         end;
-      end;
-
-      capRet:= WIASource.SetImageFormat(wifBMP);
-      if not(capRet) then raise Exception.Create('SetImageFormat');
 
       c:= WIASource.Download(aPath, 'test_wia.bmp');
 

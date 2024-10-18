@@ -40,6 +40,7 @@ type
     ItemType: LONG;
   end;
   PWIAItem = ^TWIAItem;
+  TArrayWIAItem = array of TWIAItem;
 
   TWIADeviceType = (
     WIADeviceTypeDefault          = StiDeviceTypeDefault,
@@ -100,12 +101,13 @@ type
       PaperSize: TWIAPaperSize;
       Resolution,
       Contrast,
+      //BitDepth,
       Brightness: Integer;
-      BitDepth: Integer;
       DataType: TWIADataType;
   end;
+  TArrayWIAParams = array of TWIAParams;
 
-  TWIAParamsCapabilities = record
+  TWIAParamsCapabilities = packed record
     PaperSizeSet: TWIAPaperSizeSet;
     PaperSizeCurrent,
     PaperSizeDefault: TWIAPaperSize;
@@ -122,14 +124,15 @@ type
     ContrastDefault,
     ContrastMin,
     ContrastMax,
-    ContrastStep,
+    ContrastStep (*,
     BitDepthCurrent,
-    BitDepthDefault: Integer;
-    BitDepthArray: TArrayInteger;
+    BitDepthDefault*): Integer;
+    //BitDepthArray: TArrayInteger;
     DataTypeCurrent,
     DataTypeDefault: TWiaDataType;
     DataTypeSet: TWiaDataTypeSet;
   end;
+  TArrayWIAParamsCapabilities = array of TWIAParamsCapabilities;
 
   { TWIADevice }
 
@@ -155,7 +158,7 @@ type
     StreamAdapter: TStreamAdapter;
     rSelectedItemIndex: Integer;
     HasEnumerated: Boolean;
-    rItemList : array of TWIAItem;
+    rItemList : TArrayWIAItem;
 
     rXRes, rYRes: Integer; //Used with PaperSizes_Calculated, if -1 then i need to Get Values from Device
 
@@ -320,6 +323,7 @@ type
     //     The "Feeder" child may also have a pair of children (for front/back sides with duplex)
     //     https://docs.microsoft.com/en-us/windows-hardware/drivers/image/simple-duplex-capable-document-feeder
 
+    { #todo 10 -oMaxM : It would be better to keep an array of Item Classes where you can move the various Get/Set Properties methods}
     property Items[Index: Integer]: PWIAItem read GeItem;
 
     property RootItem: IWiaItem2 read GetRootItem;
@@ -512,7 +516,7 @@ begin
     Resolution:= WIACap.ResolutionDefault;
     Contrast:= WiaCap.ContrastDefault;
     Brightness:= WIACap.BrightnessDefault;
-    BitDepth:= WIACap.BitDepthDefault;
+    //BitDepth:= WIACap.BitDepthDefault;
     DataType:= WIACap.DataTypeDefault;
   end;
 end;
@@ -608,7 +612,12 @@ procedure TWIADevice.SetSelectedItemIndex(AValue: Integer);
 begin
   if (rSelectedItemIndex <> AValue) and
      (AValue >= 0) and (AValue < GetItemCount)
-  then rSelectedItemIndex:= AValue;
+  then begin
+         rSelectedItemIndex:= AValue;
+
+         //Re Enumerate Items so the correct IWiaItem2 interface is assigned in pSelectedItem
+         EnumerateItems;
+       end;
 end;
 
 function TWIADevice.EnumerateItems: Boolean;
@@ -1673,9 +1682,11 @@ begin
     Result:= GetContrast(ContrastCurrent, ContrastDefault, ContrastMin, ContrastMax, ContrastStep);
     if not(Result) then exit;
 
+    (*
     pFlags:= GetBitDepth(BitDepthCurrent, BitDepthDefault, BitDepthArray);
     Result:= (WIAProp_READ in pFlags);
     if not(Result) then exit;
+    *)
 
     Result:= GetDataType(DataTypeCurrent, DataTypeDefault, DataTypeSet);
   end;
