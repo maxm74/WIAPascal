@@ -20,6 +20,7 @@ type
     btAcquire: TButton;
     btSelect: TButton;
     cbTest: TCheckBox;
+    cbEnumLocal: TCheckBox;
     edTests: TEdit;
     ImageHolder: TImage;
     Panel1: TPanel;
@@ -107,6 +108,8 @@ var
 
 begin
     btAcquire.Enabled :=False;
+
+    FWia.EnumAll:= not(cbEnumLocal.Checked);
 
     //Open the Select Device Dialog
     newIndex:= FWia.SelectDeviceDialog;

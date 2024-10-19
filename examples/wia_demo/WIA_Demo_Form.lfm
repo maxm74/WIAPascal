@@ -28,7 +28,7 @@ object FormWIADemo: TFormWIADemo
     ClientWidth = 769
     TabOrder = 0
     object btAcquire: TButton
-      Left = 104
+      Left = 200
       Height = 32
       Top = 0
       Width = 75
@@ -47,14 +47,14 @@ object FormWIADemo: TFormWIADemo
       OnClick = btSelectClick
     end
     object progressBar: TProgressBar
-      Left = 192
+      Left = 288
       Height = 20
       Top = 5
       Width = 350
       TabOrder = 2
     end
     object cbTest: TCheckBox
-      Left = 561
+      Left = 657
       Height = 19
       Top = 8
       Width = 44
@@ -62,11 +62,19 @@ object FormWIADemo: TFormWIADemo
       TabOrder = 3
     end
     object edTests: TEdit
-      Left = 611
+      Left = 707
       Height = 23
       Top = 8
       Width = 56
       TabOrder = 4
+    end
+    object cbEnumLocal: TCheckBox
+      Left = 100
+      Height = 19
+      Top = 3
+      Width = 80
+      Caption = 'Enum Local'
+      TabOrder = 5
     end
   end
 end

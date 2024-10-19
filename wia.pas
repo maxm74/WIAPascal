@@ -369,6 +369,7 @@ type
 
   TWIAManager = class(TObject)
   protected
+    rEnumAll: Boolean;
     pWIA_DevMgr: WIA_LH.IWiaDevMgr2;
     lres: HResult;
     HasEnumerated: Boolean;
@@ -377,6 +378,7 @@ type
     rOnAfterDeviceTransfer,
     rOnBeforeDeviceTransfer: TOnDeviceTransfer;
 
+    procedure SetEnumAll(AValue: Boolean);
     function GetSelectedDevice: TWIADevice;
     procedure SetSelectedDeviceIndex(AValue: Integer);
     function GetDevice(Index: Integer): TWIADevice;
@@ -390,7 +392,7 @@ type
     function EnumerateDevices: Boolean;
 
   public
-    constructor Create;
+    constructor Create(AEnumAll: Boolean = True);
     destructor Destroy; override;
 
     //Clears the list of sources
@@ -403,6 +405,9 @@ type
     function FindDevice(AID: String): Integer; overload;
     function FindDevice(Value: TWIADevice): Integer; overload;
     function FindDevice(AName: String; AManufacturer: String=''): Integer; overload;
+
+    //Kind of Enum, if True Enum even disconnected Devices
+    property EnumAll: Boolean read rEnumAll write SetEnumAll;
 
     //Returns a Device
     property Devices[Index: Integer]: TWIADevice read GetDevice;
@@ -1852,6 +1857,15 @@ end;
 
 { TWIAManager }
 
+procedure TWIAManager.SetEnumAll(AValue: Boolean);
+begin
+  if (rEnumAll <> AValue) then
+  begin
+    rEnumAll:= AValue;
+    HasEnumerated:= EnumerateDevices;
+  end;
+end;
+
 function TWIAManager.GetSelectedDevice: TWIADevice;
 begin
   if (rSelectedDeviceIndex >= 0) and (rSelectedDeviceIndex < Length(rDeviceList))
@@ -1872,6 +1886,10 @@ end;
 
 function TWIAManager.GetDevice(Index: Integer): TWIADevice;
 begin
+  //Enumerate devices if needed
+  if not(HasEnumerated)
+  then HasEnumerated:= EnumerateDevices;
+
   if (Index >= 0) and (Index < Length(rDeviceList))
   then Result:= rDeviceList[Index]
   else Result:= nil;
@@ -1879,8 +1897,8 @@ end;
 
 function TWIAManager.GetDevicesCount: Integer;
 begin
-  if (pWIA_DevMgr = nil)
-  then pWIA_DevMgr:= WIA_LH.IWiaDevMgr2(CreateDevManager);
+ // if (pWIA_DevMgr = nil)
+ // then pWIA_DevMgr:= WIA_LH.IWiaDevMgr2(CreateDevManager);
 
   //Enumerate devices if needed
   if not(HasEnumerated)
@@ -1921,9 +1939,15 @@ begin
   SetLength(rDeviceList, 0);
 
   try
+    if (pWIA_DevMgr = nil)
+    then pWIA_DevMgr:= WIA_LH.IWiaDevMgr2(CreateDevManager);
+
     if pWIA_DevMgr<>nil then
     begin
-      lres :=pWIA_DevMgr.EnumDeviceInfo(WIA_DEVINFO_ENUM_ALL, ppIEnum);
+      if EnumAll
+      then lres :=pWIA_DevMgr.EnumDeviceInfo(WIA_DEVINFO_ENUM_ALL, ppIEnum)
+      else lres :=pWIA_DevMgr.EnumDeviceInfo(WIA_DEVINFO_ENUM_LOCAL, ppIEnum);
+
       if (lres=S_OK) and (ppIEnum<>nil) then
       begin
         lres :=ppIEnum.GetCount(devCount);
@@ -1931,100 +1955,91 @@ begin
         if (lres<>S_OK)
         then Exception.Create('Number of WIA Devices not available');
 
-        //
-        // Define which properties you want to read:
-        // Device ID.  This is what you would use to create
-        // the device.
-        //
-        pPropSpec[0].ulKind := PRSPEC_PROPID;
-        pPropSpec[0].propid := WIA_DIP_DEV_ID;
-        //pPropIDS[0] :=WIA_DIP_DEV_ID;
+        EmptyDeviceList(True);
 
-        //
-        // Device Manufacturer
-        //
-        pPropSpec[1].ulKind := PRSPEC_PROPID;
-        pPropSpec[1].propid := WIA_DIP_VEND_DESC;
-        //pPropIDS[1] :=WIA_DIP_VEND_DESC;
-
-        //
-        // Device Name
-        //
-        pPropSpec[2].ulKind := PRSPEC_PROPID;
-        pPropSpec[2].propid := WIA_DIP_DEV_NAME;
-        //pPropIDS[2] :=WIA_DIP_DEV_NAME;
-
-        //
-        // Device Type
-        //
-        pPropSpec[3].ulKind := PRSPEC_PROPID;
-        pPropSpec[3].propid := WIA_DIP_DEV_TYPE;
-        //pPropIDS[3] :=WIA_DIP_DEV_TYPE;
-
-        //
-        // Device Wia Version
-        //
-        pPropSpec[4].ulKind := PRSPEC_PROPID;
-        pPropSpec[4].propid := WIA_DIP_WIA_VERSION;
-        //pPropIDS[4] :=WIA_DIP_WIA_VERSION;
-
-
-        SetLength(rDeviceList, devCount);
-        EmptyDeviceList(False);
-
-        pWiaPropertyStorage :=nil;
-
-        for i:=0 to devCount-1 do
+        if (devCount > 0) then
         begin
-          FillChar(pPropVar, Sizeof(pPropVar), 0);
-          //FillChar(pPropNames, Sizeof(pPropNames), 0);
+          SetLength(rDeviceList, devCount);
+          //EmptyDeviceList(False);
 
-          lres :=ppIEnum.Next(1, pWiaPropertyStorage, devFetched);
+          // Define which properties you want to read:
+          // Device ID.  This is what you would use to create
+          // the device.
+          pPropSpec[0].ulKind := PRSPEC_PROPID;
+          pPropSpec[0].propid := WIA_DIP_DEV_ID;
+          //pPropIDS[0] :=WIA_DIP_DEV_ID;
 
-          if (lres<>S_OK)
-          then Exception.Create('pWiaPropertyStorage for Device '+IntToStr(i)+' not available');
+          // Device Manufacturer
+          pPropSpec[1].ulKind := PRSPEC_PROPID;
+          pPropSpec[1].propid := WIA_DIP_VEND_DESC;
+          //pPropIDS[1] :=WIA_DIP_VEND_DESC;
 
-          //
-          // Ask for the property values
-          //
-          lres := pWiaPropertyStorage.ReadMultiple(Length(pPropSpec), @pPropSpec, @pPropVar);
+          // Device Name
+          pPropSpec[2].ulKind := PRSPEC_PROPID;
+          pPropSpec[2].propid := WIA_DIP_DEV_NAME;
+          //pPropIDS[2] :=WIA_DIP_DEV_NAME;
 
+          // Device Type
+          pPropSpec[3].ulKind := PRSPEC_PROPID;
+          pPropSpec[3].propid := WIA_DIP_DEV_TYPE;
+          //pPropIDS[3] :=WIA_DIP_DEV_TYPE;
 
-         // lres := pWiaPropertyStorage.ReadPropertyNames(Length(pPropIDS), @pPropIDS, @pPropNames);
+          // Device Wia Version
+          pPropSpec[4].ulKind := PRSPEC_PROPID;
+          pPropSpec[4].propid := WIA_DIP_WIA_VERSION;
+          //pPropIDS[4] :=WIA_DIP_WIA_VERSION;
 
-          if (VT_BSTR = pPropVar[0].vt)
-          then rDeviceList[i] :=TWIADevice.Create(Self, i, pPropVar[0].bstrVal)
-          else Exception.Create('ID of Device '+IntToStr(i)+' not String');
+          pWiaPropertyStorage :=nil;
 
-          if (VT_BSTR = pPropVar[1].vt)
-          then rDeviceList[i].rManufacturer :=pPropVar[1].bstrVal
-          else Exception.Create('Manufacturer of Device '+IntToStr(i)+' not String');
+          for i:=0 to devCount-1 do
+          begin
+            FillChar(pPropVar, Sizeof(pPropVar), 0);
+            //FillChar(pPropNames, Sizeof(pPropNames), 0);
 
-          if (VT_BSTR = pPropVar[2].vt)
-          then rDeviceList[i].rName :=pPropVar[2].bstrVal
-          else Exception.Create('Name of Device '+IntToStr(i)+' not String');
+            lres :=ppIEnum.Next(1, pWiaPropertyStorage, devFetched);
 
-          if (VT_I4 = pPropVar[3].vt)
-          then rDeviceList[i].rType :=TWiaDeviceType(pPropVar[3].iVal)
-          else Exception.Create('DeviceType of Device '+IntToStr(i)+' not Integer');
+            if (lres<>S_OK)
+            then Exception.Create('pWiaPropertyStorage for Device '+IntToStr(i)+' not available');
 
-          if (VT_BSTR = pPropVar[4].vt)
-          then VersionStrToInt(pPropVar[4].bstrVal, rDeviceList[i].rVersion, rDeviceList[i].rVersionSub)
-          else Exception.Create('WiaVersion of Device '+IntToStr(i)+' not String');
+            // Ask for the property values
+            lres := pWiaPropertyStorage.ReadMultiple(Length(pPropSpec), @pPropSpec, @pPropVar);
 
-          pWiaPropertyStorage:= nil;
+            // lres := pWiaPropertyStorage.ReadPropertyNames(Length(pPropIDS), @pPropIDS, @pPropNames);
 
-         (*CoTaskMemFree(pPropNames[0]);
-          CoTaskMemFree(pPropNames[1]);
-          CoTaskMemFree(pPropNames[2]);
-          CoTaskMemFree(pPropNames[3]);*)
+            if (VT_BSTR = pPropVar[0].vt)
+            then rDeviceList[i] :=TWIADevice.Create(Self, i, pPropVar[0].bstrVal)
+            else Exception.Create('ID of Device '+IntToStr(i)+' not String');
+
+            if (VT_BSTR = pPropVar[1].vt)
+            then rDeviceList[i].rManufacturer :=pPropVar[1].bstrVal
+            else Exception.Create('Manufacturer of Device '+IntToStr(i)+' not String');
+
+            if (VT_BSTR = pPropVar[2].vt)
+            then rDeviceList[i].rName :=pPropVar[2].bstrVal
+            else Exception.Create('Name of Device '+IntToStr(i)+' not String');
+
+            if (VT_I4 = pPropVar[3].vt)
+            then rDeviceList[i].rType :=TWiaDeviceType(pPropVar[3].iVal)
+            else Exception.Create('DeviceType of Device '+IntToStr(i)+' not Integer');
+
+            if (VT_BSTR = pPropVar[4].vt)
+            then VersionStrToInt(pPropVar[4].bstrVal, rDeviceList[i].rVersion, rDeviceList[i].rVersionSub)
+            else Exception.Create('WiaVersion of Device '+IntToStr(i)+' not String');
+
+            pWiaPropertyStorage:= nil;
+
+            (*CoTaskMemFree(pPropNames[0]);
+              CoTaskMemFree(pPropNames[1]);
+              CoTaskMemFree(pPropNames[2]);
+              CoTaskMemFree(pPropNames[3]);*)
+          end;
         end;
 
         ppIEnum :=nil;
       end;
-    end;
 
-    Result :=True;
+      Result :=True;
+    end;
 
   except
     EmptyDeviceList(True);
@@ -2034,22 +2049,23 @@ end;
 
 function TWIAManager.SelectDeviceDialog: Integer;
 begin
-  Result:= -1;
   try
-    Result:= TWIASelectForm.Execute(Self);
+     Result:= TWIASelectForm.Execute(Self);
+     FreeAndNil(WIASelectForm);
 
-  finally
-    FreeAndNil(WIASelectForm);
+  except
+    Result:= -1;
   end;
 end;
 
-constructor TWIAManager.Create;
+constructor TWIAManager.Create(AEnumAll: Boolean);
 begin
   inherited Create;
 
   HasEnumerated:= False;
   pWIA_DevMgr:= nil;
   rSelectedDeviceIndex:= -1;
+  rEnumAll:= AEnumAll;
 end;
 
 destructor TWIAManager.Destroy;

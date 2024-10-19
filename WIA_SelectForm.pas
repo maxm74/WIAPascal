@@ -67,7 +67,9 @@ end;
 
 procedure TWIASelectForm.FillList;
 var
-   i, selectedIndex: Integer;
+   i,
+   numDevices,
+   selectedIndex: Integer;
    curItem: TListItem;
    curDevice: TWIADevice;
 
@@ -75,23 +77,28 @@ begin
   selectedIndex:=-1;
   lvSources.Clear;
 
-  for i:=0 to WIAManager.DevicesCount-1 do
-  begin
-    curDevice :=WIAManager.Devices[i];
-    curItem :=lvSources.Items.Add;
-    curItem.Caption:=curDevice.Name;
-    //curItem.SubItems.Add(curDevice.Type_);
-    curItem.SubItems.Add(curDevice.Manufacturer);
+  numDevices:= WIAManager.DevicesCount;
+  if (numDevices > 0)
+  then begin
+         for i:=0 to numDevices-1 do
+         begin
+           curDevice :=WIAManager.Devices[i];
+           curItem :=lvSources.Items.Add;
+           curItem.Caption:=curDevice.Name;
+           //curItem.SubItems.Add(curDevice.Type_);
+           curItem.SubItems.Add(curDevice.Manufacturer);
 
-    //if is Current Selected Scanner set selectedIndex
-    if (WIAManager.SelectedDevice <> nil) and (WIAManager.SelectedDevice.ID = curDevice.ID)
-    then selectedIndex :=curItem.Index;
-  end;
+           //if is Current Selected Scanner set selectedIndex
+           if (WIAManager.SelectedDevice <> nil) and (WIAManager.SelectedDevice.ID = curDevice.ID)
+           then selectedIndex :=curItem.Index;
+         end;
 
-  //Select Current Scanner
-  if (selectedIndex>-1)
-  then lvSources.ItemIndex :=selectedIndex
-  else lvSources.ItemIndex :=0;
+         //Select Current Scanner
+         if (selectedIndex > -1)
+         then lvSources.ItemIndex :=selectedIndex
+         else lvSources.ItemIndex :=0;
+       end
+  else MessageDlg('No Wia Devices present...', mtError, [mbOk], 0);
 end;
 
 class function TWIASelectForm.Execute(AWIAManager: TWIAManager): Integer;
@@ -109,10 +116,8 @@ begin
     WIAManager:= AWIAManager;
     FillList;
 
-    if (lvSources.Items.Count = 0)
-    then Dialogs.MessageDlg('No Wia Device present...', mtError, [mbOk], 0)
-    else if (ShowModal = mrOk)
-         then Result:= lvSources.ItemIndex;
+    if (ShowModal = mrOk)
+    then Result:= lvSources.ItemIndex;
   end;
 end;
 

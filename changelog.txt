@@ -2,6 +2,13 @@ WIAPASCAL CHANGE LOG
 ======================
 
 2024/10/
+        19 Added TWIAItemTypes and relative Convert Function;
+	   Changed Download method for ProgrammableDataSource is alway 0;
+	   Added WiaItemTypeTwainCompatibility in WiaDef.
+           Added EnumAll property in WIAManager; 
+           Added EnumerateDevices in WIAManager.GetDevice;
+           Moved creation of IWiaDevMgr2 inside EnumerateDevices;
+	   Select Form Show No Wia Error inside FillList
         18 Re EnumerateItems in TWIADevice.SetSelectedItemIndex;
 	   Commented BitDepth part so we use only DataType;
 	   SettingsForm with all Items (must be tested)
