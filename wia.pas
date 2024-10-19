@@ -35,9 +35,35 @@ type
 
   TWIAManager = class;
 
+  TWIAItemType = (
+    witFree,
+    witImage,
+    witFile,
+    witFolder,
+    witRoot,
+    witAnalyze,
+    witAudio,
+    witDevice,
+    witDeleted,
+    witDisconnected,
+    witHPanorama,
+    witVPanorama,
+    witBurst,
+    witStorage,
+    witTransfer,
+    witGenerated,
+    witHasAttachments,
+    witVideo,
+    witTwainCompatibility,
+    witRemoved,
+    witDocument,
+    witProgrammableDataSource
+  );
+  TWIAItemTypes = set of TWIAItemType;
+
   TWIAItem = record
     Name: String;
-    ItemType: LONG;
+    ItemType: TWIAItemTypes;
   end;
   PWIAItem = ^TWIAItem;
   TArrayWIAItem = array of TWIAItem;
@@ -440,6 +466,8 @@ const
   );
 
 
+function WIAItemTypes(pItemType: LONG): TWIAItemTypes;
+
 function WIAPropertyFlags(pFlags: ULONG): TWIAPropertyFlags;
 
 function WIACopyCurrentValues(const WIACap: TWIAParamsCapabilities): TWIAParams;
@@ -478,6 +506,34 @@ begin
   except
 
   end;
+end;
+
+function WIAItemTypes(pItemType: LONG): TWIAItemTypes;
+begin
+  Result :=[];
+
+  if (pItemType and WiaItemTypeFree <> 0) then Result:= Result+[witFree];
+  if (pItemType and WiaItemTypeImage <> 0) then Result:= Result+[witImage];
+  if (pItemType and WiaItemTypeFile <> 0) then Result:= Result+[witFile];
+  if (pItemType and WiaItemTypeFolder <> 0) then Result:= Result+[witFolder];
+  if (pItemType and WiaItemTypeRoot <> 0) then Result:= Result+[witRoot];
+  if (pItemType and WiaItemTypeAnalyze <> 0) then Result:= Result+[witAnalyze];
+  if (pItemType and WiaItemTypeAudio <> 0) then Result:= Result+[witAudio];
+  if (pItemType and WiaItemTypeDevice <> 0) then Result:= Result+[witDevice];
+  if (pItemType and WiaItemTypeDeleted <> 0) then Result:= Result+[witDeleted];
+  if (pItemType and WiaItemTypeDisconnected <> 0) then Result:= Result+[witDisconnected];
+  if (pItemType and WiaItemTypeHPanorama <> 0) then Result:= Result+[witHPanorama];
+  if (pItemType and WiaItemTypeVPanorama <> 0) then Result:= Result+[witVPanorama];
+  if (pItemType and WiaItemTypeBurst <> 0) then Result:= Result+[witBurst];
+  if (pItemType and WiaItemTypeStorage <> 0) then Result:= Result+[witStorage];
+  if (pItemType and WiaItemTypeTransfer	<> 0) then Result:= Result+[witTransfer];
+  if (pItemType and WiaItemTypeGenerated <> 0) then Result:= Result+[witGenerated];
+  if (pItemType and WiaItemTypeHasAttachments <> 0) then Result:= Result+[witHasAttachments];
+  if (pItemType and WiaItemTypeVideo <> 0) then Result:= Result+[witVideo];
+  if (pItemType and WiaItemTypeTwainCompatibility <> 0) then Result:= Result+[witTwainCompatibility];
+  if (pItemType and WiaItemTypeRemoved <> 0) then Result:= Result+[witRemoved];
+  if (pItemType and WiaItemTypeDocument	<> 0) then Result:= Result+[witDocument];
+  if (pItemType and WiaItemTypeProgrammableDataSource <> 0) then Result:= Result+[witProgrammableDataSource];
 end;
 
 function WIAPropertyFlags(pFlags: ULONG): TWIAPropertyFlags;
@@ -626,6 +682,7 @@ var
    pItem: IWiaItem2;
    iCount,
    itemFetched: ULONG;
+   itemType: LONG;
    i: Integer;
    pPropSpec: PROPSPEC;
    pPropVar: PROPVARIANT;
@@ -662,11 +719,13 @@ begin
         Result := (lres = S_OK);
         if Result then
         begin
-          rItemList[i].ItemType:= 0;
+          lres:= pItem.GetItemType(itemType);
+          if (lres = S_OK)
+          then rItemList[i].ItemType :=WIAItemTypes(itemType)
+          else rItemList[i].ItemType :=[];
 
-          lres:= pItem.GetItemType(rItemList[i].ItemType);
           lres:= pItem.QueryInterface(IID_IWiaPropertyStorage, pWiaPropertyStorage);
-          if (pWiaPropertyStorage <> nil) then
+          if (lres = S_OK) and (pWiaPropertyStorage <> nil) then
           begin
             pPropSpec.ulKind := PRSPEC_PROPID;
             pPropSpec.propid := WIA_IPA_ITEM_NAME; //WIA_IPA_FULL_ITEM_NAME
@@ -843,7 +902,7 @@ function TWIADevice.Download(APath, ABaseFileName: String): Integer;
 var
    pWiaTransfer: IWiaTransfer;
    myTickStart, curTick: UInt64;
-   selItemType: LONG;
+   selItemType: TWiaItemTypes;
 
 begin
   Result:= 0;
@@ -864,17 +923,25 @@ begin
       Download_Count:= 0;
       rDownloaded:= False;
 
-      if (selItemType and WiaItemTypeTransfer = WiaItemTypeTransfer) then
+      { #todo 10 -oMaxM : Check this in Various Scanner / Camera }
+      //00082007 in My Samsung
+      if (witTransfer in selItemType) then
       begin
-        if (selItemType and WiaItemTypeFolder = WiaItemTypeFolder)
-        then begin
-               lres:= pWiaTransfer.Download(WIA_TRANSFER_ACQUIRE_CHILDREN, Self);
-             end
+        if (witProgrammableDataSource in selItemType)
+        then lres:= pWiaTransfer.Download(0, Self)
         else
-        if (selItemType and WiaItemTypeFile = WiaItemTypeFile)
-        then begin
-               lres:= pWiaTransfer.Download(0, Self);
-             end;
+        if (witDocument in selItemType) then
+        begin
+          if (witFolder in selItemType)
+          then begin
+                 lres:= pWiaTransfer.Download(WIA_TRANSFER_ACQUIRE_CHILDREN, Self);
+               end
+          else
+          if (witFile in selItemType)
+          then begin
+                 lres:= pWiaTransfer.Download(0, Self);
+               end;
+        end;
       end;
 
       { #todo 2 -oMaxM : Test if all Scanner is Synch }

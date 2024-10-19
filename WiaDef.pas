@@ -1680,6 +1680,7 @@ const
   //
   // 0x00020000 is reserved for the TWAIN-WIA Compatiblity Layer
   //
+  WiaItemTypeTwainCompatibility = $00020000;
   //#if (_WIN32_WINNT >= 0x0600)
   WiaItemTypeDocument               = $00040000;
   WiaItemTypeProgrammableDataSource = $00080000;
