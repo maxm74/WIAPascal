@@ -601,6 +601,7 @@ object WIASettingsSource: TWIASettingsSource
           ShowCaption = False
           ShowHint = True
           ParentShowHint = False
+          OnClick = btOrientationClick
         end
         object Label6: TLabel
           Left = 2
@@ -699,6 +700,7 @@ object WIASettingsSource: TWIASettingsSource
           OnClick = btDClick
         end
         object btResolutionD: TSpeedButton
+          Tag = 3
           Left = 196
           Height = 13
           Top = 112

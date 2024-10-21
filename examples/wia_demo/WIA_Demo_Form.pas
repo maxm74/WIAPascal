@@ -105,6 +105,7 @@ var
   i,
   newIndex: Integer;
   propType: TVarType;
+  capRet: Boolean;
 
 begin
     btAcquire.Enabled :=False;
@@ -123,7 +124,16 @@ begin
       begin
         btAcquire.Enabled := WiaSource.GetParamsCapabilities(WIACap);
 
-        WIASource.GetImageFormat(WIAformat, WIAformatDef, WIAFormatSet);
+        if cbTest.Checked then
+        begin
+          capRet:= WIASource.GetImageFormat(WIAformat, WIAformatDef, WIAFormatSet);
+          if capRet then MessageDlg('ImageFormat: '+
+                                    #13#10+'Current: '+WiaImageFormat[WIAformat]+
+                                    #13#10+'Default: '+WiaImageFormat[WIAformatDef],
+                                    mtInformation, [mbOk], 0)
+                    else MessageDlg('ImageFormat Error', mtInformation, [mbOk], 0);
+
+        end;
 
         SetLength(WIAParams, 1);
         WIAParams[0]:= WIACopyDefaultValues(WIACap);
@@ -141,7 +151,8 @@ var
    NewItemIndex: Integer;
    c, p: Integer;
    capRet: Boolean;
-   t: TVarType;
+   propType: TVarType;
+   x, y, w, h:Integer;
 
 begin
   WIASource:= FWia.SelectedDevice;
@@ -164,6 +175,20 @@ begin
       end;
       WIASource.SelectedItemIndex:= SelectedItemIndex;
 
+      if cbTest.Checked then
+      begin
+        capRet:= WIASource.GetProperty(WIA_IPS_XPOS, propType, x);
+        capRet:= WIASource.GetProperty(WIA_IPS_YPOS, propType, y);
+        capRet:= WIASource.GetProperty(WIA_IPS_XEXTENT, propType, w);
+        capRet:= WIASource.GetProperty(WIA_IPS_YEXTENT, propType, h);
+        if capRet then MessageDlg('Paper Position Before: '+
+                                  #13#10+'x: '+IntToStr(x)+
+                                  #13#10+'y: '+IntToStr(y)+
+                                  #13#10+'w: '+IntToStr(w)+
+                                  #13#10+'h: '+IntToStr(h),
+                                  mtInformation, [mbOk], 0)
+      end;
+
       aPath:= ExtractFilePath(ParamStr(0));
 
       with WIAParams[SelectedItemIndex] do
@@ -171,8 +196,22 @@ begin
         capRet:= WIASource.SetResolution(Resolution, Resolution);
         if not(capRet) then raise Exception.Create('SetResolution');
 
-        capRet:= WIASource.SetPaperSize(PaperSize);
+        capRet:= WIASource.SetPaperSize((Rotation in [wrLandscape, wrRot270]), PaperSize);
         if not(capRet) then raise Exception.Create('SetPaperSize');
+
+        if cbTest.Checked then
+        begin
+          capRet:= WIASource.GetProperty(WIA_IPS_XPOS, propType, x);
+          capRet:= WIASource.GetProperty(WIA_IPS_YPOS, propType, y);
+          capRet:= WIASource.GetProperty(WIA_IPS_XEXTENT, propType, w);
+          capRet:= WIASource.GetProperty(WIA_IPS_YEXTENT, propType, h);
+          if capRet then MessageDlg('Paper Position After: '+
+                                    #13#10+'x: '+IntToStr(x)+
+                                    #13#10+'y: '+IntToStr(y)+
+                                    #13#10+'w: '+IntToStr(w)+
+                                    #13#10+'h: '+IntToStr(h),
+                                    mtInformation, [mbOk], 0)
+        end;
 
         capRet:= WIASource.SetBrightness(Brightness);
         if not(capRet) then raise Exception.Create('SetBrightness');
@@ -182,8 +221,11 @@ begin
 
         if cbTest.Checked then
         begin
-          capRet:= WIASource.SetBitDepth(StrToInt(edTests.Text));
-          if not(capRet) then raise Exception.Create('SetBitDepth');
+          if (edTests.Text<>'') then
+          begin
+            capRet:= WIASource.SetBitDepth(StrToInt(edTests.Text));
+            if not(capRet) then raise Exception.Create('SetBitDepth');
+          end;
         end;
 
          capRet:= WIASource.SetDataType(DataType);

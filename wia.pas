@@ -81,7 +81,15 @@ type
   );
   TWIAPropertyFlags = set of TWIAPropertyFlag;
 
-  TWiaImageFormat = (
+  TWIARotation = (
+    wrPortrait = WiaDef.PORTRAIT,
+    wrLandscape = WiaDef.LANSCAPE,
+    wrRot180 = WiaDef.ROT180,
+    wrRot270 = WiaDef.ROT270
+  );
+  TWIARotationSet = set of TWIARotation;
+
+  TWIAImageFormat = (
     wifUNDEFINED,
     wifRAWRGB,
     wifMEMORYBMP,
@@ -104,9 +112,9 @@ type
     wifJBIG,
     wifJBIG2
   );
-  TWiaImageFormatSet = set of TWiaImageFormat;
+  TWIAImageFormatSet = set of TWIAImageFormat;
 
-  TWiaDataType = (
+  TWIADataType = (
     wdtBN = WIA_DATA_THRESHOLD,
     wdtDITHER = WIA_DATA_DITHER,
     wdtGRAYSCALE = WIA_DATA_GRAYSCALE,
@@ -121,15 +129,16 @@ type
     wdtRAW_CMYK = WIA_DATA_RAW_CMYK,
     wdtAUTO = WIA_DATA_AUTO
   );
-  TWiaDataTypeSet = set of TWiaDataType;
+  TWIADataTypeSet = set of TWIADataType;
 
   TWIAParams = packed record
-      PaperSize: TWIAPaperSize;
-      Resolution,
-      Contrast,
-      //BitDepth,
-      Brightness: Integer;
-      DataType: TWIADataType;
+    PaperSize: TWIAPaperSize;
+    Rotation: TWIARotation;
+    Resolution,
+    Contrast,
+    //BitDepth,
+    Brightness: Integer;
+    DataType: TWIADataType;
   end;
   TArrayWIAParams = array of TWIAParams;
 
@@ -137,6 +146,9 @@ type
     PaperSizeSet: TWIAPaperSizeSet;
     PaperSizeCurrent,
     PaperSizeDefault: TWIAPaperSize;
+    RotationCurrent,
+    RotationDefault: TWIARotation;
+    RotationSet: TWIARotationSet;   { #note 5 -oMaxM : maybe a non-sense }
     ResolutionArray: TArrayInteger;
     ResolutionRange: Boolean;
     ResolutionCurrent,
@@ -155,8 +167,8 @@ type
     BitDepthDefault*): Integer;
     //BitDepthArray: TArrayInteger;
     DataTypeCurrent,
-    DataTypeDefault: TWiaDataType;
-    DataTypeSet: TWiaDataTypeSet;
+    DataTypeDefault: TWIADataType;
+    DataTypeSet: TWIADataTypeSet;
   end;
   TArrayWIAParamsCapabilities = array of TWIAParamsCapabilities;
 
@@ -187,6 +199,7 @@ type
     rItemList : TArrayWIAItem;
 
     rXRes, rYRes: Integer; //Used with PaperSizes_Calculated, if -1 then i need to Get Values from Device
+    rPaperLandscape: Boolean;
 
     rDownloaded: Boolean;
     Download_Count: Integer;
@@ -282,12 +295,37 @@ type
     function GetPaperSizeMax(var AMaxWidth, AMaxHeight: Integer; useRoot: Boolean=False): Boolean;
 
     //Get Current Paper Size
+    //  if PaperSizes_Calculated then the PaperSize is calculated using real Paper Size
+    //  else this functions uses WIA_IPS_PAGE_SIZE
     function GetPaperSize(var Current: TWIAPaperSize; useRoot: Boolean=False): Boolean; overload;
     //Get Available Paper Sizes
     function GetPaperSize(var Current, Default: TWIAPaperSize; var Values: TWIAPaperSizeSet; useRoot: Boolean=False): Boolean; overload;
 
-    //Set Current Paper Size, if PaperSizes_Calculated=False The user is responsible for checking the validity of the value
-    function SetPaperSize(const Value: TWIAPaperSize; useRoot: Boolean=False): Boolean;
+    //Set Current Paper Size,
+    //  if PaperSizes_Calculated then the Area is calculated using real Paper Size and PaperLandscape Values
+    //  else this function use WIA_IPS_PAGE_SIZE and the user is responsible for checking the validity of the value
+    function SetPaperSize(const Value: TWIAPaperSize; useRoot: Boolean=False): Boolean; overload;
+    function SetPaperSize(const ALandscape:Boolean; const Value: TWIAPaperSize; useRoot: Boolean=False): Boolean; overload;
+
+    //Get Current Paper Landscape,
+    //  if PaperSizes_Calculated=False then this function use WIA_IPS_ROTATION else return internal value
+    function GetPaperLandscape(var Value: Boolean; useRoot: Boolean=False): Boolean;
+
+    //Set Current Paper Landscape,
+    //  if PaperSizes_Calculated=False then this function use WIA_IPS_ROTATION
+    //  else set internal value and rotation is done when papersize is setted
+    function SetPaperLandscape(const Value: Boolean; useRoot: Boolean=False): Boolean;
+
+    //Get Current Rotation,
+    //  Not to be confused with PaperLandscape, this function only uses WIA_IPS_ROTATION
+    function GetRotation(var Value: TWIARotation; useRoot: Boolean=False): Boolean; overload;
+    //Get Available Rotations
+    function GetRotation(var Current, Default: TWIARotation; var Values: TWIARotationSet; useRoot: Boolean=False): Boolean; overload;
+
+    //Set Current Paper Landscape,
+    //  Not to be confused with PaperLandscape, this function only uses WIA_IPS_ROTATION
+    //  which rotates the image after capturing it
+    function SetRotation(const Value: TWIARotation; useRoot: Boolean=False): Boolean;
 
     //Get Current Brightness
     function GetBrightness(var Current: Integer; useRoot: Boolean=False): Boolean; overload;
@@ -314,12 +352,12 @@ type
     function SetImageFormat(const Value: TWIAImageFormat; useRoot: Boolean=False): Boolean;
 
      //Get Current Image DataType
-    function GetDataType(var Current: TWiaDataType; useRoot: Boolean=False): Boolean; overload;
+    function GetDataType(var Current: TWIADataType; useRoot: Boolean=False): Boolean; overload;
     //Get Available Image DataTypes
-    function GetDataType(var Current, Default: TWiaDataType; var Values: TWiaDataTypeSet; useRoot: Boolean=False): Boolean; overload;
+    function GetDataType(var Current, Default: TWIADataType; var Values: TWIADataTypeSet; useRoot: Boolean=False): Boolean; overload;
 
     //Set Current Image DataType
-    function SetDataType(const Value: TWiaDataType; useRoot: Boolean=False): Boolean;
+    function SetDataType(const Value: TWIADataType; useRoot: Boolean=False): Boolean;
 
     //Get Available Values for BitDepth
     function GetBitDepth(var Current, Default: Integer; var Values: TArrayInteger; useRoot: Boolean=False): TWIAPropertyFlags; overload;
@@ -328,7 +366,6 @@ type
 
     //Set Current BitDepth, The user is responsible for checking the validity of the value
     function SetBitDepth(const Value: Integer; useRoot: Boolean=False): Boolean;
-
 
     function GetParamsCapabilities(var Value: TWIAParamsCapabilities): Boolean;
 
@@ -431,7 +468,7 @@ const
     'Default', 'Scanner', 'Digital Camera', 'Streaming Video'
   );
 
-  WiaImageFormat : array [TWiaImageFormat] of TGUID = (
+  WiaImageFormatGUID : array [TWIAImageFormat] of TGUID = (
     '{b96b3ca9-0728-11d3-9d7b-0000f81ef32e}',
     '{bca48b55-f272-4371-b0f1-4a150d057bb4}',
     '{b96b3caa-0728-11d3-9d7b-0000f81ef32e}',
@@ -453,6 +490,29 @@ const
     '{6f120719-f1a8-4e07-9ade-9b64c63a3dcc}',
     '{41e8dd92-2f0a-43d4-8636-f1614ba11e46}',
     '{bb8e7e67-283c-4235-9e59-0b9bf94ca687}'
+  );
+  WiaImageFormat : array [TWIAImageFormat] of String = (
+  'Undefined',
+  'Raw RGB format',
+  'Windows bitmap without a header',
+  'Windows Device Independent Bitmap',
+  'Extended Windows metafile',
+  'Windows metafile',
+  'JPEG compressed format',
+  'W3C PNG format',
+  'GIF image format',
+  'Tagged Image File format',
+  'Exchangeable File Format',
+  'Eastman Kodak file format',
+  'FlashPix format',
+  'Windows icon file format',
+  'Camera Image File format',
+  'Apple file format',
+  'JPEG 2000 compressed format',
+  'JPEG 2000X compressed format',
+  'WIA Raw image file format',
+  'Joint Bi-level Image experts Group format',
+  'Joint Bi-level Image experts Group format (ver 2)'
   );
 
   WIADataTypeStr: array [wdtBN..wdtRAW_CMYK] of String = (
@@ -478,7 +538,7 @@ function WIAPropertyFlags(pFlags: ULONG): TWIAPropertyFlags;
 function WIACopyCurrentValues(const WIACap: TWIAParamsCapabilities): TWIAParams;
 function WIACopyDefaultValues(const WIACap: TWIAParamsCapabilities): TWIAParams;
 
-function WIAImageFormat_To_wif(const AGUID: TGUID; var Value: TWiaImageFormat): Boolean;
+function WIAImageFormat_To_wif(const AGUID: TGUID; var Value: TWIAImageFormat): Boolean;
 
 implementation
 
@@ -582,15 +642,15 @@ begin
   end;
 end;
 
-function WIAImageFormat_To_wif(const AGUID: TGUID; var Value: TWiaImageFormat): Boolean;
+function WIAImageFormat_To_wif(const AGUID: TGUID; var Value: TWIAImageFormat): Boolean;
 var
-   i: TWiaImageFormat;
+   i: TWIAImageFormat;
 
 begin
   Result:= False;
 
-  for i in TWiaImageFormat do
-    if (WiaImageFormat[i] = AGUID) then
+  for i in TWIAImageFormat do
+    if (WiaImageFormatGUID[i] = AGUID) then
     begin
       Value:= i;
       Result:= True;
@@ -855,6 +915,7 @@ begin
   //So the WIA_IPS_PAGE_SIZE it's useless
   PaperSizes_Calculated:= True;
   rXRes:= -1; rYRes:= -1;
+  rPaperLandscape:= False;
 end;
 
 destructor TWIADevice.Destroy;
@@ -907,7 +968,7 @@ function TWIADevice.Download(APath, ABaseFileName: String): Integer;
 var
    pWiaTransfer: IWiaTransfer;
    myTickStart, curTick: UInt64;
-   selItemType: TWiaItemTypes;
+   selItemType: TWIAItemTypes;
 
 begin
   Result:= 0;
@@ -1400,7 +1461,7 @@ begin
   if PaperSizes_Calculated
   then begin
         Result:= GetProperty(WIA_IPS_PAGE_WIDTH, propType, iWidth, useRoot) and
-                 GetProperty(WIA_IPS_PAGE_HEIGHT, propType, iHeight, useRoot); { #note 5 -oMaxM : Always return False ?}
+                 GetProperty(WIA_IPS_PAGE_HEIGHT, propType, iHeight, useRoot); { #note 5 -oMaxM : Always return False in HP ?}
         if Result
         then begin
                Result:= GetPaperSizeMax(iMaxWidth, iMaxHeight);
@@ -1456,8 +1517,6 @@ begin
             pFlags:= GetProperty(WIA_IPS_PAGE_SIZE, propType, Current, Default, intValues, useRoot);
             if not(WIAProp_READ in pFlags) then Exit;
 
-            { #note 5 -oMaxM : what to do if the propType is not the expected one VT_I4}
-
             if (WIAProp_LIST in pFlags)
             then for i:=0 to Length(intValues)-1 do Values:= Values+[TWIAPaperSize(intValues[i])];
 
@@ -1487,26 +1546,38 @@ begin
          Result:= GetPaperSizeMax(iMaxWidth, iMaxHeight, useRoot);
          if not(Result) then Exit;
 
-         //check if wpsMAX assigns the entire area, otherwise check if its dimensions fits within the area
+         //if wpsMAX then assigns the entire area,
+         //otherwise check if the real paper size fits within the entire area
          if (Value = wpsMAX)
          then begin
                 iWidth:= iMaxWidth;
                 iHeight:= iMaxHeight;
+                //we deliberately ignore Landscape because we cannot rotate the maximum size
               end
          else begin
-                iWidth:= PaperSizesWIA[Value].w;
-                iHeight:= PaperSizesWIA[Value].h;
+                if (rPaperLandscape)
+                then begin
+                       //Swap Width with Height
+                       iWidth:= PaperSizesWIA[Value].h;
+                       iHeight:= PaperSizesWIA[Value].w;
+                     end
+                else begin
+                       iWidth:= PaperSizesWIA[Value].w;
+                       iHeight:= PaperSizesWIA[Value].h;
+                     end;
+
                 if (iWidth > iMaxWidth) or (iHeight > iMaxHeight) then Exit;
               end;
 
          if rXRes = -1
          then if not(GetResolution(rXRes, rYRes)) then Exit;
 
-         iPixels:= Trunc(iWidth * rXRes / 1000);
-         if not(SetProperty(WIA_IPS_XEXTENT, VT_I4, iPixels, useRoot)) then Exit;
-
          iPixels:= 0;
          if not(SetProperty(WIA_IPS_XPOS, VT_I4, iPixels, useRoot)) then Exit;
+         if not(SetProperty(WIA_IPS_YPOS, VT_I4, iPixels, useRoot)) then Exit;
+
+         iPixels:= Trunc(iWidth * rXRes / 1000);
+         if not(SetProperty(WIA_IPS_XEXTENT, VT_I4, iPixels, useRoot)) then Exit;
 
          iPixels:= Trunc(iHeight * rYRes / 1000);
          Result:= SetProperty(WIA_IPS_YEXTENT, VT_I4, iPixels, useRoot);
@@ -1532,6 +1603,78 @@ begin
               end
          else Result:= SetProperty(WIA_IPS_PAGE_SIZE, VT_I4, Value, useRoot);
        end;
+end;
+
+function TWIADevice.SetPaperSize(const ALandscape: Boolean; const Value: TWIAPaperSize; useRoot: Boolean): Boolean;
+begin
+  Result:= SetPaperLandscape(ALandscape, useRoot);
+  if Result then SetPaperSize(Value, useRoot);
+end;
+
+function TWIADevice.GetPaperLandscape(var Value: Boolean; useRoot: Boolean): Boolean;
+var
+   rotValue: TWIARotation;
+
+begin
+  if PaperSizes_Calculated
+  then begin
+         Value:= rPaperLandscape;
+         Result:= True;
+       end
+  else begin
+         Result:= GetRotation(rotValue, useRoot);
+         Value:= (rotValue in [wrLandscape, wrRot270]); //270 is basically landscape
+       end;
+end;
+
+function TWIADevice.SetPaperLandscape(const Value: Boolean; useRoot: Boolean): Boolean;
+var
+   rotValue: TWIARotation;
+
+begin
+  Result:= False;
+
+  rPaperLandscape := Value;
+
+  if PaperSizes_Calculated
+  then rotValue:= wrPortrait //Always set Portrait because we do the position calculations
+  else begin
+         if Value
+         then rotValue:= wrLandscape
+         else rotValue:= wrPortrait;
+       end;
+
+  Result:= SetRotation(rotValue, useRoot);
+end;
+
+function TWIADevice.GetRotation(var Value: TWIARotation; useRoot: Boolean): Boolean;
+var
+   propType: TVarType;
+
+begin
+  Result:= GetProperty(WIA_IPS_ROTATION, propType, Value, useRoot);
+end;
+
+function TWIADevice.GetRotation(var Current, Default: TWIARotation; var Values: TWIARotationSet; useRoot: Boolean): Boolean;
+var
+   i: Integer;
+   intValues: TArrayInteger;
+   propType: TVarType;
+   pFlags: TWIAPropertyFlags;
+
+begin
+  pFlags:= GetProperty(WIA_IPS_ROTATION, propType, Current, Default, intValues, useRoot);
+  if not(WIAProp_READ in pFlags) then Exit;
+
+  if (WIAProp_LIST in pFlags)
+  then for i:=0 to Length(intValues)-1 do Values:= Values+[TWIARotation(intValues[i])];
+
+  Result:= True;
+end;
+
+function TWIADevice.SetRotation(const Value: TWIARotation; useRoot: Boolean): Boolean;
+begin
+  Result:= SetProperty(WIA_IPS_ROTATION, VT_I4, Value, useRoot);
 end;
 
 function TWIADevice.GetBrightness(var Current: Integer; useRoot: Boolean): Boolean;
@@ -1667,10 +1810,10 @@ end;
 
 function TWIADevice.SetImageFormat(const Value: TWIAImageFormat; useRoot: Boolean): Boolean;
 begin
-  Result:= SetProperty(WIA_IPA_FORMAT, VT_CLSID, WiaImageFormat[Value], useRoot);
+  Result:= SetProperty(WIA_IPA_FORMAT, VT_CLSID, WiaImageFormatGUID[Value], useRoot);
 end;
 
-function TWIADevice.GetDataType(var Current: TWiaDataType; useRoot: Boolean): Boolean;
+function TWIADevice.GetDataType(var Current: TWIADataType; useRoot: Boolean): Boolean;
 var
    propType: TVarType;
 
@@ -1678,7 +1821,7 @@ begin
   Result:= GetProperty(WIA_IPA_DATATYPE, propType, Current, useRoot);
 end;
 
-function TWIADevice.GetDataType(var Current, Default: TWiaDataType; var Values: TWiaDataTypeSet; useRoot: Boolean): Boolean;
+function TWIADevice.GetDataType(var Current, Default: TWIADataType; var Values: TWIADataTypeSet; useRoot: Boolean): Boolean;
 var
    i: Integer;
    intValues: TArrayInteger;
@@ -1696,7 +1839,7 @@ begin
      { #note 5 -oMaxM : what to do if the propType is not the expected one VT_I4}
 
      if (WIAProp_LIST in pFlags)
-     then for i:=0 to Length(intValues)-1 do Values:= Values+[TWiaDataType(intValues[i])];
+     then for i:=0 to Length(intValues)-1 do Values:= Values+[TWIADataType(intValues[i])];
 
      Result:= True;
 
@@ -1705,7 +1848,7 @@ begin
   end;
 end;
 
-function TWIADevice.SetDataType(const Value: TWiaDataType; useRoot: Boolean): Boolean;
+function TWIADevice.SetDataType(const Value: TWIADataType; useRoot: Boolean): Boolean;
 begin
   Result:= SetProperty(WIA_IPA_DATATYPE, VT_I4, Value, useRoot);
 end;
@@ -1741,6 +1884,9 @@ begin
   with Value do
   begin
     Result:= GetPaperSize(PaperSizeCurrent, PaperSizeDefault, PaperSizeSet);
+    if not(Result) then exit;
+
+    Result:= GetRotation(RotationCurrent, RotationDefault, RotationSet);
     if not(Result) then exit;
 
     pFlags:= GetResolutionsX(ResolutionCurrent, ResolutionDefault, ResolutionArray);
@@ -2019,7 +2165,7 @@ begin
             else Exception.Create('Name of Device '+IntToStr(i)+' not String');
 
             if (VT_I4 = pPropVar[3].vt)
-            then rDeviceList[i].rType :=TWiaDeviceType(pPropVar[3].iVal)
+            then rDeviceList[i].rType :=TWIADeviceType(pPropVar[3].iVal)
             else Exception.Create('DeviceType of Device '+IntToStr(i)+' not Integer');
 
             if (VT_BSTR = pPropVar[4].vt)

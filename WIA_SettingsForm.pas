@@ -74,6 +74,7 @@ type
     trContrast: TTrackBar;
     procedure bt0Click(Sender: TObject);
     procedure btDClick(Sender: TObject);
+    procedure btOrientationClick(Sender: TObject);
     procedure cbSourceItemChange(Sender: TObject);
     procedure edBrightnessChange(Sender: TObject);
     procedure edContrastChange(Sender: TObject);
@@ -85,7 +86,8 @@ type
     WIACap: TWIAParamsCapabilities;
     WIAParams: TWIAParams;
     WIAParamsArray: TArrayWIAParams;
-    initItemValues: TInitialItemValues;
+    initItemValues,
+    newInitItemValues: TInitialItemValues;
 
     procedure SelectCurrentItem(AIndex: Integer);
     procedure StoreCurrentItemParams;
@@ -94,8 +96,9 @@ type
      class function Execute(AWIASource: TWIADevice;
                             var ASelectedItemIndex: Integer;
                             { #todo -oMaxM : Possibly Filters for which Items Kinds to Show? How manage AParams without Indexes? }
-                            AinitItemValues: TInitialItemValues;
-                            var AParamsArray: TArrayWIAParams): Boolean;
+                            AInitItemValues: TInitialItemValues;
+                            var AParamsArray: TArrayWIAParams;
+                            NewParamsInitValues: TInitialItemValues=initDefault): Boolean;
   end;
 
 var
@@ -163,6 +166,13 @@ begin
   end;
 end;
 
+procedure TWIASettingsSource.btOrientationClick(Sender: TObject);
+begin
+  if btOrientation.Down
+  then begin btOrientation.ImageIndex:= 5; btOrientation.Hint:= 'Landscape'; end
+  else begin btOrientation.ImageIndex:= 4; btOrientation.Hint:= 'Portrait'; end;
+end;
+
 procedure TWIASettingsSource.edContrastChange(Sender: TObject);
 begin
   trContrast.Position:=edContrast.Value;
@@ -183,7 +193,9 @@ var
 
 begin
   AParams:= WiaParamsArray[AIndex];
-  WiaSource.SelectedItemIndex:= AIndex; { #note 10 -oMaxM : See ToDo in WIA.pas, is better to use a separeted Class Item }
+  WiaSource.SelectedItemIndex:= AIndex;
+
+  { #note 10 -oMaxM : Get Capabilities for all the Items in method Execute. WIACapArray}
 
   //Get current Selected Item Default Values
   capRet:= WIASource.GetParamsCapabilities(WIACap);
@@ -221,6 +233,16 @@ begin
     end;
   end;
   cbPaperSize.ItemIndex:=cbSelected;
+
+  //Set Landscape/Portrait Button
+  case initItemValues of
+  initDefault: btOrientation.Down:= (RotationDefault in [wrLandscape, wrRot270]); //270 is basically landscape
+  initParams:  btOrientation.Down:= (AParams.Rotation in [wrLandscape, wrRot270]);
+  initCurrent: btOrientation.Down:= (RotationCurrent in [wrLandscape, wrRot270]);
+  end;
+  if btOrientation.Down
+  then begin btOrientation.ImageIndex:= 5; btOrientation.Hint:= 'Landscape'; end
+  else begin btOrientation.ImageIndex:= 4; btOrientation.Hint:= 'Portrait'; end;
 
 (*
   { #todo 10 -oMaxM : In theory the selectable BitDepths depend on ImageType,
@@ -342,6 +364,10 @@ begin
   if (cbPaperSize.ItemIndex>-1)
   then WIAParams.PaperSize:=TWIAPaperSize(PtrUInt(cbPaperSize.Items.Objects[cbPaperSize.ItemIndex]));
 
+  if btOrientation.Down
+  then WIAParams.Rotation:= wrLandscape
+  else WIAParams.Rotation:= wrPortrait;
+
   (*
   if (cbBitDepth.ItemIndex>-1)
   then AParams.BitDepth:=PtrUInt(cbBitDepth.Items.Objects[cbBitDepth.ItemIndex]);
@@ -360,10 +386,10 @@ begin
 end;
 
 class function TWIASettingsSource.Execute(AWIASource: TWIADevice; var ASelectedItemIndex: Integer;
-                                          AinitItemValues: TInitialItemValues;
-                                          var AParamsArray: TArrayWIAParams): Boolean;
+                                          AInitItemValues: TInitialItemValues; var AParamsArray: TArrayWIAParams;
+                                          NewParamsInitValues: TInitialItemValues): Boolean;
 var
-  i: Integer;
+  i, itemCount: Integer;
 
 begin
   Result:= False;
@@ -375,11 +401,20 @@ begin
   with WIASettingsSource do
   try
     WIASource:= AWIASource;
-    initItemValues:= AinitItemValues;
+    itemCount:= WIASource.ItemCount;
+    initItemValues:= AInitItemValues;
+    newInitItemValues:= NewParamsInitValues;
 
     //Do A Copy of Params Array so if the user cancels the Dialog we don't modify the starting array
     WIAParamsArray:= Copy(AParamsArray);
-    if (Length(WIAParamsArray) < WIASource.ItemCount) then SetLength(WIAParamsArray, WIASource.ItemCount);
+
+    { #note 10 -oMaxM : Get Capabilities for all the Items, WIACapArray}
+
+    //If WiaSource Item Count is greater then our Array enlarge it
+    if (Length(WIAParamsArray) < itemCount) then
+    begin
+      SetLength(WIAParamsArray, itemCount);
+    end;
 
     //Fill List of Source Items
     cbSourceItem.Clear;
@@ -415,7 +450,7 @@ begin
 
       StoreCurrentItemParams;
 
-      //Do A Copy to AParams Array and stretch it if needed
+      //Do A Copy of WIAParamsArray to AParams Array and stretch it if needed
       if (Length(AParamsArray) < Length(WIAParamsArray)) then SetLength(AParamsArray, Length(WIAParamsArray));
       //Move(WIAParamsArray, AParamsArray, Length(AParamsArray));
       //AParams:= Copy(WIAParamsArray);
