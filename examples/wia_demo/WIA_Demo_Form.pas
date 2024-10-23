@@ -191,16 +191,10 @@ begin
 
       aPath:= ExtractFilePath(ParamStr(0));
 
-      with WIAParams[SelectedItemIndex] do
+      WIASource.SetParams(WIAParams[SelectedItemIndex]);
+
+      if cbTest.Checked then
       begin
-        capRet:= WIASource.SetResolution(Resolution, Resolution);
-        if not(capRet) then raise Exception.Create('SetResolution');
-
-        capRet:= WIASource.SetPaperSize((Rotation in [wrLandscape, wrRot270]), PaperSize);
-        if not(capRet) then raise Exception.Create('SetPaperSize');
-
-        if cbTest.Checked then
-        begin
           capRet:= WIASource.GetProperty(WIA_IPS_XPOS, propType, x);
           capRet:= WIASource.GetProperty(WIA_IPS_YPOS, propType, y);
           capRet:= WIASource.GetProperty(WIA_IPS_XEXTENT, propType, w);
@@ -210,32 +204,19 @@ begin
                                     #13#10+'y: '+IntToStr(y)+
                                     #13#10+'w: '+IntToStr(w)+
                                     #13#10+'h: '+IntToStr(h),
-                                    mtInformation, [mbOk], 0)
-        end;
-
-        capRet:= WIASource.SetBrightness(Brightness);
-        if not(capRet) then raise Exception.Create('SetBrightness');
-
-        capRet:= WIASource.SetContrast(Contrast);
-        if not(capRet) then raise Exception.Create('SetContrast');
-
-        if cbTest.Checked then
-        begin
+                                    mtInformation, [mbOk], 0);
           if (edTests.Text<>'') then
           begin
             capRet:= WIASource.SetBitDepth(StrToInt(edTests.Text));
             if not(capRet) then raise Exception.Create('SetBitDepth');
           end;
-        end;
+      end;
 
-         capRet:= WIASource.SetDataType(DataType);
-         if not(capRet) then raise Exception.Create('SetDataType');
-
-         if DataType in [wdtRAW_RGB..wdtRAW_CMYK]
-         then capRet:= WIASource.SetImageFormat(wifRAW)
-         else capRet:= WIASource.SetImageFormat(wifBMP);
-         if not(capRet) then raise Exception.Create('SetImageFormat');
-        end;
+      { #todo 5 -oMaxM : Move To Download? }
+      if WIAParams[SelectedItemIndex].DataType in [wdtRAW_RGB..wdtRAW_CMYK]
+      then capRet:= WIASource.SetImageFormat(wifRAW)
+      else capRet:= WIASource.SetImageFormat(wifBMP);
+      if not(capRet) then raise Exception.Create('SetImageFormat');
 
       c:= WIASource.Download(aPath, 'test_wia.bmp');
 

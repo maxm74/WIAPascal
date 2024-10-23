@@ -89,6 +89,9 @@ type
   );
   TWIARotationSet = set of TWIARotation;
 
+  TWIAAlignVertical = (waVTop, waVCenter, waVBottom);
+  TWIAAlignHorizontal = (waHLeft, waHCenter, waHRight);
+
   TWIAImageFormat = (
     wifUNDEFINED,
     wifRAWRGB,
@@ -134,6 +137,8 @@ type
   TWIAParams = packed record
     PaperSize: TWIAPaperSize;
     Rotation: TWIARotation;
+    HAlign: TWIAAlignHorizontal;
+    VAlign: TWIAAlignVertical;
     Resolution,
     Contrast,
     //BitDepth,
@@ -148,7 +153,7 @@ type
     PaperSizeDefault: TWIAPaperSize;
     RotationCurrent,
     RotationDefault: TWIARotation;
-    RotationSet: TWIARotationSet;   { #note 5 -oMaxM : maybe a non-sense }
+    RotationSet: TWIARotationSet;
     ResolutionArray: TArrayInteger;
     ResolutionRange: Boolean;
     ResolutionCurrent,
@@ -200,6 +205,8 @@ type
 
     rXRes, rYRes: Integer; //Used with PaperSizes_Calculated, if -1 then i need to Get Values from Device
     rPaperLandscape: Boolean;
+    rHAlign: TWIAAlignHorizontal;
+    rVAlign: TWIAAlignVertical;
 
     rDownloaded: Boolean;
     Download_Count: Integer;
@@ -291,6 +298,13 @@ type
     //Set Current Resolutions, The user is responsible for checking the validity of the values
     function SetResolution(const AXRes, AYRes: Integer; useRoot: Boolean=False): Boolean;
 
+    //Get Current Paper Align
+    function GetPaperAlign(var ALandscape:Boolean; var HAlign: TWIAAlignHorizontal; var VAlign: TWIAAlignVertical;
+                           useRoot: Boolean=False): Boolean;
+    //Set Current Paper Align
+    function SetPaperAlign(const ALandscape:Boolean; const HAlign: TWIAAlignHorizontal; const VAlign: TWIAAlignVertical;
+                           useRoot: Boolean=False): Boolean;
+
     //Get Max Paper Width, Height
     function GetPaperSizeMax(var AMaxWidth, AMaxHeight: Integer; useRoot: Boolean=False): Boolean;
 
@@ -302,10 +316,9 @@ type
     function GetPaperSize(var Current, Default: TWIAPaperSize; var Values: TWIAPaperSizeSet; useRoot: Boolean=False): Boolean; overload;
 
     //Set Current Paper Size,
-    //  if PaperSizes_Calculated then the Area is calculated using real Paper Size and PaperLandscape Values
+    //  if PaperSizes_Calculated then the Area is calculated using real Paper Size,Orientation and Align Values
     //  else this function use WIA_IPS_PAGE_SIZE and the user is responsible for checking the validity of the value
     function SetPaperSize(const Value: TWIAPaperSize; useRoot: Boolean=False): Boolean; overload;
-    function SetPaperSize(const ALandscape:Boolean; const Value: TWIAPaperSize; useRoot: Boolean=False): Boolean; overload;
 
     //Get Current Paper Landscape,
     //  if PaperSizes_Calculated=False then this function use WIA_IPS_ROTATION else return internal value
@@ -367,7 +380,11 @@ type
     //Set Current BitDepth, The user is responsible for checking the validity of the value
     function SetBitDepth(const Value: Integer; useRoot: Boolean=False): Boolean;
 
+    //Get Capabilities for Current Selected Item
     function GetParamsCapabilities(var Value: TWIAParamsCapabilities): Boolean;
+
+    //Set Params to Current Selected Item
+    function SetParams(const AParams: TWIAParams): Boolean;
 
     property ID: String read rID;
     property Manufacturer: String read rManufacturer;
@@ -916,6 +933,8 @@ begin
   PaperSizes_Calculated:= True;
   rXRes:= -1; rYRes:= -1;
   rPaperLandscape:= False;
+  rVAlign:= waVTop;
+  rHAlign:= waHLeft;
 end;
 
 destructor TWIADevice.Destroy;
@@ -1421,6 +1440,22 @@ begin
   if Result then rYRes:= AXRes;
 end;
 
+function TWIADevice.GetPaperAlign(var ALandscape: Boolean; var HAlign: TWIAAlignHorizontal; var VAlign: TWIAAlignVertical;
+                                  useRoot: Boolean=False): Boolean;
+begin
+  HAlign:= rHAlign;
+  VAlign:= rVAlign;
+  Result:= GetPaperLandscape(ALandscape, useRoot);
+end;
+
+function TWIADevice.SetPaperAlign(const ALandscape: Boolean; const HAlign: TWIAAlignHorizontal; const VAlign: TWIAAlignVertical;
+                                  useRoot: Boolean=False): Boolean;
+begin
+  rHAlign:= HAlign;
+  rVAlign:= VAlign;
+  Result:= SetPaperLandscape(ALandscape, useRoot);
+end;
+
 function TWIADevice.GetPaperSizeMax(var AMaxWidth, AMaxHeight: Integer; useRoot: Boolean): Boolean;
 var
    propType: TVarType;
@@ -1532,83 +1567,106 @@ function TWIADevice.SetPaperSize(const Value: TWIAPaperSize; useRoot: Boolean): 
 var
    propType: TVarType;
    pFlags: TWIAPropertyFlags;
-   iMaxWidth,
-   iMaxHeight,
-   iWidth,
-   iHeight,
+   MaxWidth,
+   MaxHeight,
+   Width,
+   Height,
+   X, Y,
    iPixels: Integer;
+   XMux,
+   YMux: Single;
 
 begin
   Result:= False;
 
   if PaperSizes_Calculated
   then begin
-         Result:= GetPaperSizeMax(iMaxWidth, iMaxHeight, useRoot);
+         Result:= GetPaperSizeMax(MaxWidth, MaxHeight, useRoot);
          if not(Result) then Exit;
+
+         if (rXRes = -1) or (rYRes = -1)
+         then if not(GetResolution(rXRes, rYRes)) then Exit;
+
+         XMux:= rXRes / 1000;
+         YMux:= rYRes / 1000;
 
          //if wpsMAX then assigns the entire area,
          //otherwise check if the real paper size fits within the entire area
          if (Value = wpsMAX)
          then begin
-                iWidth:= iMaxWidth;
-                iHeight:= iMaxHeight;
-                //we deliberately ignore Landscape because we cannot rotate the maximum size
+                Width:= MaxWidth;
+                Height:= MaxHeight;
+                //we deliberately ignore Aligments because we cannot rotate/align the maximum size
+                X:= 0;
+                Y:= 0;
               end
          else begin
                 if (rPaperLandscape)
                 then begin
                        //Swap Width with Height
-                       iWidth:= PaperSizesWIA[Value].h;
-                       iHeight:= PaperSizesWIA[Value].w;
+                       Width:= PaperSizesWIA[Value].h;
+                       Height:= PaperSizesWIA[Value].w;
                      end
                 else begin
-                       iWidth:= PaperSizesWIA[Value].w;
-                       iHeight:= PaperSizesWIA[Value].h;
+                       Width:= PaperSizesWIA[Value].w;
+                       Height:= PaperSizesWIA[Value].h;
                      end;
 
-                if (iWidth > iMaxWidth) or (iHeight > iMaxHeight) then Exit;
+                Case rHAlign of
+                  waHLeft: X:= 0;
+                  waHCenter: X:= Round((MaxWidth-Width) / 2);
+                  waHRight: X:= MaxWidth-Width;
+                end;
+
+                Case rVAlign of
+                  waVTop: Y:= 0;
+                  waVCenter: Y:= Round((MaxHeight-Height) / 2);
+                  waVBottom: Y:= MaxHeight-Height;
+                end;
+
+                //I prefer to be less restrictive and do the scan
+                if (X < 0) then X:= 0;
+                if (X > MaxWidth) then X:= MaxWidth;
+                if (Y < 0) then Y:= 0;
+                if (Y > MaxHeight) then Y:= MaxHeight;
+
+                //if (X+Width > MaxWidth) or (Y+Height > MaxHeight) then Exit; //Be restrictive
               end;
 
-         if rXRes = -1
-         then if not(GetResolution(rXRes, rYRes)) then Exit;
-
-         iPixels:= 0;
+         iPixels:= Trunc(X*XMux);
          if not(SetProperty(WIA_IPS_XPOS, VT_I4, iPixels, useRoot)) then Exit;
+
+         iPixels:= Trunc(Y*YMux);
          if not(SetProperty(WIA_IPS_YPOS, VT_I4, iPixels, useRoot)) then Exit;
 
-         iPixels:= Trunc(iWidth * rXRes / 1000);
+         iPixels:= Trunc(Width*XMux);
          if not(SetProperty(WIA_IPS_XEXTENT, VT_I4, iPixels, useRoot)) then Exit;
 
-         iPixels:= Trunc(iHeight * rYRes / 1000);
+         iPixels:= Trunc(Height*YMux);
          Result:= SetProperty(WIA_IPS_YEXTENT, VT_I4, iPixels, useRoot);
        end
   else begin
          if (Value = wpsMAX)
          then begin
                 //assigns the entire area
-                Result:= GetPaperSizeMax(iMaxWidth, iMaxHeight, useRoot);
+                Result:= GetPaperSizeMax(MaxWidth, MaxHeight, useRoot);
                 if not(Result) then Exit;
 
-                if rXRes = -1
+                if (rXRes = -1) or (rYRes = -1)
                 then if not(GetResolution(rXRes, rYRes)) then Exit;
-
-                iPixels:= Trunc(iMaxWidth * rXRes / 1000);
-                if not(SetProperty(WIA_IPS_XEXTENT, VT_I4, iPixels, useRoot)) then Exit;
 
                 iPixels:= 0;
                 if not(SetProperty(WIA_IPS_XPOS, VT_I4, iPixels, useRoot)) then Exit;
+                if not(SetProperty(WIA_IPS_YPOS, VT_I4, iPixels, useRoot)) then Exit;
 
-                iPixels:= Trunc(iMaxHeight * rYRes / 1000);
+                iPixels:= Trunc(MaxWidth * rXRes / 1000);
+                if not(SetProperty(WIA_IPS_XEXTENT, VT_I4, iPixels, useRoot)) then Exit;
+
+                iPixels:= Trunc(MaxHeight * rYRes / 1000);
                 Result:= SetProperty(WIA_IPS_YEXTENT, VT_I4, iPixels, useRoot);
               end
          else Result:= SetProperty(WIA_IPS_PAGE_SIZE, VT_I4, Value, useRoot);
        end;
-end;
-
-function TWIADevice.SetPaperSize(const ALandscape: Boolean; const Value: TWIAPaperSize; useRoot: Boolean): Boolean;
-begin
-  Result:= SetPaperLandscape(ALandscape, useRoot);
-  if Result then SetPaperSize(Value, useRoot);
 end;
 
 function TWIADevice.GetPaperLandscape(var Value: Boolean; useRoot: Boolean): Boolean;
@@ -1907,6 +1965,37 @@ begin
     *)
 
     Result:= GetDataType(DataTypeCurrent, DataTypeDefault, DataTypeSet);
+  end;
+end;
+
+function TWIADevice.SetParams(const AParams: TWIAParams): Boolean;
+begin
+  Result:= False;
+
+  with AParams do
+  begin
+    Result:= SetResolution(Resolution, Resolution);
+    if not(Result) then raise Exception.Create('SetResolution');
+
+    Result:= SetPaperAlign((Rotation in [wrLandscape, wrRot270]), HAlign, VAlign);
+    if not(Result) then raise Exception.Create('SetPaperAlign');
+
+    Result:= SetPaperSize(PaperSize);
+    if not(Result) then raise Exception.Create('SetPaperSize');
+
+    Result:= SetBrightness(Brightness);
+    if not(Result) then raise Exception.Create('SetBrightness');
+
+    Result:= SetContrast(Contrast);
+    if not(Result) then raise Exception.Create('SetContrast');
+
+    (*
+    Result:= WIASource.SetBitDepth(BitDepth);
+    if not(Result) then raise Exception.Create('SetBitDepth');
+    *)
+
+    Result:= SetDataType(DataType);
+    if not(Result) then raise Exception.Create('SetDataType');
   end;
 end;
 

@@ -55,6 +55,8 @@ type
     edBrightness: TSpinEdit;
     edResolution: TSpinEdit;
     edContrast: TSpinEdit;
+    imgListAlign: TImageList;
+    imgAlign: TImage;
     imgList: TImageList;
     Label1: TLabel;
     Label2: TLabel;
@@ -63,6 +65,7 @@ type
     Label5: TLabel;
     Label6: TLabel;
     Label7: TLabel;
+    Label8: TLabel;
     PageSourceTypes: TPageControl;
     Panel1: TPanel;
     panelButtons: TPanel;
@@ -70,6 +73,8 @@ type
     btBrightnessD: TSpeedButton;
     tbSource_Scanner: TTabSheet;
     trBrightness: TTrackBar;
+    trHAlign: TTrackBar;
+    trVAlign: TTrackBar;
     trResolution: TTrackBar;
     trContrast: TTrackBar;
     procedure bt0Click(Sender: TObject);
@@ -80,6 +85,7 @@ type
     procedure edContrastChange(Sender: TObject);
     procedure trBrightnessChange(Sender: TObject);
     procedure trContrastChange(Sender: TObject);
+    procedure trHAlignChange(Sender: TObject);
   private
     WIASource: TWIADevice;
     WIASelectedItemIndex: Integer;
@@ -169,8 +175,8 @@ end;
 procedure TWIASettingsSource.btOrientationClick(Sender: TObject);
 begin
   if btOrientation.Down
-  then begin btOrientation.ImageIndex:= 5; btOrientation.Hint:= 'Landscape'; end
-  else begin btOrientation.ImageIndex:= 4; btOrientation.Hint:= 'Portrait'; end;
+  then begin btOrientation.ImageIndex:= 1; btOrientation.Hint:= 'Landscape'; end
+  else begin btOrientation.ImageIndex:= 0; btOrientation.Hint:= 'Portrait'; end;
 end;
 
 procedure TWIASettingsSource.edContrastChange(Sender: TObject);
@@ -181,6 +187,11 @@ end;
 procedure TWIASettingsSource.trContrastChange(Sender: TObject);
 begin
   edContrast.Value:=trContrast.Position;
+end;
+
+procedure TWIASettingsSource.trHAlignChange(Sender: TObject);
+begin
+  imgAlign.ImageIndex:= (trVAlign.Position*3)+trHAlign.Position;
 end;
 
 procedure TWIASettingsSource.SelectCurrentItem(AIndex: Integer);
@@ -241,8 +252,20 @@ begin
   initCurrent: btOrientation.Down:= (RotationCurrent in [wrLandscape, wrRot270]);
   end;
   if btOrientation.Down
-  then begin btOrientation.ImageIndex:= 5; btOrientation.Hint:= 'Landscape'; end
-  else begin btOrientation.ImageIndex:= 4; btOrientation.Hint:= 'Portrait'; end;
+  then begin btOrientation.ImageIndex:= 1; btOrientation.Hint:= 'Landscape'; end
+  else begin btOrientation.ImageIndex:= 0; btOrientation.Hint:= 'Portrait'; end;
+
+  //Paper Align
+  if (initItemValues = initParams)
+  then begin
+         trHAlign.Position:= Integer(AParams.HAlign);
+         trVAlign.Position:= Integer(AParams.VAlign);
+       end
+  else begin
+         trHAlign.Position:= 0;
+         trVAlign.Position:= 0;
+       end;
+  imgAlign.ImageIndex:= (trVAlign.Position*3)+trHAlign.Position;
 
 (*
   { #todo 10 -oMaxM : In theory the selectable BitDepths depend on ImageType,
@@ -367,6 +390,9 @@ begin
   if btOrientation.Down
   then WIAParams.Rotation:= wrLandscape
   else WIAParams.Rotation:= wrPortrait;
+
+  WIAParams.HAlign:= TWIAAlignHorizontal(trHAlign.Position);
+  WIAParams.VAlign:= TWIAAlignVertical(trVAlign.Position);
 
   (*
   if (cbBitDepth.ItemIndex>-1)
