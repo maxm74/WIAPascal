@@ -209,9 +209,10 @@ type
     rVAlign: TWIAAlignVertical;
 
     rDownloaded: Boolean;
-    Download_Count: Integer;
-    Download_Path,
-    Download_BaseFileName: String;
+    rDownload_Count: Integer;
+    rDownload_Path,
+    rDownload_Ext,
+    rDownload_FileName: String;
 
     function GeItem(Index: Integer): PWIAItem;
     function GetItemCount: Integer;
@@ -245,7 +246,8 @@ type
     function SelectItem(AName: String): Boolean;
 
     //Download the Selected Item and return the number of files transfered
-    function Download(APath, ABaseFileName: String): Integer; virtual;
+    function Download(APath, AFileName, AExt: String): Integer; overload;
+    function Download(APath, AFileName, AExt: String; AFormat: TWIAImageFormat): Integer; overload;
 
     //Get Current Property Value and it's type given the ID
     function GetProperty(APropId: PROPID; var propType: TVarType;
@@ -414,6 +416,10 @@ type
     property SelectedProperties: IWiaPropertyStorage read GetSelectedProperties;
 
     property Downloaded: Boolean read rDownloaded;
+    property Download_Count: Integer read rDownload_Count;
+    property Download_Path: String read rDownload_Path;
+    property Download_Ext: String read rDownload_Ext;
+    property Download_FileName: String read rDownload_FileName;
   end;
 
   { TWIAManager }
@@ -887,25 +893,16 @@ begin
 end;
 
 function TWIADevice.GetNextStream(lFlags: LONG; bstrItemName, bstrFullItemName: BSTR; out ppDestination: IStream): HRESULT; stdcall;
-var
-   FileName: String;
-   i: Integer;
-
 begin
   Result:= S_OK;
 
   //  Return a new stream for this item's data.
-  if (Download_Count = 0)
-  then Result:= CreateDestinationStream(Download_Path+Download_BaseFileName, ppDestination)
-  else begin
-         FileName:= Download_BaseFileName;
-         i:= LastDelimiter('.', FileName);
-         if (i <= 0) then i:=MaxInt;
-         Insert('-'+IntToStr(Download_Count), FileName, i);
-         Result:= CreateDestinationStream(Download_Path+FileName, ppDestination);
-       end;
+  if (rDownload_Count = 0)
+  then Result:= CreateDestinationStream(rDownload_Path+rDownload_FileName+rDownload_Ext, ppDestination)
+  else Result:= CreateDestinationStream(rDownload_Path+rDownload_FileName+
+                                        '-'+IntToStr(rDownload_Count)+rDownload_Ext, ppDestination);
 
-  Inc(Download_Count);
+  Inc(rDownload_Count);
 end;
 
 constructor TWIADevice.Create(AOwner: TWIAManager; AIndex: Integer; ADeviceID: String);
@@ -922,9 +919,10 @@ begin
   pSelectedProperties:= nil;
   StreamAdapter:= nil;
   StreamDestination:= nil;
-  Download_Path:= '';
-  Download_BaseFileName:= '';
-  Download_Count:= 0;
+  rDownload_Path:= '';
+  rDownload_Ext:= '';
+  rDownload_FileName:= '';
+  rDownload_Count:= 0;
   rDownloaded:= False;
 
   //By Default is True because Microsoft Documentation says:
@@ -983,7 +981,7 @@ begin
   then Result:= EnumerateItems;
 end;
 
-function TWIADevice.Download(APath, ABaseFileName: String): Integer;
+function TWIADevice.Download(APath, AFileName, AExt: String): Integer;
 var
    pWiaTransfer: IWiaTransfer;
    myTickStart, curTick: UInt64;
@@ -1001,15 +999,16 @@ begin
       selItemType:= rItemList[rSelectedItemIndex].ItemType;
 
       if (APath = '') or CharInSet(APath[Length(APath)], AllowDirectorySeparators)
-      then Download_Path:= APath
-      else Download_Path:= APath+DirectorySeparator;
+      then rDownload_Path:= APath
+      else rDownload_Path:= APath+DirectorySeparator;
 
-      Download_BaseFileName:= ABaseFileName;
-      Download_Count:= 0;
+      rDownload_FileName:= AFileName;
+      rDownload_Ext:= AExt;
+      rDownload_Count:= 0;
       rDownloaded:= False;
 
       { #todo 10 -oMaxM : Check this in Various Scanner / Camera }
-      //00082007 in My Samsung
+      // in My Samsung 00082007 =  [witImage,witFile,witFolder,witProgrammableDataSource] WHY witFolder?
       if (witTransfer in selItemType) then
       begin
         if (witProgrammableDataSource in selItemType)
@@ -1045,10 +1044,18 @@ begin
       pWiaTransfer:= nil;
 
       if rDownloaded
-      then Result:= Download_Count
+      then Result:= rDownload_Count
       else Result:= 0;
     end;
   end;
+end;
+
+function TWIADevice.Download(APath, AFileName, AExt: String; AFormat: TWIAImageFormat): Integer;
+begin
+  Result:= 0;
+
+  if SetImageFormat(AFormat)
+  then Result:= Download(APath, AFileName, AExt);
 end;
 
 function TWIADevice.GetProperty(APropId: PROPID; var propType: TVarType;

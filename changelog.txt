@@ -5,6 +5,9 @@ WIAPASCAL CHANGE LOG
         23 Added PaperAlign and SetParams method; 
 	   Updated SetPaperSize; 
 	   Added PaperAlign and changed Orentation Icons in SettingsForm.
+	   Added AExt and AFormat in Download Method; 
+	   Added Download_xxx properties;
+	   Added Progress Status in Demo.
         21 Added Rotation and PaperLandscape;
            Renamed WiaImageFormat to WiaImageFormatGUID and Added ImageFormat Descriptions;
            Renamed all TWia types to TWIA Uppercase;

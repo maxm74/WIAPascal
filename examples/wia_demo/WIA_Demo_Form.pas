@@ -23,6 +23,7 @@ type
     cbEnumLocal: TCheckBox;
     edTests: TEdit;
     ImageHolder: TImage;
+    lbProgress: TLabel;
     Panel1: TPanel;
     progressBar: TProgressBar;
     procedure btSelectClick(Sender: TObject);
@@ -78,20 +79,17 @@ begin
   Case pWiaTransferParams^.lMessage of
   WIA_TRANSFER_MSG_STATUS: begin
     progressBar.Position:= pWiaTransferParams^.lPercentComplete;
-//    Memo2.Lines.Add('WIA_TRANSFER_MSG_STATUS : '+IntToStr(pWiaTransferParams^.lPercentComplete)+'% err='+IntToHex(pWiaTransferParams^.hrErrorStatus));
+    lbProgress.Caption:= 'Downloading '+AWiaDevice.Download_FileName+AWiaDevice.Download_Ext+'  : '+IntToStr(AWiaDevice.Download_Count)+' file';
   end;
   WIA_TRANSFER_MSG_END_OF_STREAM: begin
-//    Memo2.Lines.Add('WIA_TRANSFER_MSG_END_OF_STREAM : '+IntToStr(pWiaTransferParams^.lPercentComplete)+'% err='+IntToHex(pWiaTransferParams^.hrErrorStatus));
+    lbProgress.Caption:= 'Downloaded '+AWiaDevice.Download_FileName+AWiaDevice.Download_Ext+'  : '+IntToStr(AWiaDevice.Download_Count)+' file';
   end;
   WIA_TRANSFER_MSG_END_OF_TRANSFER: begin
-//    Memo2.Lines.Add('WIA_TRANSFER_MSG_END_OF_TRANSFER : '+IntToStr(pWiaTransferParams^.lPercentComplete)+'% err='+IntToHex(pWiaTransferParams^.hrErrorStatus));
-//    Memo2.Lines.Add('   Downloaded='+BoolToStr(AWiaDevice.Downloaded, True));
   end;
   WIA_TRANSFER_MSG_DEVICE_STATUS: begin
-//    Memo2.Lines.Add('WIA_TRANSFER_MSG_DEVICE_STATUS : '+IntToStr(pWiaTransferParams^.lPercentComplete)+'% err='+IntToHex(pWiaTransferParams^.hrErrorStatus));
   end;
   WIA_TRANSFER_MSG_NEW_PAGE: begin
-//    Memo2.Lines.Add('WIA_TRANSFER_MSG_NEW_PAGE : '+IntToStr(pWiaTransferParams^.lPercentComplete)+'% err='+IntToHex(pWiaTransferParams^.hrErrorStatus));
+    //lbProgress.Caption:= AWiaDevice.Download_FileName+AWiaDevice.Download_Ext+'  : '+IntToStr(AWiaDevice.Download_Count+1);
   end
   else begin
 //    Memo2.Lines.Add('WIA_TRANSFER_MSG_'+IntToHex(pWiaTransferParams^.lMessage)+' : '+IntToStr(pWiaTransferParams^.lPercentComplete)+'% err='+IntToHex(pWiaTransferParams^.hrErrorStatus));
@@ -145,7 +143,7 @@ end;
 
 procedure TFormWIADemo.btAcquireClick(Sender: TObject);
 var
-   aPath: String;
+   aPath, aExt: String;
    WIASource: TWIADevice;
    SelectedItemIndex,
    NewItemIndex: Integer;
@@ -153,6 +151,7 @@ var
    capRet: Boolean;
    propType: TVarType;
    x, y, w, h:Integer;
+   aFormat: TWIAImageFormat;
 
 begin
   WIASource:= FWia.SelectedDevice;
@@ -218,12 +217,21 @@ begin
       else capRet:= WIASource.SetImageFormat(wifBMP);
       if not(capRet) then raise Exception.Create('SetImageFormat');
 
-      c:= WIASource.Download(aPath, 'test_wia.bmp');
+      if WIAParams[SelectedItemIndex].DataType in [wdtRAW_RGB..wdtRAW_CMYK]
+      then begin
+             aFormat:= wifRAW;
+             aExt:= '.raw'
+           end
+      else begin
+             aFormat:= wifBMP;
+             aExt:= '.bmp';
+           end;
 
+      c:= WIASource.Download(aPath, 'test_wia', aExt, aFormat);
       if (c>0)
       then begin
              MessageDlg('Downloaded '+IntToStr(c)+' Files', mtInformation, [mbOk], 0);
-             ImageHolder.Picture.Bitmap.LoadFromFile(aPath+'test_wia.bmp');
+             ImageHolder.Picture.Bitmap.LoadFromFile(aPath+'test_wia'+aExt);
            end
       else MessageDlg('NO Files Downloaded ', mtError, [mbOk], 0);
      end;
