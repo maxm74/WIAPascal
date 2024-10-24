@@ -2,6 +2,9 @@ WIAPASCAL CHANGE LOG
 ======================
 
 2024/10/
+        24 Use always pWiaTransfer.Download(0, Self) until further tests;
+           Changed some var names in SettingsForm; 
+           Added UseNativeUI and WIACaps Array in SettingsForm
         23 Added PaperAlign and SetParams method; 
 	   Updated SetPaperSize; 
 	   Added PaperAlign and changed Orentation Icons in SettingsForm.

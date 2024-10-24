@@ -483,6 +483,7 @@ object WIASettingsSource: TWIASettingsSource
       Width = 88
       Caption = 'Use Native UI'
       TabOrder = 0
+      OnChange = cbUseNativeUIChange
     end
     object PageSourceTypes: TPageControl
       Left = 8

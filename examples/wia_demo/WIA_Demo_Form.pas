@@ -23,6 +23,7 @@ type
     cbEnumLocal: TCheckBox;
     edTests: TEdit;
     ImageHolder: TImage;
+    lbSelected: TLabel;
     lbProgress: TLabel;
     Panel1: TPanel;
     progressBar: TProgressBar;
@@ -107,6 +108,7 @@ var
 
 begin
     btAcquire.Enabled :=False;
+    lbSelected.Caption:= '';
 
     FWia.EnumAll:= not(cbEnumLocal.Checked);
 
@@ -121,6 +123,7 @@ begin
       if (WIASource <> nil) then
       begin
         btAcquire.Enabled := WiaSource.GetParamsCapabilities(WIACap);
+        lbSelected.Caption:= 'Selected : '+WIASource.Name;
 
         if cbTest.Checked then
         begin
@@ -173,6 +176,12 @@ begin
 
       end;
       WIASource.SelectedItemIndex:= SelectedItemIndex;
+
+      if WIAParams[SelectedItemIndex].NativeUI
+      then begin
+             MessageDlg('Use of Native UI...not yet implemented', mtInformation, [mbOk], 0);
+             exit;
+           end;
 
       if cbTest.Checked then
       begin
@@ -234,6 +243,7 @@ begin
              ImageHolder.Picture.Bitmap.LoadFromFile(aPath+'test_wia'+aExt);
            end
       else MessageDlg('NO Files Downloaded ', mtError, [mbOk], 0);
+
      end;
 
   finally

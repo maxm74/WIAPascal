@@ -84,5 +84,11 @@ object FormWIADemo: TFormWIADemo
       Top = 0
       Width = 1
     end
+    object lbSelected: TLabel
+      Left = 12
+      Height = 1
+      Top = 32
+      Width = 1
+    end
   end
 end

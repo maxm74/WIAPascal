@@ -135,6 +135,7 @@ type
   TWIADataTypeSet = set of TWIADataType;
 
   TWIAParams = packed record
+    NativeUI: Boolean;
     PaperSize: TWIAPaperSize;
     Rotation: TWIARotation;
     HAlign: TWIAAlignHorizontal;
@@ -1009,6 +1010,8 @@ begin
 
       { #todo 10 -oMaxM : Check this in Various Scanner / Camera }
       // in My Samsung 00082007 =  [witImage,witFile,witFolder,witProgrammableDataSource] WHY witFolder?
+      // in Kyocera via LAN = [witFolder, witStorage]
+      (*
       if (witTransfer in selItemType) then
       begin
         if (witProgrammableDataSource in selItemType)
@@ -1027,6 +1030,8 @@ begin
                end;
         end;
       end;
+      *)
+      lres:= pWiaTransfer.Download(0, Self);
 
       { #todo 2 -oMaxM : Test if all Scanner is Synch }
       (*
