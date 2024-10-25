@@ -19,6 +19,7 @@ type
   TFormWIADemo = class(TForm)
     btAcquire: TButton;
     btSelect: TButton;
+    btNative: TButton;
     cbTest: TCheckBox;
     cbEnumLocal: TCheckBox;
     edTests: TEdit;
@@ -27,6 +28,7 @@ type
     lbProgress: TLabel;
     Panel1: TPanel;
     progressBar: TProgressBar;
+    procedure btNativeClick(Sender: TObject);
     procedure btSelectClick(Sender: TObject);
     procedure btAcquireClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -107,7 +109,7 @@ var
   capRet: Boolean;
 
 begin
-    btAcquire.Enabled :=False;
+    btAcquire.Enabled :=False; btNative.Enabled :=False;
     lbSelected.Caption:= '';
 
     FWia.EnumAll:= not(cbEnumLocal.Checked);
@@ -129,8 +131,8 @@ begin
         begin
           capRet:= WIASource.GetImageFormat(WIAformat, WIAformatDef, WIAFormatSet);
           if capRet then MessageDlg('ImageFormat: '+
-                                    #13#10+'Current: '+WiaImageFormat[WIAformat]+
-                                    #13#10+'Default: '+WiaImageFormat[WIAformatDef],
+                                    #13#10+'Current: '+WiaImageFormatDescr[WIAformat]+
+                                    #13#10+'Default: '+WiaImageFormatDescr[WIAformatDef],
                                     mtInformation, [mbOk], 0)
                     else MessageDlg('ImageFormat Error', mtInformation, [mbOk], 0);
 
@@ -142,6 +144,28 @@ begin
       end
       else MessageDlg('Error Connecting Device', mtError, [mbOk], 0);
     end;
+    btNative.Enabled :=btAcquire.Enabled;
+end;
+
+procedure TFormWIADemo.btNativeClick(Sender: TObject);
+var
+   aPath, aExt: String;
+   WIASource: TWIADevice;
+   c: Integer;
+
+begin
+  WIASource:= FWia.SelectedDevice;
+  WIASource.SelectedItemIndex:= 0;
+  aPath:= ExtractFilePath(ParamStr(0));
+  aExt:= '.bmp';
+  c:= WiaSource.DownloadNativeUI(Self.Handle, False, aPath, 'test_wia', 'bmp');
+    if (c>0)
+    then begin
+           MessageDlg('Downloaded '+IntToStr(c)+' Files', mtInformation, [mbOk], 0);
+           ImageHolder.Picture.Bitmap.LoadFromFile(aPath+'test_wia'+aExt);
+         end
+    else MessageDlg('NO Files Downloaded ', mtError, [mbOk], 0);
+
 end;
 
 procedure TFormWIADemo.btAcquireClick(Sender: TObject);
@@ -177,66 +201,67 @@ begin
       end;
       WIASource.SelectedItemIndex:= SelectedItemIndex;
 
+      aPath:= ExtractFilePath(ParamStr(0));
+
       if WIAParams[SelectedItemIndex].NativeUI
       then begin
-             MessageDlg('Use of Native UI...not yet implemented', mtInformation, [mbOk], 0);
-             exit;
-           end;
-
-      if cbTest.Checked then
-      begin
-        capRet:= WIASource.GetProperty(WIA_IPS_XPOS, propType, x);
-        capRet:= WIASource.GetProperty(WIA_IPS_YPOS, propType, y);
-        capRet:= WIASource.GetProperty(WIA_IPS_XEXTENT, propType, w);
-        capRet:= WIASource.GetProperty(WIA_IPS_YEXTENT, propType, h);
-        if capRet then MessageDlg('Paper Position Before: '+
+             c:= WiaSource.DownloadNativeUI(Self.Handle, False, aPath, 'test_wia', 'bmp');
+           end
+      else begin
+             if cbTest.Checked then
+             begin
+               capRet:= WIASource.GetProperty(WIA_IPS_XPOS, propType, x);
+               capRet:= WIASource.GetProperty(WIA_IPS_YPOS, propType, y);
+               capRet:= WIASource.GetProperty(WIA_IPS_XEXTENT, propType, w);
+               capRet:= WIASource.GetProperty(WIA_IPS_YEXTENT, propType, h);
+               if capRet then MessageDlg('Paper Position Before: '+
                                   #13#10+'x: '+IntToStr(x)+
                                   #13#10+'y: '+IntToStr(y)+
                                   #13#10+'w: '+IntToStr(w)+
                                   #13#10+'h: '+IntToStr(h),
                                   mtInformation, [mbOk], 0)
-      end;
+             end;
 
-      aPath:= ExtractFilePath(ParamStr(0));
+             WIASource.SetParams(WIAParams[SelectedItemIndex]);
 
-      WIASource.SetParams(WIAParams[SelectedItemIndex]);
-
-      if cbTest.Checked then
-      begin
-          capRet:= WIASource.GetProperty(WIA_IPS_XPOS, propType, x);
-          capRet:= WIASource.GetProperty(WIA_IPS_YPOS, propType, y);
-          capRet:= WIASource.GetProperty(WIA_IPS_XEXTENT, propType, w);
-          capRet:= WIASource.GetProperty(WIA_IPS_YEXTENT, propType, h);
-          if capRet then MessageDlg('Paper Position After: '+
+             if cbTest.Checked then
+             begin
+               capRet:= WIASource.GetProperty(WIA_IPS_XPOS, propType, x);
+               capRet:= WIASource.GetProperty(WIA_IPS_YPOS, propType, y);
+               capRet:= WIASource.GetProperty(WIA_IPS_XEXTENT, propType, w);
+               capRet:= WIASource.GetProperty(WIA_IPS_YEXTENT, propType, h);
+               if capRet then MessageDlg('Paper Position After: '+
                                     #13#10+'x: '+IntToStr(x)+
                                     #13#10+'y: '+IntToStr(y)+
                                     #13#10+'w: '+IntToStr(w)+
                                     #13#10+'h: '+IntToStr(h),
                                     mtInformation, [mbOk], 0);
-          if (edTests.Text<>'') then
-          begin
-            capRet:= WIASource.SetBitDepth(StrToInt(edTests.Text));
-            if not(capRet) then raise Exception.Create('SetBitDepth');
+               if (edTests.Text<>'') then
+               begin
+                 capRet:= WIASource.SetBitDepth(StrToInt(edTests.Text));
+                 if not(capRet) then raise Exception.Create('SetBitDepth');
+               end;
+             end;
+
+             { #todo 5 -oMaxM : Move To Download? }
+             if WIAParams[SelectedItemIndex].DataType in [wdtRAW_RGB..wdtRAW_CMYK]
+             then capRet:= WIASource.SetImageFormat(wifRAW)
+             else capRet:= WIASource.SetImageFormat(wifBMP);
+             if not(capRet) then raise Exception.Create('SetImageFormat');
+
+             if WIAParams[SelectedItemIndex].DataType in [wdtRAW_RGB..wdtRAW_CMYK]
+             then begin
+                    aFormat:= wifRAW;
+                    aExt:= '.raw'
+                  end
+             else begin
+                    aFormat:= wifBMP;
+                    aExt:= '.bmp';
+                  end;
+
+             c:= WIASource.Download(aPath, 'test_wia', aExt, aFormat);
           end;
-      end;
 
-      { #todo 5 -oMaxM : Move To Download? }
-      if WIAParams[SelectedItemIndex].DataType in [wdtRAW_RGB..wdtRAW_CMYK]
-      then capRet:= WIASource.SetImageFormat(wifRAW)
-      else capRet:= WIASource.SetImageFormat(wifBMP);
-      if not(capRet) then raise Exception.Create('SetImageFormat');
-
-      if WIAParams[SelectedItemIndex].DataType in [wdtRAW_RGB..wdtRAW_CMYK]
-      then begin
-             aFormat:= wifRAW;
-             aExt:= '.raw'
-           end
-      else begin
-             aFormat:= wifBMP;
-             aExt:= '.bmp';
-           end;
-
-      c:= WIASource.Download(aPath, 'test_wia', aExt, aFormat);
       if (c>0)
       then begin
              MessageDlg('Downloaded '+IntToStr(c)+' Files', mtInformation, [mbOk], 0);

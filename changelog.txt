@@ -2,6 +2,9 @@ WIAPASCAL CHANGE LOG
 ======================
 
 2024/10/
+        25 Added Item Category;
+	   First Test with Native UI;
+	   Changed some Const Names.
         24 Use always pWiaTransfer.Download(0, Self) until further tests;
            Changed some var names in SettingsForm; 
            Added UseNativeUI and WIACaps Array in SettingsForm

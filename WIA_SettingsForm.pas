@@ -310,7 +310,7 @@ begin
     wdtAUTO: cbDataType.Items.AddObject('Auto type', TObject(PtrUInt(wdtAUTO)));
     wdtDITHER, wdtCOLOR_DITHER: begin end;
     else begin
-           cbDataType.Items.AddObject(WIADataTypeStr[dataI], TObject(PtrUInt(dataI)));
+           cbDataType.Items.AddObject(WIADataTypeDescr[dataI], TObject(PtrUInt(dataI)));
 
            case initItemValues of
            initDefault: begin if (dataI = DataTypeDefault) then cbSelected :=cbDataType.Items.Count-1; end;

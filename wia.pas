@@ -61,9 +61,28 @@ type
   );
   TWIAItemTypes = set of TWIAItemType;
 
+  TWIAItemCategory = (
+    wicNULL,
+    wicFINISHED_FILE,
+    wicFLATBED,
+    wicFEEDER,
+    wicFILM,
+    wicROOT,
+    wicFOLDER,
+    wicFEEDER_FRONT,
+    wicFEEDER_BACK,
+    wicAUTO,
+    wicIMPRINTER,
+    wicENDORSER,
+    wicBARCODE_READER,
+    wicPATCH_CODE_READER,
+    wicMICR_READER
+ );
+
   TWIAItem = record
     Name: String;
     ItemType: TWIAItemTypes;
+    ItemCategory: TWIAItemCategory;
   end;
   PWIAItem = ^TWIAItem;
   TArrayWIAItem = array of TWIAItem;
@@ -249,6 +268,9 @@ type
     //Download the Selected Item and return the number of files transfered
     function Download(APath, AFileName, AExt: String): Integer; overload;
     function Download(APath, AFileName, AExt: String; AFormat: TWIAImageFormat): Integer; overload;
+
+    function DownloadNativeUI(hwndParent: HWND; useSystemUI: Boolean;
+                              APath, AFileName, AExt: String): Integer;
 
     //Get Current Property Value and it's type given the ID
     function GetProperty(APropId: PROPID; var propType: TVarType;
@@ -488,7 +510,7 @@ type
   end;
 
 const
-  WIADeviceTypeStr : array  [TWIADeviceType] of String = (
+  WIADeviceTypeDescr : array  [TWIADeviceType] of String = (
     'Default', 'Scanner', 'Digital Camera', 'Streaming Video'
   );
 
@@ -515,31 +537,49 @@ const
     '{41e8dd92-2f0a-43d4-8636-f1614ba11e46}',
     '{bb8e7e67-283c-4235-9e59-0b9bf94ca687}'
   );
-  WiaImageFormat : array [TWIAImageFormat] of String = (
-  'Undefined',
-  'Raw RGB format',
-  'Windows bitmap without a header',
-  'Windows Device Independent Bitmap',
-  'Extended Windows metafile',
-  'Windows metafile',
-  'JPEG compressed format',
-  'W3C PNG format',
-  'GIF image format',
-  'Tagged Image File format',
-  'Exchangeable File Format',
-  'Eastman Kodak file format',
-  'FlashPix format',
-  'Windows icon file format',
-  'Camera Image File format',
-  'Apple file format',
-  'JPEG 2000 compressed format',
-  'JPEG 2000X compressed format',
-  'WIA Raw image file format',
-  'Joint Bi-level Image experts Group format',
-  'Joint Bi-level Image experts Group format (ver 2)'
+  WiaImageFormatDescr : array [TWIAImageFormat] of String = (
+    'Undefined',
+    'Raw RGB format',
+    'Windows bitmap without a header',
+    'Windows Device Independent Bitmap',
+    'Extended Windows metafile',
+    'Windows metafile',
+    'JPEG compressed format',
+    'W3C PNG format',
+    'GIF image format',
+    'Tagged Image File format',
+    'Exchangeable File Format',
+    'Eastman Kodak file format',
+    'FlashPix format',
+    'Windows icon file format',
+    'Camera Image File format',
+    'Apple file format',
+    'JPEG 2000 compressed format',
+    'JPEG 2000X compressed format',
+    'WIA Raw image file format',
+    'Joint Bi-level Image experts Group format',
+    'Joint Bi-level Image experts Group format (ver 2)'
   );
 
-  WIADataTypeStr: array [wdtBN..wdtRAW_CMYK] of String = (
+  WiaItemCategoryGUID : array[TWIAItemCategory] of TGUID = (
+    '',
+    '{ff2b77ca-cf84-432b-a735-3a130dde2a88}',
+    '{fb607b1f-43f3-488b-855b-fb703ec342a6}',
+    '{fe131934-f84c-42ad-8da4-6129cddd7288}',
+    '{fcf65be7-3ce3-4473-af85-f5d37d21b68a}',
+    '{f193526f-59b8-4a26-9888-e16e4f97ce10}',
+    '{c692a446-6f5a-481d-85bb-92e2e86fd30a}',
+    '{4823175c-3b28-487b-a7e6-eebc17614fd1}',
+    '{61ca74d4-39db-42aa-89b1-8c19c9cd4c23}',
+    '{defe5fd8-6c97-4dde-b11e-cb509b270e11}',
+    '{fc65016d-9202-43dd-91a7-64c2954cfb8b}',
+    '{47102cc3-127f-4771-adfc-991ab8ee1e97}',
+    '{36e178a0-473f-494b-af8f-6c3f6d7486fc}',
+    '{8faa1a6d-9c8a-42cd-98b3-ee9700cbc74f}',
+    '{3b86c1ec-71bc-4645-b4d5-1b19da2be978}'
+  );
+
+  WIADataTypeDescr: array [wdtBN..wdtRAW_CMYK] of String = (
     'Black & White',
     'Gray scale (Dither)',
     'Gray scale',
@@ -556,13 +596,14 @@ const
 
 
 function WIAItemTypes(pItemType: LONG): TWIAItemTypes;
+function WIAItemCategory(const AGUID: TGUID): TWIAItemCategory;
 
 function WIAPropertyFlags(pFlags: ULONG): TWIAPropertyFlags;
 
 function WIACopyCurrentValues(const WIACap: TWIAParamsCapabilities): TWIAParams;
 function WIACopyDefaultValues(const WIACap: TWIAParamsCapabilities): TWIAParams;
 
-function WIAImageFormat_To_wif(const AGUID: TGUID; var Value: TWIAImageFormat): Boolean;
+function WIAImageFormat(const AGUID: TGUID; var Value: TWIAImageFormat): Boolean;
 
 implementation
 
@@ -625,6 +666,21 @@ begin
   if (pItemType and WiaItemTypeProgrammableDataSource <> 0) then Result:= Result+[witProgrammableDataSource];
 end;
 
+function WIAItemCategory(const AGUID: TGUID): TWIAItemCategory;
+var
+   i: TWIAItemCategory;
+
+begin
+  Result:= wicNULL;
+
+  for i in TWIAItemCategory do
+    if (WiaItemCategoryGUID[i] = AGUID) then
+    begin
+      Result:= i;
+      break;
+    end;
+end;
+
 function WIAPropertyFlags(pFlags: ULONG): TWIAPropertyFlags;
 begin
   Result :=[];
@@ -666,7 +722,7 @@ begin
   end;
 end;
 
-function WIAImageFormat_To_wif(const AGUID: TGUID; var Value: TWIAImageFormat): Boolean;
+function WIAImageFormat(const AGUID: TGUID; var Value: TWIAImageFormat): Boolean;
 var
    i: TWIAImageFormat;
 
@@ -772,6 +828,7 @@ var
    iCount,
    itemFetched: ULONG;
    itemType: LONG;
+   itemCategory: TGUID;
    i: Integer;
    pPropSpec: PROPSPEC;
    pPropVar: PROPVARIANT;
@@ -812,6 +869,11 @@ begin
           if (lres = S_OK)
           then rItemList[i].ItemType :=WIAItemTypes(itemType)
           else rItemList[i].ItemType :=[];
+
+          lres:= pItem.GetItemCategory(itemCategory);
+          if (lres = S_OK)
+          then rItemList[i].ItemCategory :=WIAItemCategory(itemCategory)
+          else rItemList[i].ItemCategory :=wicNULL;
 
           lres:= pItem.QueryInterface(IID_IWiaPropertyStorage, pWiaPropertyStorage);
           if (lres = S_OK) and (pWiaPropertyStorage <> nil) then
@@ -1061,6 +1123,53 @@ begin
 
   if SetImageFormat(AFormat)
   then Result:= Download(APath, AFileName, AExt);
+end;
+
+function TWIADevice.DownloadNativeUI(hwndParent: HWND; useSystemUI: Boolean; APath, AFileName, AExt: String): Integer;
+var
+   selItemType: TWIAItemTypes;
+   dlgFlags: LONG;
+   numPaths: LONG;
+   filePaths: PBSTR;
+   itemArray: Pointer;
+
+begin
+  Result:= 0;
+
+  if (pSelectedItem = nil) then GetSelectedItem;
+  if (pSelectedItem <> nil) then
+  begin
+    selItemType:= rItemList[rSelectedItemIndex].ItemType;
+
+    if (APath = '') or CharInSet(APath[Length(APath)], AllowDirectorySeparators)
+    then rDownload_Path:= APath
+    else rDownload_Path:= APath+DirectorySeparator;
+
+    rDownload_FileName:= AFileName;
+    rDownload_Ext:= AExt;
+    rDownload_Count:= 0;
+    rDownloaded:= False;
+
+    if useSystemUI
+    then dlgFlags:= WIA_DEVICE_DIALOG_USE_COMMON_UI
+    else dlgFlags:= 0;
+
+    numPaths:= 0;
+//    filePaths:= nil;
+//    filePaths:= CoTaskMemAlloc(SizeOf(PBSTR));
+//    itemArray:= CoTaskMemAlloc(SizeOf(IWiaItem2));
+(*    lres:= pSelectedItem.DeviceDlg(dlgFlags, hwndParent,
+                                   StringToOleStr(rDownload_Path), StringToOleStr(rDownload_FileName),
+                                   numPaths, filePaths, IWiaItem2(itemArray));
+*)  lres:= rOwner.pWIA_DevMgr.GetImageDlg(0, StringToOleStr(Self.ID), hwndParent,
+                                   StringToOleStr(rDownload_Path), StringToOleStr(rDownload_FileName),
+                                   rDownload_Count, filePaths, IWiaItem2(itemArray));
+
+//    CoTaskMemFree(filePaths);
+//    CoTaskMemFree(itemArray);
+
+    Result:= rDownload_Count;
+  end;
 end;
 
 function TWIADevice.GetProperty(APropId: PROPID; var propType: TVarType;
@@ -1833,7 +1942,7 @@ var
 begin
   Result:= GetProperty(WIA_IPA_FORMAT, propType, gValue, useRoot);
   if Result
-  then Result:= WIAImageFormat_To_wif(gValue, Current);
+  then Result:= WIAImageFormat(gValue, Current);
 end;
 
 function TWIADevice.GetImageFormat(var Current, Default: TWIAImageFormat; var Values: TWIAImageFormatSet; useRoot: Boolean): Boolean;
@@ -1857,7 +1966,7 @@ begin
      if (WIAProp_LIST in pFlags) then
      for i:=0 to Length(gValues)-1 do
      begin
-       Result:= WIAImageFormat_To_wif(gValues[i], curValue);
+       Result:= WIAImageFormat(gValues[i], curValue);
        if Result
        then Values:= Values+[curValue];
        { #todo 2 -oMaxM : else Ignore it or return False? }
@@ -1867,11 +1976,11 @@ begin
      Current:= wifUNDEFINED;
      Default:= wifUNDEFINED;
      Result:= GetProperty(WIA_IPA_FORMAT, propType, gValue, useRoot) and
-              WIAImageFormat_To_wif(gValue, Current);
+              WIAImageFormat(gValue, Current);
      if not(Result) then exit;
 
      Result:= GetProperty(WIA_IPA_PREFERRED_FORMAT, propType, gValue, useRoot) and
-              WIAImageFormat_To_wif(gValue, Default);
+              WIAImageFormat(gValue, Default);
 
   finally
     gValues:= nil;

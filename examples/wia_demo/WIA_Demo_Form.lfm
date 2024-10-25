@@ -28,10 +28,10 @@ object FormWIADemo: TFormWIADemo
     ClientWidth = 769
     TabOrder = 0
     object btAcquire: TButton
-      Left = 224
+      Left = 208
       Height = 32
       Top = 8
-      Width = 75
+      Width = 48
       Caption = 'Acquire'
       Enabled = False
       TabOrder = 0
@@ -89,6 +89,16 @@ object FormWIADemo: TFormWIADemo
       Height = 1
       Top = 32
       Width = 1
+    end
+    object btNative: TButton
+      Left = 256
+      Height = 32
+      Top = 8
+      Width = 40
+      Caption = 'Native'
+      Enabled = False
+      TabOrder = 6
+      OnClick = btNativeClick
     end
   end
 end
