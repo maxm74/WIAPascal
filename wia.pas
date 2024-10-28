@@ -270,7 +270,8 @@ type
     function Download(APath, AFileName, AExt: String; AFormat: TWIAImageFormat): Integer; overload;
 
     function DownloadNativeUI(hwndParent: HWND; useSystemUI: Boolean;
-                              APath, AFileName, AExt: String): Integer;
+                              APath, AFileName: String;
+                              var DownloadedFiles: TStringArray): Integer;
 
     //Get Current Property Value and it's type given the ID
     function GetProperty(APropId: PROPID; var propType: TVarType;
@@ -1125,48 +1126,66 @@ begin
   then Result:= Download(APath, AFileName, AExt);
 end;
 
-function TWIADevice.DownloadNativeUI(hwndParent: HWND; useSystemUI: Boolean; APath, AFileName, AExt: String): Integer;
+function TWIADevice.DownloadNativeUI(hwndParent: HWND; useSystemUI: Boolean; APath, AFileName: String;
+  var DownloadedFiles: TStringArray): Integer;
 var
-   selItemType: TWIAItemTypes;
+   //selItemType: TWIAItemTypes;
    dlgFlags: LONG;
-   numPaths: LONG;
+   i: Integer;
    filePaths: PBSTR;
-   itemArray: Pointer;
+   itemArray: PIWiaItem2;
 
 begin
   Result:= 0;
 
-  if (pSelectedItem = nil) then GetSelectedItem;
-  if (pSelectedItem <> nil) then
+  if (pRootItem = nil) then GetRootItem;
+  if (pRootItem <> nil) then
   begin
-    selItemType:= rItemList[rSelectedItemIndex].ItemType;
+    //selItemType:= rItemList[pRootItem].ItemType;
 
     if (APath = '') or CharInSet(APath[Length(APath)], AllowDirectorySeparators)
     then rDownload_Path:= APath
     else rDownload_Path:= APath+DirectorySeparator;
 
     rDownload_FileName:= AFileName;
-    rDownload_Ext:= AExt;
+    rDownload_Ext:= '';
     rDownload_Count:= 0;
     rDownloaded:= False;
+    SetLength(DownloadedFiles, 0);
 
     if useSystemUI
     then dlgFlags:= WIA_DEVICE_DIALOG_USE_COMMON_UI
     else dlgFlags:= 0;
 
-    numPaths:= 0;
-//    filePaths:= nil;
-//    filePaths:= CoTaskMemAlloc(SizeOf(PBSTR));
-//    itemArray:= CoTaskMemAlloc(SizeOf(IWiaItem2));
-(*    lres:= pSelectedItem.DeviceDlg(dlgFlags, hwndParent,
-                                   StringToOleStr(rDownload_Path), StringToOleStr(rDownload_FileName),
-                                   numPaths, filePaths, IWiaItem2(itemArray));
-*)  lres:= rOwner.pWIA_DevMgr.GetImageDlg(0, StringToOleStr(Self.ID), hwndParent,
-                                   StringToOleStr(rDownload_Path), StringToOleStr(rDownload_FileName),
-                                   rDownload_Count, filePaths, IWiaItem2(itemArray));
+    filePaths:= nil;
+    itemArray:= nil;
+           //pSelectedItem.
+    lres:= pRootItem.DeviceDlg(dlgFlags, hwndParent,
+                                StringToOleStr(rDownload_Path), StringToOleStr(rDownload_FileName),
+                                rDownload_Count, filePaths, itemArray);
+(*  lres:= rOwner.pWIA_DevMgr.GetImageDlg(0, StringToOleStr(Self.ID), hwndParent,
+                                StringToOleStr(rDownload_Path), StringToOleStr(rDownload_FileName),
+                                rDownload_Count, filePaths, itemArray);
+*)
+     if (filePaths <> nil) then
+     begin
+       SetLength(DownloadedFiles, rDownload_Count);
+       for i:=0 to rDownload_Count-1 do
+       begin
+         DownloadedFiles[i]:= filePaths^[i];
+         SysFreeString(filePaths^[i]);
+       end;
 
-//    CoTaskMemFree(filePaths);
-//    CoTaskMemFree(itemArray);
+       CoTaskMemFree(filePaths);
+     end;
+     (* { #note -oMaxM : Exception...Is it already cleared by the garbage collector? }
+     if (itemArray <> nil) then
+     begin
+       for i:=0 to rDownload_Count-1 do
+         itemArray^[i]._Release;
+
+       CoTaskMemFree(itemArray);
+     end; *)
 
     Result:= rDownload_Count;
   end;

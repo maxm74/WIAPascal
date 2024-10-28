@@ -149,23 +149,24 @@ end;
 
 procedure TFormWIADemo.btNativeClick(Sender: TObject);
 var
-   aPath, aExt: String;
+   aPath: String;
    WIASource: TWIADevice;
    c: Integer;
+   DownloadedFiles: TStringArray;
 
 begin
   WIASource:= FWia.SelectedDevice;
-  WIASource.SelectedItemIndex:= 0;
+  if (Sender <> nil) then WIASource.SelectedItemIndex:= 0;
   aPath:= ExtractFilePath(ParamStr(0));
-  aExt:= '.bmp';
-  c:= WiaSource.DownloadNativeUI(Self.Handle, False, aPath, 'test_wia', 'bmp');
-    if (c>0)
-    then begin
+  c:= WiaSource.DownloadNativeUI(Self.Handle, False, aPath, 'test_wia', DownloadedFiles);
+  if (c>0)
+  then begin
            MessageDlg('Downloaded '+IntToStr(c)+' Files', mtInformation, [mbOk], 0);
-           ImageHolder.Picture.Bitmap.LoadFromFile(aPath+'test_wia'+aExt);
+
+           ImageHolder.Picture.Bitmap.LoadFromFile(DownloadedFiles[0]);
          end
     else MessageDlg('NO Files Downloaded ', mtError, [mbOk], 0);
-
+  DownloadedFiles:= nil;
 end;
 
 procedure TFormWIADemo.btAcquireClick(Sender: TObject);
@@ -205,7 +206,7 @@ begin
 
       if WIAParams[SelectedItemIndex].NativeUI
       then begin
-             c:= WiaSource.DownloadNativeUI(Self.Handle, False, aPath, 'test_wia', 'bmp');
+             btNativeClick(nil);
            end
       else begin
              if cbTest.Checked then
@@ -260,15 +261,14 @@ begin
                   end;
 
              c:= WIASource.Download(aPath, 'test_wia', aExt, aFormat);
+
+             if (c>0)
+             then begin
+                    MessageDlg('Downloaded '+IntToStr(c)+' Files', mtInformation, [mbOk], 0);
+                    ImageHolder.Picture.Bitmap.LoadFromFile(aPath+'test_wia'+aExt);
+                  end
+             else MessageDlg('NO Files Downloaded ', mtError, [mbOk], 0);
           end;
-
-      if (c>0)
-      then begin
-             MessageDlg('Downloaded '+IntToStr(c)+' Files', mtInformation, [mbOk], 0);
-             ImageHolder.Picture.Bitmap.LoadFromFile(aPath+'test_wia'+aExt);
-           end
-      else MessageDlg('NO Files Downloaded ', mtError, [mbOk], 0);
-
      end;
 
   finally

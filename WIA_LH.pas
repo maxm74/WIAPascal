@@ -83,11 +83,14 @@ type
   IWiaItem2 = interface;
   IWiaDevMgr2 = interface;
 
-  TarrayBSTR = array [0..0] of BSTR;
-  PBSTR = ^TarrayBSTR; //^BSTR;
+  TArrayBSTR = array [0..0] of BSTR;
+  PBSTR = ^TArrayBSTR; //^BSTR;
 
-  TarrayIWiaItem = array [0..0] of IWiaItem;
-  PIWiaItem = ^TarrayIWiaItem; //^IWiaItem;
+  TArrayIWiaItem = array [0..0] of IWiaItem;
+  PIWiaItem = ^TArrayIWiaItem;
+
+  TArrayIWiaItem2 = array [0..0] of IWiaItem2;
+  PIWiaItem2 = ^TArrayIWiaItem2;
 
   _WIA_DITHER_PATTERN_DATA = record
       lSize : LONG;
@@ -600,7 +603,7 @@ type
                        bstrFilename: BSTR;
                        out plNumFiles: LONG;
                        out ppbstrFilePaths: PBSTR;
-                       var ppItem: IWiaItem2): HRESULT; stdcall;
+                       var ppItem: PIWiaItem2): HRESULT; stdcall;
 
     function DeviceCommand(lFlags: LONG;
                            const pCmdGUID: PGUID;
