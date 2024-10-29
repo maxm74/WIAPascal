@@ -30,71 +30,71 @@ type
     w, h: Integer;
   end;
 
-  TWIAPaperSize = (
-   wpsMAX = $FF, // Use  WIA_IPS_MAX_HORIZONTAL/VERTICAL_SIZE
-   wpsA4 = WIA_PAGE_A4, //  8267 x 11692
-   wpsLETTER = WIA_PAGE_LETTER, //  8500 x 11000
-   wpsCUSTOM = WIA_PAGE_CUSTOM, // Use a Range from  WIA_IPS_MIN_*_SIZE to WIA_IPS_MAX_*_SIZE
-   wpsUSLEGAL = WIA_PAGE_USLEGAL, //  8500 x 14000
-   wpsUSLEDGER = WIA_PAGE_USLEDGER, // 11000 x 17000
-   wpsUSSTATEMENT = WIA_PAGE_USSTATEMENT, //  5500 x  8500
-   wpsBUSINESSCARD = WIA_PAGE_BUSINESSCARD, //  3543 x  2165
-   wpsISO_A0 = WIA_PAGE_ISO_A0, // 33110 x 46811
-   wpsISO_A1 = WIA_PAGE_ISO_A1, // 23385 x 33110
-   wpsISO_A2 = WIA_PAGE_ISO_A2, // 16535 x 23385
-   wpsISO_A3 = WIA_PAGE_ISO_A3, // 11692 x 16535
-   wpsISO_A5 = WIA_PAGE_ISO_A5, //  5826 x  8267
-   wpsISO_A6 = WIA_PAGE_ISO_A6, //  4133 x  5826
-   wpsISO_A7 = WIA_PAGE_ISO_A7, //  2913 x  4133
-   wpsISO_A8 = WIA_PAGE_ISO_A8, //  2047 x  2913
-   wpsISO_A9 = WIA_PAGE_ISO_A9, //  1456 x  2047
-   wpsISO_A10 = WIA_PAGE_ISO_A10, //  1023 x  1456
-   wpsISO_B0 = WIA_PAGE_ISO_B0, //  39370 x 55669
-   wpsISO_B1 = WIA_PAGE_ISO_B1, //  27834 x 39370
-   wpsISO_B2 = WIA_PAGE_ISO_B2, //  19685 x 27834
-   wpsISO_B3 = WIA_PAGE_ISO_B3, //  13897 x 19685
-   wpsISO_B4 = WIA_PAGE_ISO_B4, //   9842 x 13897
-   wpsISO_B5 = WIA_PAGE_ISO_B5, //   6929 x  9842
-   wpsISO_B6 = WIA_PAGE_ISO_B6, //   4921 x  6929
-   wpsISO_B7 = WIA_PAGE_ISO_B7, //   3464 x  4921
-   wpsISO_B8 = WIA_PAGE_ISO_B8, //   2440 x  3464
-   wpsISO_B9 = WIA_PAGE_ISO_B9, //   1732 x  2440
-   wpsISO_B10 = WIA_PAGE_ISO_B10, //   1220 x  1732
-   wpsISO_C0 = WIA_PAGE_ISO_C0, //  36102 x 51062
-   wpsISO_C1 = WIA_PAGE_ISO_C1, //  25511 x 36102
-   wpsISO_C2 = WIA_PAGE_ISO_C2, //  18031 x 25511
-   wpsISO_C3 = WIA_PAGE_ISO_C3, //  12755 x 18031
-   wpsISO_C4 = WIA_PAGE_ISO_C4, //   9015 x 12755 (unfolded)
-   wpsISO_C5 = WIA_PAGE_ISO_C5, //   6377 x  9015 (folded once)
-   wpsISO_C6 = WIA_PAGE_ISO_C6, //   4488 x  6377 (folded twice)
-   wpsISO_C7 = WIA_PAGE_ISO_C7, //   3188 x  4488
-   wpsISO_C8 = WIA_PAGE_ISO_C8, //   2244 x  3188
-   wpsISO_C9 = WIA_PAGE_ISO_C9, //   1574 x  2244
-   wpsISO_C10 = WIA_PAGE_ISO_C10, //   1102 x  1574
-   wpsJIS_B0 = WIA_PAGE_JIS_B0, //  40551 x 57322
-   wpsJIS_B1 = WIA_PAGE_JIS_B1, //  28661 x 40551
-   wpsJIS_B2 = WIA_PAGE_JIS_B2, //  20275 x 28661
-   wpsJIS_B3 = WIA_PAGE_JIS_B3, //  14330 x 20275
-   wpsJIS_B4 = WIA_PAGE_JIS_B4, //  10118 x 14330
-   wpsJIS_B5 = WIA_PAGE_JIS_B5, //   7165 x 10118
-   wpsJIS_B6 = WIA_PAGE_JIS_B6, //   5039 x  7165
-   wpsJIS_B7 = WIA_PAGE_JIS_B7, //   3582 x  5039
-   wpsJIS_B8 = WIA_PAGE_JIS_B8, //   2519 x  3582
-   wpsJIS_B9 = WIA_PAGE_JIS_B9, //   1771 x  2519
-   wpsJIS_B10 = WIA_PAGE_JIS_B10, //   1259 x  1771
-   wpsJIS_2A = WIA_PAGE_JIS_2A, //  46811 x 66220
-   wpsJIS_4A = WIA_PAGE_JIS_4A, //  66220 x  93622
-   wpsDIN_2B = WIA_PAGE_DIN_2B, //  55669 x 78740
-   wpsDIN_4B = WIA_PAGE_DIN_4B, //  78740 x 111338
-   wpsAUTO = WIA_PAGE_AUTO
+  TWIAPaperType = (
+   wptMAX = $FF, // Use  WIA_IPS_MAX_HORIZONTAL/VERTICAL_SIZE
+   wptA4 = WIA_PAGE_A4, //  8267 x 11692
+   wptLETTER = WIA_PAGE_LETTER, //  8500 x 11000
+   wptCUSTOM = WIA_PAGE_CUSTOM, // Use a Range from  WIA_IPS_MIN_*_SIZE to WIA_IPS_MAX_*_SIZE
+   wptUSLEGAL = WIA_PAGE_USLEGAL, //  8500 x 14000
+   wptUSLEDGER = WIA_PAGE_USLEDGER, // 11000 x 17000
+   wptUSSTATEMENT = WIA_PAGE_USSTATEMENT, //  5500 x  8500
+   wptBUSINESSCARD = WIA_PAGE_BUSINESSCARD, //  3543 x  2165
+   wptISO_A0 = WIA_PAGE_ISO_A0, // 33110 x 46811
+   wptISO_A1 = WIA_PAGE_ISO_A1, // 23385 x 33110
+   wptISO_A2 = WIA_PAGE_ISO_A2, // 16535 x 23385
+   wptISO_A3 = WIA_PAGE_ISO_A3, // 11692 x 16535
+   wptISO_A5 = WIA_PAGE_ISO_A5, //  5826 x  8267
+   wptISO_A6 = WIA_PAGE_ISO_A6, //  4133 x  5826
+   wptISO_A7 = WIA_PAGE_ISO_A7, //  2913 x  4133
+   wptISO_A8 = WIA_PAGE_ISO_A8, //  2047 x  2913
+   wptISO_A9 = WIA_PAGE_ISO_A9, //  1456 x  2047
+   wptISO_A10 = WIA_PAGE_ISO_A10, //  1023 x  1456
+   wptISO_B0 = WIA_PAGE_ISO_B0, //  39370 x 55669
+   wptISO_B1 = WIA_PAGE_ISO_B1, //  27834 x 39370
+   wptISO_B2 = WIA_PAGE_ISO_B2, //  19685 x 27834
+   wptISO_B3 = WIA_PAGE_ISO_B3, //  13897 x 19685
+   wptISO_B4 = WIA_PAGE_ISO_B4, //   9842 x 13897
+   wptISO_B5 = WIA_PAGE_ISO_B5, //   6929 x  9842
+   wptISO_B6 = WIA_PAGE_ISO_B6, //   4921 x  6929
+   wptISO_B7 = WIA_PAGE_ISO_B7, //   3464 x  4921
+   wptISO_B8 = WIA_PAGE_ISO_B8, //   2440 x  3464
+   wptISO_B9 = WIA_PAGE_ISO_B9, //   1732 x  2440
+   wptISO_B10 = WIA_PAGE_ISO_B10, //   1220 x  1732
+   wptISO_C0 = WIA_PAGE_ISO_C0, //  36102 x 51062
+   wptISO_C1 = WIA_PAGE_ISO_C1, //  25511 x 36102
+   wptISO_C2 = WIA_PAGE_ISO_C2, //  18031 x 25511
+   wptISO_C3 = WIA_PAGE_ISO_C3, //  12755 x 18031
+   wptISO_C4 = WIA_PAGE_ISO_C4, //   9015 x 12755 (unfolded)
+   wptISO_C5 = WIA_PAGE_ISO_C5, //   6377 x  9015 (folded once)
+   wptISO_C6 = WIA_PAGE_ISO_C6, //   4488 x  6377 (folded twice)
+   wptISO_C7 = WIA_PAGE_ISO_C7, //   3188 x  4488
+   wptISO_C8 = WIA_PAGE_ISO_C8, //   2244 x  3188
+   wptISO_C9 = WIA_PAGE_ISO_C9, //   1574 x  2244
+   wptISO_C10 = WIA_PAGE_ISO_C10, //   1102 x  1574
+   wptJIS_B0 = WIA_PAGE_JIS_B0, //  40551 x 57322
+   wptJIS_B1 = WIA_PAGE_JIS_B1, //  28661 x 40551
+   wptJIS_B2 = WIA_PAGE_JIS_B2, //  20275 x 28661
+   wptJIS_B3 = WIA_PAGE_JIS_B3, //  14330 x 20275
+   wptJIS_B4 = WIA_PAGE_JIS_B4, //  10118 x 14330
+   wptJIS_B5 = WIA_PAGE_JIS_B5, //   7165 x 10118
+   wptJIS_B6 = WIA_PAGE_JIS_B6, //   5039 x  7165
+   wptJIS_B7 = WIA_PAGE_JIS_B7, //   3582 x  5039
+   wptJIS_B8 = WIA_PAGE_JIS_B8, //   2519 x  3582
+   wptJIS_B9 = WIA_PAGE_JIS_B9, //   1771 x  2519
+   wptJIS_B10 = WIA_PAGE_JIS_B10, //   1259 x  1771
+   wptJIS_2A = WIA_PAGE_JIS_2A, //  46811 x 66220
+   wptJIS_4A = WIA_PAGE_JIS_4A, //  66220 x  93622
+   wptDIN_2B = WIA_PAGE_DIN_2B, //  55669 x 78740
+   wptDIN_4B = WIA_PAGE_DIN_4B, //  78740 x 111338
+   wptAUTO = WIA_PAGE_AUTO
   );
-  TWIAPaperSizeSet = set of TWIAPaperSize;
+  TWIAPaperTypeSet = set of TWIAPaperType;
 
 const
-  PaperSizesWIA_MaxIndex = wpsDIN_4B;
+  PaperSizesWIA_MaxIndex = wptDIN_4B;
 
   //Sizes of Papers in thousandths of an inch
-  PaperSizesWIA: array [wpsA4..wpsDIN_4B] of TPaperSize = (
+  PaperSizesWIA: array [wptA4..wptDIN_4B] of TPaperSize = (
    (name:'A4'; w: 8267; h: 11692),
    (name:'US Letter'; w: 8500; h: 11000),
    (name:''; w: 0; h: 0),
@@ -208,24 +208,27 @@ const
    (name:'DIN 4B'; w:200; h:282.8)
 *)
 
-function CalculatePaperSizeSet(Max_Width, Max_Height: Integer): TWIAPaperSizeSet;
-function CalculatePaperSize(AWidth, AHeight: Integer): TWIAPaperSize;
+function CalculatePaperSizeSet(Max_Width, Max_Height: Integer): TWIAPaperTypeSet;
+function CalculatePaperSize(AWidth, AHeight: Integer): TWIAPaperType;
+function THInchToSize(Unit_cm: Boolean; ASize: Integer): Single;
+function THInchToStr(Unit_cm: Boolean; ASize: Integer): String;
 function THInchToCm(ASize: Integer): Single;
 function THInchToCmStr(ASize: Integer): String;
 function THInchToInch(ASize: Integer): Single;
 function THInchToInchStr(ASize: Integer): String;
+function SizeToTHInch(Unit_cm: Boolean; ASize: Double): Integer;
 
 implementation
 
 uses SysUtils;
 
-function CalculatePaperSizeSet(Max_Width, Max_Height: Integer): TWIAPaperSizeSet;
+function CalculatePaperSizeSet(Max_Width, Max_Height: Integer): TWIAPaperTypeSet;
 var
    iSwap: Integer;
-   i: TWIAPaperSize;
+   i: TWIAPaperType;
 
 begin
-  Result:= [wpsMAX];
+  Result:= [wptMAX];
 
   if (Max_Width > Max_Height) then
   begin
@@ -234,24 +237,38 @@ begin
     Max_Width:= iSwap;
   end;
 
-  for i:=wpsA4 to PaperSizesWIA_MaxIndex do
+  for i:=wptA4 to PaperSizesWIA_MaxIndex do
   begin
     if (PaperSizesWIA[i].w <= Max_Width) and (PaperSizesWIA[i].h <= Max_Height)
     then Result:= Result + [i];
   end;
 end;
 
-function CalculatePaperSize(AWidth, AHeight: Integer): TWIAPaperSize;
+function CalculatePaperSize(AWidth, AHeight: Integer): TWIAPaperType;
 var
-   i: TWIAPaperSize;
+   i: TWIAPaperType;
 
 begin
-  Result:= wpsCUSTOM;
-  for i:=wpsA4 to PaperSizesWIA_MaxIndex do
+  Result:= wptCUSTOM;
+  for i:=wptA4 to PaperSizesWIA_MaxIndex do
   begin
     if (PaperSizesWIA[i].w = AWidth) and (PaperSizesWIA[i].h = AHeight)
     then begin Result:= i; break; end;
   end;
+end;
+
+function THInchToSize(Unit_cm: Boolean; ASize: Integer): Single;
+begin
+  if Unit_cm
+  then Result:= (ASize / 1000) * 2.54
+  else Result:= (ASize / 1000);
+end;
+
+function THInchToStr(Unit_cm: Boolean; ASize: Integer): String;
+begin
+  if Unit_cm
+  then Result:= FloatToStrF((ASize / 1000) * 2.54, ffFixed, 15, 2)
+  else Result:= FloatToStrF((ASize / 1000), ffFixed, 15, 2);
 end;
 
 function THInchToCm(ASize: Integer): Single;
@@ -272,6 +289,13 @@ end;
 function THInchToInchStr(ASize: Integer): String;
 begin
   Result:= FloatToStrF((ASize / 1000), ffFixed, 15, 2);
+end;
+
+function SizeToTHInch(Unit_cm: Boolean; ASize: Double): Integer;
+begin
+  if Unit_cm
+  then Result:= Trunc((ASize / 2.54) * 1000)
+  else Result:= Trunc(ASize * 1000);
 end;
 
 end.

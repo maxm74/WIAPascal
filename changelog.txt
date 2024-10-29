@@ -2,6 +2,11 @@ WIAPASCAL CHANGE LOG
 ======================
 
 2024/10/
+        29 TWIADevice.GetProperty Process only WIA Types, added all Arrays/Ranges;
+	   Changed names from PaperSize to PaperType;
+	   Added functions THInchToSize/Str in PaperSizes;
+	   Added Custom Paper Size in WIADevice and in SettingsForm;
+	   Added Panels for PaperAlign/Size in SettingsForm.
         28 Added PIWiaItem2 as array of IWIAItem2;
            Changed interface IWIAItem2.DeviceDlg declaration;
            Changed DownloadNativeUI method

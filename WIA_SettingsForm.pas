@@ -43,22 +43,26 @@ type
     btContrastD: TSpeedButton;
     btResolutionD: TSpeedButton;
     btCancel: TBitBtn;
-    btOrientation: TSpeedButton;
+    btPaperOrientation: TSpeedButton;
     btRefreshUndo: TBitBtn;
     btOk: TBitBtn;
     btRefreshCurrent: TBitBtn;
     btRefreshDefault: TBitBtn;
     cbBitDepth: TComboBox;
     cbSourceItem: TComboBox;
-    cbPaperSize: TComboBox;
+    cbPaperType: TComboBox;
     cbDataType: TComboBox;
     cbResolution: TComboBox;
     cbUseNativeUI: TCheckBox;
     edBrightness: TSpinEdit;
+    edPaperH: TFloatSpinEdit;
     edResolution: TSpinEdit;
     edContrast: TSpinEdit;
-    imgListAlign: TImageList;
+    edPaperW: TFloatSpinEdit;
+    gbPaperAlign: TGroupBox;
+    gbPaperSize: TGroupBox;
     imgAlign: TImage;
+    imgListAlign: TImageList;
     imgList: TImageList;
     Label1: TLabel;
     Label2: TLabel;
@@ -76,12 +80,13 @@ type
     tbSource_Scanner: TTabSheet;
     trBrightness: TTrackBar;
     trHAlign: TTrackBar;
-    trVAlign: TTrackBar;
     trResolution: TTrackBar;
     trContrast: TTrackBar;
+    trVAlign: TTrackBar;
     procedure bt0Click(Sender: TObject);
     procedure btDClick(Sender: TObject);
-    procedure btOrientationClick(Sender: TObject);
+    procedure btPaperOrientationClick(Sender: TObject);
+    procedure cbPaperTypeChange(Sender: TObject);
     procedure cbSourceItemChange(Sender: TObject);
     procedure cbUseNativeUIChange(Sender: TObject);
     procedure edBrightnessChange(Sender: TObject);
@@ -91,12 +96,15 @@ type
     procedure trHAlignChange(Sender: TObject);
   private
     WIASource: TWIADevice;
+    WIAPaperMaxWidth,
+    WIAPaperMaxHeight,
     WIASelectedItemIndex: Integer;
     WIACaps: TArrayWIAParamsCapabilities;
     WIAParams: TArrayWIAParams;
     curCap: TWIAParamsCapabilities;
     curParams: TWIAParams;
     initItemValues: TInitialItemValues;
+
     OnInitDefaultValues: TInitDefaultValuesEvent;
 
     procedure SelectCurrentItem(AIndex: Integer);
@@ -181,11 +189,38 @@ begin
   end;
 end;
 
-procedure TWIASettingsSource.btOrientationClick(Sender: TObject);
+procedure TWIASettingsSource.btPaperOrientationClick(Sender: TObject);
 begin
-  if btOrientation.Down
-  then begin btOrientation.ImageIndex:= 1; btOrientation.Hint:= 'Landscape'; end
-  else begin btOrientation.ImageIndex:= 0; btOrientation.Hint:= 'Portrait'; end;
+  if btPaperOrientation.Down
+  then begin btPaperOrientation.ImageIndex:= 1; btPaperOrientation.Hint:= 'Landscape'; end
+  else begin btPaperOrientation.ImageIndex:= 0; btPaperOrientation.Hint:= 'Portrait'; end;
+end;
+
+procedure TWIASettingsSource.cbPaperTypeChange(Sender: TObject);
+var
+   selPaperSize: TWIAPaperType;
+
+begin
+  selPaperSize:= TWIAPaperType(PtrUInt(cbPaperType.Items.Objects[cbPaperType.ItemIndex]));
+  Case selPaperSize of
+    wptMAX, wptAUTO: begin
+       gbPaperAlign.Enabled:= False;
+       gbPaperSize.Visible:= True;
+       gbPaperSize.Enabled:= False;
+       btPaperOrientation.Enabled:= False;
+    end;
+    wptCUSTOM: begin
+       gbPaperAlign.Enabled:= True;
+       gbPaperSize.Visible:= True;
+       gbPaperSize.Enabled:= True;
+       btPaperOrientation.Enabled:= True;
+    end;
+    else begin
+       gbPaperAlign.Enabled:= True;
+       gbPaperSize.Visible:= False;
+       btPaperOrientation.Enabled:= True;
+    end;
+  end;
 end;
 
 procedure TWIASettingsSource.edContrastChange(Sender: TObject);
@@ -208,7 +243,7 @@ var
    AParams: TWIAParams;
    ACap: TWIAParamsCapabilities;
    capRet: Boolean;
-   paperI: TWIAPaperSize;
+   paperI: TWIAPaperType;
    dataI: TWIADataType;
    i, cbSelected: Integer;
 
@@ -226,22 +261,22 @@ begin
   with ACap do
   begin
   //Fill List of Papers
-  cbPaperSize.Clear;
+  cbPaperType.Clear;
   cbSelected :=0;
-  cbPaperSize.Items.AddObject('Full size', TObject(PtrUInt(wpsMAX)));
-  for paperI in PaperSizeSet do
+  cbPaperType.Items.AddObject('Full size', TObject(PtrUInt(wptMAX)));
+  for paperI in PaperTypeSet do
   begin
     Case paperI of
-    wpsMAX:begin end;
-    wpsCUSTOM: cbPaperSize.Items.AddObject('Custom size', TObject(PtrUInt(wpsCUSTOM)));
-    wpsAUTO: cbPaperSize.Items.AddObject('Auto size', TObject(PtrUInt(wpsAUTO)));
+    wptMAX:begin end;
+    wptCUSTOM: cbPaperType.Items.AddObject('Custom size', TObject(PtrUInt(wptCUSTOM)));
+    wptAUTO: cbPaperType.Items.AddObject('Auto size', TObject(PtrUInt(wptAUTO)));
     else begin
            if WIASettings_Unit_cm
-           then cbPaperSize.Items.AddObject(PaperSizesWIA[paperI].name+' ('+
+           then cbPaperType.Items.AddObject(PaperSizesWIA[paperI].name+' ('+
                                             THInchToCmStr(PaperSizesWIA[paperI].w)+' x '+
                                             THInchToCmStr(PaperSizesWIA[paperI].h)+' cm)',
                                             TObject(PtrUInt(paperI)))
-           else cbPaperSize.Items.AddObject(PaperSizesWIA[paperI].name+' ('+
+           else cbPaperType.Items.AddObject(PaperSizesWIA[paperI].name+' ('+
                                             THInchToInchStr(PaperSizesWIA[paperI].w)+' x '+
                                             THInchToInchStr(PaperSizesWIA[paperI].h)+' in)',
                                             TObject(PtrUInt(paperI)))
@@ -249,22 +284,22 @@ begin
     end;
 
     case initItemValues of
-    initDefault: begin if (paperI = PaperSizeDefault) then cbSelected :=cbPaperSize.Items.Count-1; end;
-    initParams:  begin if (paperI = AParams.PaperSize) then cbSelected :=cbPaperSize.Items.Count-1; end;
-    initCurrent: begin if (paperI = PaperSizeCurrent) then cbSelected :=cbPaperSize.Items.Count-1; end;
+    initDefault: begin if (paperI = PaperTypeDefault) then cbSelected :=cbPaperType.Items.Count-1; end;
+    initParams:  begin if (paperI = AParams.PaperType) then cbSelected :=cbPaperType.Items.Count-1; end;
+    initCurrent: begin if (paperI = PaperTypeCurrent) then cbSelected :=cbPaperType.Items.Count-1; end;
     end;
   end;
-  cbPaperSize.ItemIndex:=cbSelected;
+  cbPaperType.ItemIndex:=cbSelected;
 
   //Set Landscape/Portrait Button
   case initItemValues of
-  initDefault: btOrientation.Down:= (RotationDefault in [wrLandscape, wrRot270]); //270 is basically landscape
-  initParams:  btOrientation.Down:= (AParams.Rotation in [wrLandscape, wrRot270]);
-  initCurrent: btOrientation.Down:= (RotationCurrent in [wrLandscape, wrRot270]);
+  initDefault: btPaperOrientation.Down:= (RotationDefault in [wrLandscape, wrRot270]); //270 is basically landscape
+  initParams:  btPaperOrientation.Down:= (AParams.Rotation in [wrLandscape, wrRot270]);
+  initCurrent: btPaperOrientation.Down:= (RotationCurrent in [wrLandscape, wrRot270]);
   end;
-  if btOrientation.Down
-  then begin btOrientation.ImageIndex:= 1; btOrientation.Hint:= 'Landscape'; end
-  else begin btOrientation.ImageIndex:= 0; btOrientation.Hint:= 'Portrait'; end;
+  if btPaperOrientation.Down
+  then begin btPaperOrientation.ImageIndex:= 1; btPaperOrientation.Hint:= 'Landscape'; end
+  else begin btPaperOrientation.ImageIndex:= 0; btPaperOrientation.Hint:= 'Portrait'; end;
 
   //Paper Align
   if (initItemValues = initParams)
@@ -277,6 +312,25 @@ begin
          trVAlign.Position:= 0;
        end;
   imgAlign.ImageIndex:= (trVAlign.Position*3)+trHAlign.Position;
+
+  //Set Max,Current Values for Custom Paper Size
+  edPaperW.Value:= 0;
+  edPaperH.Value:= 0;
+  edPaperW.MaxValue:= THInchToSize(WIASettings_Unit_cm, PaperSizeMaxWidth);
+  edPaperH.MaxValue:= THInchToSize(WIASettings_Unit_cm, PaperSizeMaxHeight);
+
+  if (TWIAPaperType(PtrUInt(cbPaperType.Items.Objects[cbPaperType.ItemIndex])) = wptCUSTOM) and
+     (initItemValues = initParams)
+  then begin
+         edPaperW.Value:= THInchToSize(WIASettings_Unit_cm, AParams.PaperW);
+         edPaperH.Value:= THInchToSize(WIASettings_Unit_cm, AParams.PaperH);
+       end
+  else begin
+         edPaperW.Value:= THInchToSize(WIASettings_Unit_cm, PaperSizeMaxWidth);
+         edPaperH.Value:= THInchToSize(WIASettings_Unit_cm, PaperSizeMaxHeight);
+       end;
+
+  cbPaperTypeChange(nil);
 
 (*
   { #todo 10 -oMaxM : In theory the selectable BitDepths depend on ImageType,
@@ -396,32 +450,41 @@ end;
 
 procedure TWIASettingsSource.StoreCurrentItemParams;
 begin
-  curParams.NativeUI:= cbUseNativeUI.Checked;
-  if not(curParams.NativeUI) then
+  with curParams do
   begin
-    if (cbPaperSize.ItemIndex>-1)
-    then curParams.PaperSize:=TWIAPaperSize(PtrUInt(cbPaperSize.Items.Objects[cbPaperSize.ItemIndex]));
+    NativeUI:= cbUseNativeUI.Checked;
+    if not(NativeUI) then
+    begin
+      if (cbPaperType.ItemIndex>-1)
+      then PaperType:= TWIAPaperType(PtrUInt(cbPaperType.Items.Objects[cbPaperType.ItemIndex]));
 
-    if btOrientation.Down
-    then curParams.Rotation:= wrLandscape
-    else curParams.Rotation:= wrPortrait;
+      if (PaperType = wptCUSTOM) then
+      begin
+        PaperW:= SizeToTHInch(WIASettings_Unit_cm, edPaperW.Value);
+        PaperH:= SizeToTHInch(WIASettings_Unit_cm, edPaperH.Value);
+      end;
 
-    curParams.HAlign:= TWIAAlignHorizontal(trHAlign.Position);
-    curParams.VAlign:= TWIAAlignVertical(trVAlign.Position);
+      if btPaperOrientation.Down
+      then Rotation:= wrLandscape
+      else Rotation:= wrPortrait;
 
-    (*
-    if (cbBitDepth.ItemIndex>-1)
-    then AParams.BitDepth:=PtrUInt(cbBitDepth.Items.Objects[cbBitDepth.ItemIndex]);
-    *)
+      HAlign:= TWIAAlignHorizontal(trHAlign.Position);
+      VAlign:= TWIAAlignVertical(trVAlign.Position);
 
-    if (cbDataType.ItemIndex>-1)
-    then curParams.DataType:=TWIADataType(PtrUInt(cbDataType.Items.Objects[cbDataType.ItemIndex]));
+      (*
+      if (cbBitDepth.ItemIndex>-1)
+      then BitDepth:=PtrUInt(cbBitDepth.Items.Objects[cbBitDepth.ItemIndex]);
+      *)
 
-    if (cbResolution.ItemIndex>-1)
-    then curParams.Resolution:=curCap.ResolutionArray[PtrUInt(cbResolution.Items.Objects[cbResolution.ItemIndex])];
+      if (cbDataType.ItemIndex>-1)
+      then DataType:=TWIADataType(PtrUInt(cbDataType.Items.Objects[cbDataType.ItemIndex]));
 
-    curParams.Contrast:=edContrast.Value;
-    curParams.Brightness:=edBrightness.Value;
+      if (cbResolution.ItemIndex>-1)
+      then Resolution:=curCap.ResolutionArray[PtrUInt(cbResolution.Items.Objects[cbResolution.ItemIndex])];
+
+      Contrast:=edContrast.Value;
+      Brightness:=edBrightness.Value;
+   end;
   end;
 
   WIAParams[WIASelectedItemIndex]:= curParams;

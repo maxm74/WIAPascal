@@ -1,6 +1,7 @@
 object WIASelectForm: TWIASelectForm
   Left = 501
   Top = 222
+  ActiveControl = lvSources
   BorderStyle = bsSizeToolWin
   Caption = 'Select WIA Device'
   ClientHeight = 321
@@ -21,8 +22,6 @@ object WIASelectForm: TWIASelectForm
     Align = alBottom
     BevelOuter = bvSpace
     TabOrder = 0
-    ExplicitTop = 269
-    ExplicitWidth = 450
     DesignSize = (
       458
       40)
@@ -35,7 +34,6 @@ object WIASelectForm: TWIASelectForm
       Kind = bkCancel
       NumGlyphs = 2
       TabOrder = 0
-      ExplicitLeft = 278
     end
     object btOk: TBitBtn
       Left = 377
@@ -46,7 +44,6 @@ object WIASelectForm: TWIASelectForm
       Kind = bkOK
       NumGlyphs = 2
       TabOrder = 1
-      ExplicitLeft = 369
     end
     object btRefresh: TBitBtn
       Left = 8
@@ -197,8 +194,6 @@ object WIASelectForm: TWIASelectForm
     Align = alClient
     BevelInner = bvRaised
     TabOrder = 1
-    ExplicitWidth = 450
-    ExplicitHeight = 269
     object lvSources: TListView
       Left = 2
       Top = 2
@@ -223,8 +218,6 @@ object WIASelectForm: TWIASelectForm
       RowSelect = True
       TabOrder = 0
       ViewStyle = vsReport
-      ExplicitWidth = 446
-      ExplicitHeight = 265
     end
   end
 end

@@ -483,7 +483,7 @@ object WIASettingsSource: TWIASettingsSource
       Width = 88
       Caption = 'Use Native UI'
       TabOrder = 0
-      OnChange = cbUseNativeUIChange
+      OnClick = cbUseNativeUIChange
     end
     object PageSourceTypes: TPageControl
       Left = 8
@@ -491,21 +491,21 @@ object WIASettingsSource: TWIASettingsSource
       Top = 48
       Width = 528
       ActivePage = tbSource_Scanner
-      ShowTabs = False
       TabIndex = 0
       TabOrder = 1
       object tbSource_Scanner: TTabSheet
-        Caption = 'tbSource_Scanner'
-        ClientHeight = 240
+        Caption = 'Scanner'
+        ClientHeight = 220
         ClientWidth = 520
+        TabVisible = False
         object Label2: TLabel
           Left = 225
           Height = 15
           Top = 0
-          Width = 59
-          Caption = 'Paper Size :'
+          Width = 63
+          Caption = 'Paper Type :'
         end
-        object cbPaperSize: TComboBox
+        object cbPaperType: TComboBox
           Left = 225
           Height = 23
           Top = 17
@@ -513,6 +513,7 @@ object WIASettingsSource: TWIASettingsSource
           ItemHeight = 15
           Style = csDropDownList
           TabOrder = 0
+          OnChange = cbPaperTypeChange
         end
         object Label3: TLabel
           Left = 2
@@ -588,7 +589,7 @@ object WIASettingsSource: TWIASettingsSource
           Width = 51
           Caption = 'Contrast :'
         end
-        object btOrientation: TSpeedButton
+        object btPaperOrientation: TSpeedButton
           Left = 423
           Height = 22
           Hint = 'Paper Orientation'
@@ -602,7 +603,7 @@ object WIASettingsSource: TWIASettingsSource
           ShowCaption = False
           ShowHint = True
           ParentShowHint = False
-          OnClick = btOrientationClick
+          OnClick = btPaperOrientationClick
         end
         object Label6: TLabel
           Left = 2
@@ -710,50 +711,87 @@ object WIASettingsSource: TWIASettingsSource
           Flat = True
           OnClick = btDClick
         end
-        object trHAlign: TTrackBar
-          Left = 240
-          Height = 25
-          Hint = 'Horizontal Align'
-          Top = 62
-          Width = 55
-          Max = 2
-          PageSize = 1
-          Position = 0
-          ShowSelRange = False
-          OnChange = trHAlignChange
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 10
-        end
-        object trVAlign: TTrackBar
-          Left = 222
-          Height = 55
-          Hint = 'Vertical Align'
-          Top = 76
-          Width = 25
-          Max = 2
-          Orientation = trVertical
-          PageSize = 1
-          Position = 0
-          ShowSelRange = False
-          OnChange = trHAlignChange
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 11
-        end
-        object imgAlign: TImage
-          Left = 252
-          Height = 32
-          Top = 88
-          Width = 32
-          Images = imgListAlign
-        end
-        object Label8: TLabel
+        object gbPaperAlign: TGroupBox
           Left = 225
-          Height = 15
+          Height = 90
           Top = 45
-          Width = 67
-          Caption = 'Paper Align :'
+          Width = 89
+          Caption = 'Paper Align'
+          ClientHeight = 70
+          ClientWidth = 85
+          TabOrder = 10
+          object trHAlign: TTrackBar
+            Left = 26
+            Height = 25
+            Hint = 'Horizontal Align'
+            Top = 0
+            Width = 55
+            Max = 2
+            PageSize = 1
+            Position = 0
+            ShowSelRange = False
+            OnChange = trHAlignChange
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 0
+          end
+          object trVAlign: TTrackBar
+            Left = 8
+            Height = 55
+            Hint = 'Vertical Align'
+            Top = 14
+            Width = 25
+            Max = 2
+            Orientation = trVertical
+            PageSize = 1
+            Position = 0
+            ShowSelRange = False
+            OnChange = trHAlignChange
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 1
+          end
+          object imgAlign: TImage
+            Left = 38
+            Height = 32
+            Top = 26
+            Width = 32
+            Images = imgListAlign
+          end
+        end
+        object gbPaperSize: TGroupBox
+          Left = 321
+          Height = 90
+          Top = 45
+          Width = 96
+          Caption = 'Paper Size'
+          ClientHeight = 70
+          ClientWidth = 92
+          Enabled = False
+          TabOrder = 11
+          object edPaperW: TFloatSpinEdit
+            Left = 8
+            Height = 23
+            Top = 4
+            Width = 80
+            MaxValue = 100
+            TabOrder = 0
+          end
+          object edPaperH: TFloatSpinEdit
+            Left = 8
+            Height = 23
+            Top = 40
+            Width = 80
+            MaxValue = 100
+            TabOrder = 1
+          end
+          object Label8: TLabel
+            Left = 44
+            Height = 15
+            Top = 26
+            Width = 7
+            Caption = 'X'
+          end
         end
       end
     end

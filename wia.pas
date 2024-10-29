@@ -29,7 +29,12 @@ uses
 type
   //Dinamic Array types
   TArraySingle = array of Single;
+  TArrayDouble = array of Double;
   TArrayInteger = array of Integer;
+  TArraySmallint = array of Smallint;
+  TArrayByte = array of Byte;
+  TArrayWord = array of Word;
+  TArrayLongWord = array of LongWord;
   TStringArray = array of String;
   TArrayGUID = array of TGUID;
 
@@ -155,7 +160,12 @@ type
 
   TWIAParams = packed record
     NativeUI: Boolean;
-    PaperSize: TWIAPaperSize;
+    PaperType: TWIAPaperType;
+
+    //Used only if PaperType=
+    PaperW,
+    PaperH: Integer;
+
     Rotation: TWIARotation;
     HAlign: TWIAAlignHorizontal;
     VAlign: TWIAAlignVertical;
@@ -168,9 +178,11 @@ type
   TArrayWIAParams = array of TWIAParams;
 
   TWIAParamsCapabilities = packed record
-    PaperSizeSet: TWIAPaperSizeSet;
-    PaperSizeCurrent,
-    PaperSizeDefault: TWIAPaperSize;
+    PaperSizeMaxWidth,
+    PaperSizeMaxHeight: Integer;
+    PaperTypeSet: TWIAPaperTypeSet;
+    PaperTypeCurrent,
+    PaperTypeDefault: TWIAPaperType;
     RotationCurrent,
     RotationDefault: TWIARotation;
     RotationSet: TWIARotationSet;
@@ -334,17 +346,20 @@ type
     //Get Max Paper Width, Height
     function GetPaperSizeMax(var AMaxWidth, AMaxHeight: Integer; useRoot: Boolean=False): Boolean;
 
-    //Get Current Paper Size
+    //Get Current Paper Type
     //  if PaperSizes_Calculated then the PaperSize is calculated using real Paper Size
     //  else this functions uses WIA_IPS_PAGE_SIZE
-    function GetPaperSize(var Current: TWIAPaperSize; useRoot: Boolean=False): Boolean; overload;
+    function GetPaperType(var Current: TWIAPaperType; useRoot: Boolean=False): Boolean; overload;
     //Get Available Paper Sizes
-    function GetPaperSize(var Current, Default: TWIAPaperSize; var Values: TWIAPaperSizeSet; useRoot: Boolean=False): Boolean; overload;
+    function GetPaperType(var Current, Default: TWIAPaperType; var Values: TWIAPaperTypeSet; useRoot: Boolean=False): Boolean; overload;
 
-    //Set Current Paper Size,
+    //Set Current Paper Type,
     //  if PaperSizes_Calculated then the Area is calculated using real Paper Size,Orientation and Align Values
     //  else this function use WIA_IPS_PAGE_SIZE and the user is responsible for checking the validity of the value
-    function SetPaperSize(const Value: TWIAPaperSize; useRoot: Boolean=False): Boolean; overload;
+    function SetPaperType(const Value: TWIAPaperType; useRoot: Boolean=False): Boolean;
+
+    //Set Current Paper Size, the Area is calculated using Width, Height (in TH Inchs),Orientation and Align Values
+    function SetPaperSize(Width, Height: Integer; useRoot: Boolean=False): Boolean;
 
     //Get Current Paper Landscape,
     //  if PaperSizes_Calculated=False then this function use WIA_IPS_ROTATION else return internal value
@@ -700,7 +715,7 @@ function WIACopyCurrentValues(const WIACap: TWIAParamsCapabilities): TWIAParams;
 begin
   with Result do
   begin
-    PaperSize:= WIACap.PaperSizeCurrent;
+    PaperType:= WIACap.PaperTypeCurrent;
     Resolution:= WIACap.ResolutionCurrent;
     Contrast:= WiaCap.ContrastCurrent;
     Brightness:= WIACap.BrightnessCurrent;
@@ -714,7 +729,7 @@ begin
   FillChar(Result, Sizeof(Result), 0);
   with Result do
   begin
-    PaperSize:= WIACap.PaperSizeDefault;
+    PaperType:= WIACap.PaperTypeDefault;
     Resolution:= WIACap.ResolutionDefault;
     Contrast:= WiaCap.ContrastDefault;
     Brightness:= WIACap.BrightnessDefault;
@@ -1129,7 +1144,6 @@ end;
 function TWIADevice.DownloadNativeUI(hwndParent: HWND; useSystemUI: Boolean; APath, AFileName: String;
   var DownloadedFiles: TStringArray): Integer;
 var
-   //selItemType: TWIAItemTypes;
    dlgFlags: LONG;
    i: Integer;
    filePaths: PBSTR;
@@ -1141,8 +1155,6 @@ begin
   if (pRootItem = nil) then GetRootItem;
   if (pRootItem <> nil) then
   begin
-    //selItemType:= rItemList[pRootItem].ItemType;
-
     if (APath = '') or CharInSet(APath[Length(APath)], AllowDirectorySeparators)
     then rDownload_Path:= APath
     else rDownload_Path:= APath+DirectorySeparator;
@@ -1221,62 +1233,23 @@ begin
        begin
          propType:= pPropVar.vt;
 
-         { #todo 10 -oMaxM : Convert ONLY the Types Used in WIA to APropValue,
-          The Overloaded Version also the APropDefaultValue and APropListValuesArray
-         }
+         // Convert ONLY the Types Used in WIA to APropValue,
          Case propType of
-           VT_I2: begin //2 byte signed int
-             SmallInt(APropValue):= pPropVar.iVal;
-           end;
-           VT_I4, VT_INT: begin //4 byte signed int, signed machine int
-             Integer(APropValue):= pPropVar.lVal;
-           end;
-           VT_R4: begin //4 byte real
-             Single(APropValue):= pPropVar.fltVal;
-           end;
-           VT_R8, VT_DATE: begin //8 byte real, date
-             if (propType = VT_R8)
-             then Double(APropValue):= pPropVar.dblVal
-             else Double(APropValue):= pPropVar.date;
-           end;
-           VT_CY: begin //currency
-             CURRENCY(APropValue):= pPropVar.cyVal;
-           end;
-           VT_BSTR, VT_LPSTR, VT_LPWSTR: begin //OLE Automation string, null terminated string, wide null terminated string
-             case propType of
-             VT_BSTR: String(APropValue):= pPropVar.bstrVal;
-             VT_LPSTR: String(APropValue):= pPropVar.pszVal;
-             VT_LPWSTR: String(APropValue):= pPropVar.pwszVal;
-             end;
-           end;
-           VT_BOOL: begin //True=-1, False=0
-             Boolean(APropValue):= pPropVar.boolVal;
-           end;
-           VT_I1: begin //signed AnsiChar
-             { #note -oMaxM : Delphi has wrong declaration of cVal as ShortInt, correct one is Char }
-             AnsiChar(APropValue):= AnsiChar(pPropVar.cVal);
-           end;
-           VT_UI1: begin //unsigned AnsiChar
-             Byte(APropValue):= pPropVar.bVal;
-           end;
-           VT_UI2: begin //unsigned short
-             Word(APropValue):= pPropVar.uiVal;
-           end;
-           VT_UI4, VT_UINT : begin //unsigned long
-             LongWord(APropValue):= pPropVar.ulVal;
-           end;
-           VT_I8 : begin //signed 64-bit int
-             LARGE_INTEGER(APropValue):= pPropVar.hVal;
-           end;
-           VT_UI8 : begin //unsigned 64-bit int
-             ULARGE_INTEGER(APropValue):= pPropVar.uhVal;
-           end;
-           VT_CLSID : begin //A Class ID
-             TGUID(APropValue):= pPropVar.puuid^;
-           end;
+         VT_I2: SmallInt(APropValue):= pPropVar.iVal; //2 byte signed int
+         VT_I4, VT_INT: Integer(APropValue):= pPropVar.lVal; //4 byte signed int, signed machine int
+         VT_R4: Single(APropValue):= pPropVar.fltVal; //4 byte real
+         VT_R8: Double(APropValue):= pPropVar.dblVal; //8 byte real
+         VT_BSTR: String(APropValue):= pPropVar.bstrVal; //OLE Automation string,
+         //VT_LPSTR: String(APropValue):= pPropVar.pszVal; //null terminated string
+         //VT_LPWSTR: String(APropValue):= pPropVar.pwszVal; //wide null terminated string
+         VT_UI1: Byte(APropValue):= pPropVar.bVal; //unsigned AnsiChar
+         VT_UI2: Word(APropValue):= pPropVar.uiVal; //unsigned short
+         VT_UI4, VT_UINT : LongWord(APropValue):= pPropVar.ulVal; //unsigned long
+         VT_CLSID : TGUID(APropValue):= pPropVar.puuid^; //A Class ID
+         else Result:= False;
+         end;
        end;
-     end;
-  end;
+   end;
 end;
 
 function TWIADevice.GetProperty(APropId: PROPID; var propType: TVarType;
@@ -1324,10 +1297,36 @@ begin
            Case propType of
              VT_I2: begin //2 byte signed int
                SmallInt(APropValue):= pPropVar.iVal;
+               numElems:= 0;
+               firstElem:= 0;
+               SmallInt(APropDefaultValue):= 0;
+
+               if (WIAProp_LIST in Result)
+               then begin
+                      numElems:= pPropInfo.cai.cElems-WIA_LIST_VALUES; //pElems[WIA_LIST_COUNT]
+                      firstElem:= WIA_LIST_VALUES;
+                      SmallInt(APropDefaultValue):= pPropInfo.cai.pElems[WIA_LIST_NOM];
+                    end
+               else
+               if (WIAProp_RANGE in Result)
+               then begin
+                      numElems:= WIA_RANGE_NUM_ELEMS;
+                      firstElem:= 0;
+                      SmallInt(APropDefaultValue):= pPropInfo.cai.pElems[WIA_RANGE_NOM];
+                    end;
+               if (WIAProp_FLAG in Result)
+               then begin
+                      numElems:= pPropInfo.cai.cElems; //pElems[WIA_FLAG_NUM_ELEMS];
+                      firstElem:= 0; //WIA_FLAG_VALUES;
+                      SmallInt(APropDefaultValue):= pPropInfo.cai.pElems[WIA_FLAG_NOM];
+                    end;
+
+               SetLength(TArraySmallInt(APropListValues), numElems);
+               for i:=firstElem to firstElem+numElems-1 do
+                 TArraySmallInt(APropListValues)[i-firstElem]:= Integer(pPropInfo.cai.pElems[i]);
              end;
              VT_I4, VT_INT: begin //4 byte signed int, signed machine int
                Integer(APropValue):= pPropVar.lVal;
-
                numElems:= 0;
                firstElem:= 0;
                Integer(APropDefaultValue):= 0;
@@ -1355,47 +1354,169 @@ begin
                SetLength(TArrayInteger(APropListValues), numElems);
                for i:=firstElem to firstElem+numElems-1 do
                  TArrayInteger(APropListValues)[i-firstElem]:= Integer(pPropInfo.cal.pElems[i]);
-
              end;
              VT_R4: begin //4 byte real
                Single(APropValue):= pPropVar.fltVal;
+               numElems:= 0;
+               firstElem:= 0;
+               Single(APropDefaultValue):= 0;
+
+               if (WIAProp_LIST in Result)
+               then begin
+                 { #note -oMaxM : documentaion says to use pElems[WIA_LIST_COUNT] but is a nonsense when the type is not an Integer}
+                      numElems:= pPropInfo.caflt.cElems-WIA_LIST_VALUES;
+                      firstElem:= WIA_LIST_VALUES;
+                      Single(APropDefaultValue):= pPropInfo.caflt.pElems[WIA_LIST_NOM];
+                    end
+               else
+               if (WIAProp_RANGE in Result)
+               then begin
+                      numElems:= WIA_RANGE_NUM_ELEMS;
+                      firstElem:= 0;
+                      Single(APropDefaultValue):= pPropInfo.caflt.pElems[WIA_RANGE_NOM];
+                    end;
+               //if (WIAProp_FLAG in Result) ?? nonsense
+
+               SetLength(TArraySingle(APropListValues), numElems);
+               for i:=firstElem to firstElem+numElems-1 do
+                 TArraySingle(APropListValues)[i-firstElem]:= Single(pPropInfo.caflt.pElems[i]);
              end;
-             VT_R8, VT_DATE: begin //8 byte real, date
-               if (propType = VT_R8)
-               then Double(APropValue):= pPropVar.dblVal
-               else Double(APropValue):= pPropVar.date;
+             VT_R8: begin //8 byte real
+               Double(APropValue):= pPropVar.dblVal;
+               numElems:= 0;
+               firstElem:= 0;
+               Double(APropDefaultValue):= 0;
+
+               if (WIAProp_LIST in Result)
+               then begin
+                 { #note -oMaxM : documentaion says to use pElems[WIA_LIST_COUNT] but is a nonsense when the type is not an Integer}
+                      numElems:= pPropInfo.cadbl.cElems-WIA_LIST_VALUES;
+                      firstElem:= WIA_LIST_VALUES;
+                      Double(APropDefaultValue):= pPropInfo.cadbl.pElems[WIA_LIST_NOM];
+                    end
+               else
+               if (WIAProp_RANGE in Result)
+               then begin
+                      numElems:= WIA_RANGE_NUM_ELEMS;
+                      firstElem:= 0;
+                      Double(APropDefaultValue):= pPropInfo.cadbl.pElems[WIA_RANGE_NOM];
+                    end;
+               //if (WIAProp_FLAG in Result) ?? nonsense
+
+               SetLength(TArrayDouble(APropListValues), numElems);
+               for i:=firstElem to firstElem+numElems-1 do
+                 TArrayDouble(APropListValues)[i-firstElem]:= Double(pPropInfo.cadbl.pElems[i]);
              end;
-             VT_CY: begin //currency
-               CURRENCY(APropValue):= pPropVar.cyVal;
-             end;
-             VT_BSTR, VT_LPSTR, VT_LPWSTR: begin //OLE Automation string, null terminated string, wide null terminated string
-               case propType of
-               VT_BSTR: String(APropValue):= pPropVar.bstrVal;
-               VT_LPSTR: String(APropValue):= pPropVar.pszVal;
-               VT_LPWSTR: String(APropValue):= pPropVar.pwszVal;
-               end;
-             end;
-             VT_BOOL: begin //True=-1, False=0
-               Boolean(APropValue):= pPropVar.boolVal;
-             end;
-             VT_I1: begin //signed AnsiChar
-               { #note -oMaxM : Delphi has wrong declaration of cVal as ShortInt, correct one is Char }
-               AnsiChar(APropValue):= AnsiChar(pPropVar.cVal);
+             VT_BSTR: begin //OLE Automation string
+               String(APropValue):= pPropVar.bstrVal;
+               numElems:= 0;
+               firstElem:= 0;
+               String(APropDefaultValue):= '';
+
+               if (WIAProp_LIST in Result)
+               then begin
+                 { #note -oMaxM : documentaion says to use pElems[WIA_LIST_COUNT] but is a nonsense when the type is not an Integer}
+                      numElems:= pPropInfo.cabstr.cElems-WIA_LIST_VALUES;
+                      firstElem:= WIA_LIST_VALUES;
+                      String(APropDefaultValue):= pPropInfo.cabstr.pElems[WIA_LIST_NOM];
+                    end
+               else
+               //if (WIAProp_RANGE in Result) ?? nonsense
+               //if (WIAProp_FLAG in Result) ?? nonsense
+
+               SetLength(TStringArray(APropListValues), numElems);
+               for i:=firstElem to firstElem+numElems-1 do
+                 TStringArray(APropListValues)[i-firstElem]:= String(pPropInfo.cabstr.pElems[i]);
              end;
              VT_UI1: begin //unsigned AnsiChar
                Byte(APropValue):= pPropVar.bVal;
+               numElems:= 0;
+               firstElem:= 0;
+               Byte(APropDefaultValue):= 0;
+
+               if (WIAProp_LIST in Result)
+               then begin
+                      numElems:= pPropInfo.caub.cElems-WIA_LIST_VALUES; //pElems[WIA_LIST_COUNT]
+                      firstElem:= WIA_LIST_VALUES;
+                      Byte(APropDefaultValue):= pPropInfo.caub.pElems[WIA_LIST_NOM];
+                    end
+               else
+               if (WIAProp_RANGE in Result)
+               then begin
+                      numElems:= WIA_RANGE_NUM_ELEMS;
+                      firstElem:= 0;
+                      Byte(APropDefaultValue):= pPropInfo.caub.pElems[WIA_RANGE_NOM];
+                    end;
+               if (WIAProp_FLAG in Result)
+               then begin
+                      numElems:= pPropInfo.caub.cElems; //pElems[WIA_FLAG_NUM_ELEMS];
+                      firstElem:= 0; //WIA_FLAG_VALUES;
+                      Byte(APropDefaultValue):= pPropInfo.caub.pElems[WIA_FLAG_NOM];
+                    end;
+
+               SetLength(TArrayByte(APropListValues), numElems);
+               for i:=firstElem to firstElem+numElems-1 do
+                 TArrayByte(APropListValues)[i-firstElem]:= Byte(pPropInfo.caub.pElems[i]);
              end;
              VT_UI2: begin //unsigned short
                Word(APropValue):= pPropVar.uiVal;
+               numElems:= 0;
+               firstElem:= 0;
+               Word(APropDefaultValue):= 0;
+
+               if (WIAProp_LIST in Result)
+               then begin
+                      numElems:= pPropInfo.caui.cElems-WIA_LIST_VALUES; //pElems[WIA_LIST_COUNT]
+                      firstElem:= WIA_LIST_VALUES;
+                      Word(APropDefaultValue):= pPropInfo.caui.pElems[WIA_LIST_NOM];
+                    end
+               else
+               if (WIAProp_RANGE in Result)
+               then begin
+                      numElems:= WIA_RANGE_NUM_ELEMS;
+                      firstElem:= 0;
+                      Word(APropDefaultValue):= pPropInfo.caui.pElems[WIA_RANGE_NOM];
+                    end;
+               if (WIAProp_FLAG in Result)
+               then begin
+                      numElems:= pPropInfo.caui.cElems; //pElems[WIA_FLAG_NUM_ELEMS];
+                      firstElem:= 0; //WIA_FLAG_VALUES;
+                      Word(APropDefaultValue):= pPropInfo.caui.pElems[WIA_FLAG_NOM];
+                    end;
+
+               SetLength(TArrayWord(APropListValues), numElems);
+               for i:=firstElem to firstElem+numElems-1 do
+                 TArrayWord(APropListValues)[i-firstElem]:= Word(pPropInfo.caui.pElems[i]);
              end;
              VT_UI4, VT_UINT : begin //unsigned long
                LongWord(APropValue):= pPropVar.ulVal;
-             end;
-             VT_I8 : begin //signed 64-bit int
-               LARGE_INTEGER(APropValue):= pPropVar.hVal;
-             end;
-             VT_UI8 : begin //unsigned 64-bit int
-               ULARGE_INTEGER(APropValue):= pPropVar.uhVal;
+               numElems:= 0;
+               firstElem:= 0;
+               LongWord(APropDefaultValue):= 0;
+
+               if (WIAProp_LIST in Result)
+               then begin
+                      numElems:= pPropInfo.caul.cElems-WIA_LIST_VALUES; //pElems[WIA_LIST_COUNT]
+                      firstElem:= WIA_LIST_VALUES;
+                      LongWord(APropDefaultValue):= pPropInfo.caul.pElems[WIA_LIST_NOM];
+                    end
+               else
+               if (WIAProp_RANGE in Result)
+               then begin
+                      numElems:= WIA_RANGE_NUM_ELEMS;
+                      firstElem:= 0;
+                      LongWord(APropDefaultValue):= pPropInfo.caul.pElems[WIA_RANGE_NOM];
+                    end;
+               if (WIAProp_FLAG in Result)
+               then begin
+                      numElems:= pPropInfo.caul.cElems; //pElems[WIA_FLAG_NUM_ELEMS];
+                      firstElem:= 0; //WIA_FLAG_VALUES;
+                      LongWord(APropDefaultValue):= pPropInfo.caul.pElems[WIA_FLAG_NOM];
+                    end;
+
+               SetLength(TArrayLongWord(APropListValues), numElems);
+               for i:=firstElem to firstElem+numElems-1 do
+                 TArrayLongWord(APropListValues)[i-firstElem]:= LongWord(pPropInfo.caul.pElems[i]);
              end;
              VT_CLSID : begin //A Class ID
                //TGUID(APropValue):= pPropVar.puuid^; //it should be this assign but it isn't
@@ -1407,17 +1528,19 @@ begin
 
                if (WIAProp_LIST in Result)
                then begin
-                      //MaxM: I don't understand the logic but in this case the WIA_LIST_XXX indexes are not valid
                       numElems:= pPropInfo.cauuid.cElems;
                       firstElem:= 0;
+                      { #note -oMaxM : I don't understand the logic but in this case the WIA_LIST_XXX indexes are not valid}
                       //TGUID(APropDefaultValue):= pPropInfo.cauuid.pElems[WIA_LIST_NOM];
 
                       SetLength(TArrayGUID(APropListValues), numElems);
                       for i:=firstElem to firstElem+numElems-1 do
                         TArrayGUID(APropListValues)[i-firstElem]:= TGUID(pPropInfo.cauuid.pElems[i]);
                     end;
-               //else APropListValues:= nil; //a Range of TGUID is impossible (i think)
+               //if (WIAProp_RANGE in Result) ?? nonsense
+               //if (WIAProp_FLAG in Result) ?? nonsense
             end;
+            else Result:= [];
            end;
          end;
        end;
@@ -1618,7 +1741,7 @@ begin
                 GetProperty(WIA_IPS_MAX_VERTICAL_SIZE, propType, AMaxHeight, useRoot);
 end;
 
-function TWIADevice.GetPaperSize(var Current: TWIAPaperSize; useRoot: Boolean): Boolean;
+function TWIADevice.GetPaperType(var Current: TWIAPaperType; useRoot: Boolean): Boolean;
 var
    iMaxWidth,
    iMaxHeight,
@@ -1641,17 +1764,17 @@ begin
         then begin
                Result:= GetPaperSizeMax(iMaxWidth, iMaxHeight);
                if (iWidth >= iMaxWidth) or (iHeight >= iMaxHeight)
-               then Current:= wpsMAX
+               then Current:= wptMAX
                else Current:= CalculatePaperSize(iWidth, iHeight);
              end
-        else Current:= wpsCUSTOM;
+        else Current:= wptCUSTOM;
 
         Result:= True;
        end
   else Result:= GetProperty(WIA_IPS_PAGE_SIZE, propType, Current, useRoot);
 end;
 
-function TWIADevice.GetPaperSize(var Current, Default: TWIAPaperSize; var Values: TWIAPaperSizeSet; useRoot: Boolean): Boolean;
+function TWIADevice.GetPaperType(var Current, Default: TWIAPaperType; var Values: TWIAPaperTypeSet; useRoot: Boolean): Boolean;
 var
    iMaxWidth,
    iMaxHeight,
@@ -1681,10 +1804,10 @@ begin
                      GetProperty(WIA_IPS_PAGE_HEIGHT, propType, iMaxHeight, useRoot);{ #note 5 -oMaxM : Always return False in HP ?}
             if Result
             then Current:= CalculatePaperSize(iMaxWidth, iMaxHeight)
-            else Current:= wpsCUSTOM;
+            else Current:= wptCUSTOM;
 
             { #todo -oMaxM : How to Calculate Default Value??? }
-            Default:= wpsA4;
+            Default:= wptA4;
 
             Result:= True;
           end
@@ -1693,7 +1816,7 @@ begin
             if not(WIAProp_READ in pFlags) then Exit;
 
             if (WIAProp_LIST in pFlags)
-            then for i:=0 to Length(intValues)-1 do Values:= Values+[TWIAPaperSize(intValues[i])];
+            then for i:=0 to Length(intValues)-1 do Values:= Values+[TWIAPaperType(intValues[i])];
 
             Result:= True;
           end;
@@ -1703,7 +1826,7 @@ begin
   end;
 end;
 
-function TWIADevice.SetPaperSize(const Value: TWIAPaperSize; useRoot: Boolean): Boolean;
+function TWIADevice.SetPaperType(const Value: TWIAPaperType; useRoot: Boolean): Boolean;
 var
    propType: TVarType;
    pFlags: TWIAPropertyFlags;
@@ -1724,15 +1847,17 @@ begin
          Result:= GetPaperSizeMax(MaxWidth, MaxHeight, useRoot);
          if not(Result) then Exit;
 
+         Result:= False;
+
          if (rXRes = -1) or (rYRes = -1)
-         then if not(GetResolution(rXRes, rYRes)) then Exit;
+         then if not(GetResolution(rXRes, rYRes)) then  Exit;
 
          XMux:= rXRes / 1000;
          YMux:= rYRes / 1000;
 
          //if wpsMAX then assigns the entire area,
          //otherwise check if the real paper size fits within the entire area
-         if (Value = wpsMAX)
+         if (Value = wptMAX)
          then begin
                 Width:= MaxWidth;
                 Height:= MaxHeight;
@@ -1786,11 +1911,13 @@ begin
          Result:= SetProperty(WIA_IPS_YEXTENT, VT_I4, iPixels, useRoot);
        end
   else begin
-         if (Value = wpsMAX)
+         if (Value = wptMAX)
          then begin
                 //assigns the entire area
                 Result:= GetPaperSizeMax(MaxWidth, MaxHeight, useRoot);
                 if not(Result) then Exit;
+
+                Result:= False;
 
                 if (rXRes = -1) or (rYRes = -1)
                 then if not(GetResolution(rXRes, rYRes)) then Exit;
@@ -1807,6 +1934,70 @@ begin
               end
          else Result:= SetProperty(WIA_IPS_PAGE_SIZE, VT_I4, Value, useRoot);
        end;
+end;
+
+function TWIADevice.SetPaperSize(Width, Height: Integer; useRoot: Boolean): Boolean;
+var
+   MaxWidth,
+   MaxHeight,
+   swapS,
+   X, Y,
+   iPixels: Integer;
+   XMux,
+   YMux: Single;
+
+begin
+  Result:= GetPaperSizeMax(MaxWidth, MaxHeight, useRoot);
+  if not(Result) then Exit;
+
+  Result:= False;
+
+  if (rXRes = -1) or (rYRes = -1)
+  then if not(GetResolution(rXRes, rYRes)) then Exit;
+
+  XMux:= rXRes / 1000;
+  YMux:= rYRes / 1000;
+
+  //Check if the paper size fits within the entire area
+  if (rPaperLandscape) then
+  begin
+    //Swap Width with Height
+    swapS:= Width;
+    Width:= Height;
+    Height:= swapS;
+  end;
+
+  Case rHAlign of
+  waHLeft: X:= 0;
+  waHCenter: X:= Round((MaxWidth-Width) / 2);
+  waHRight: X:= MaxWidth-Width;
+  end;
+
+  Case rVAlign of
+  waVTop: Y:= 0;
+  waVCenter: Y:= Round((MaxHeight-Height) / 2);
+  waVBottom: Y:= MaxHeight-Height;
+  end;
+
+  //I prefer to be less restrictive and do the scan
+  if (X < 0) then X:= 0;
+  if (X > MaxWidth) then X:= MaxWidth;
+  if (Y < 0) then Y:= 0;
+  if (Y > MaxHeight) then Y:= MaxHeight;
+
+  //if (X+Width > MaxWidth) or (Y+Height > MaxHeight) then Exit; //Be restrictive
+
+  iPixels:= Trunc(X*XMux);
+  if not(SetProperty(WIA_IPS_XPOS, VT_I4, iPixels, useRoot)) then Exit;
+
+  iPixels:= Trunc(Y*YMux);
+  if not(SetProperty(WIA_IPS_YPOS, VT_I4, iPixels, useRoot)) then Exit;
+
+  iPixels:= Trunc(Width*XMux);
+  if not(SetProperty(WIA_IPS_XEXTENT, VT_I4, iPixels, useRoot)) then Exit;
+
+  iPixels:= Trunc(Height*YMux);
+  Result:= SetProperty(WIA_IPS_YEXTENT, VT_I4, iPixels, useRoot);
 end;
 
 function TWIADevice.GetPaperLandscape(var Value: Boolean; useRoot: Boolean): Boolean;
@@ -2081,7 +2272,10 @@ begin
 
   with Value do
   begin
-    Result:= GetPaperSize(PaperSizeCurrent, PaperSizeDefault, PaperSizeSet);
+    Result:= GetPaperSizeMax(PaperSizeMaxWidth, PaperSizeMaxHeight);
+    if not(Result) then exit;
+
+    Result:= GetPaperType(PaperTypeCurrent, PaperTypeDefault, PaperTypeSet);
     if not(Result) then exit;
 
     Result:= GetRotation(RotationCurrent, RotationDefault, RotationSet);
@@ -2120,8 +2314,10 @@ begin
     Result:= SetPaperAlign((Rotation in [wrLandscape, wrRot270]), HAlign, VAlign);
     if not(Result) then raise Exception.Create('SetPaperAlign');
 
-    Result:= SetPaperSize(PaperSize);
-    if not(Result) then raise Exception.Create('SetPaperSize');
+    if (PaperType = wptCUSTOM)
+    then Result:= SetPaperSize(PaperW, PaperH)
+    else Result:= SetPaperType(PaperType);
+    if not(Result) then raise Exception.Create('SetPaperType');
 
     Result:= SetBrightness(Brightness);
     if not(Result) then raise Exception.Create('SetBrightness');
