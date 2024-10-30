@@ -2,6 +2,6 @@ Delphi Properties not found in dfm
 
 //nativeui.onchange changed to onclick
 //pagesources.showtabs using TabVisible
-imgAlign.Images
-TFloatSpinEdit
-imgList.Bitmap
+//imgAlign.Images code with GetIcon
+//TFloatSpinEdit using NumberBox
+//imgList.Bitmap Format error, using Export/Import

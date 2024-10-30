@@ -21,7 +21,7 @@ unit STI;
 
 interface
 
-uses Windows;
+uses Windows, DelphiCompatibility;
 
 
 const
@@ -80,15 +80,6 @@ const
   STI_MAX_INTERNAL_NAME_LENGTH = 128;
 
 type
-{$IFNDEF FPC}
-{$IFDEF CPUX64}
-  PtrInt = Int64;
-  PtrUInt = UInt64;
-{$ELSE}
-  PtrInt = longint;
-  PtrUInt = Longword;
-{$ENDIF}
-{$ENDIF}
   // begin sti_device_information
 
   //

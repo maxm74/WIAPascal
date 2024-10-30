@@ -488,7 +488,7 @@ object WIASettingsSource: TWIASettingsSource
     object PageSourceTypes: TPageControl
       Left = 8
       Height = 248
-      Top = 48
+      Top = 50
       Width = 528
       ActivePage = tbSource_Scanner
       TabIndex = 0

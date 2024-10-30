@@ -2,6 +2,7 @@ WIAPASCAL CHANGE LOG
 ======================
 
 2024/10/
+        30 Delphi Compatibility
         29 TWIADevice.GetProperty Process only WIA Types, added all Arrays/Ranges;
 	   Changed names from PaperSize to PaperType;
 	   Added functions THInchToSize/Str in PaperSizes;

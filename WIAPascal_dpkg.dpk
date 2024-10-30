@@ -31,7 +31,9 @@ package WIAPascal_dpkg;
 requires
   rtl,
   vcl,
-  VclSmp;
+  VclSmp,
+  vclwinx,
+  bindengine;
 
 contains
   WIA in 'WIA.pas',
@@ -41,6 +43,8 @@ contains
   WiaDef in 'WiaDef.pas',
   WiaDevD in 'WiaDevD.pas',
   WIA_SelectForm in 'WIA_SelectForm.pas' {WIASelectForm},
-  WIA_SettingsForm in 'WIA_SettingsForm.pas' {WIASettingsSource};
+  WIA_SettingsForm in 'WIA_SettingsForm.pas' {WIASettingsSource},
+  DelphiCompatibility in 'DelphiCompatibility.pas',
+  WIA_PaperSizes in 'WIA_PaperSizes.pas';
 
 end.

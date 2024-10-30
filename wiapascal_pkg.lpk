@@ -59,6 +59,10 @@
         <Filename Value="WIA_PaperSizes.pas"/>
         <UnitName Value="WIA_PaperSizes"/>
       </Item>
+      <Item>
+        <Filename Value="DelphiCompatibility.pas"/>
+        <UnitName Value="DelphiCompatibility"/>
+      </Item>
     </Files>
     <RequiredPkgs>
       <Item>

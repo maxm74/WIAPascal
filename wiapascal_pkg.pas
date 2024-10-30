@@ -8,7 +8,8 @@ unit WIAPascal_pkg;
 interface
 
 uses
-  WIA_LH, WIA_TLB, WiaDef, WiaDevD, WIA_ScanProfiles_TLB, STI, WIA, WIA_SelectForm, WIA_SettingsForm, WIA_PaperSizes;
+  WIA_LH, WIA_TLB, WiaDef, WiaDevD, WIA_ScanProfiles_TLB, STI, WIA, WIA_SelectForm, WIA_SettingsForm, WIA_PaperSizes, 
+  DelphiCompatibility;
 
 implementation
 

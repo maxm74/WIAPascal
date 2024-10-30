@@ -23,10 +23,10 @@ unit WIA_SettingsForm;
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, Buttons,
-  ComCtrls, StdCtrls, Spin,
+  DelphiCompatibility, Classes, SysUtils, Forms, Controls, Graphics, Dialogs,
+  ExtCtrls, Buttons, ComCtrls, StdCtrls, Spin,
   WIA, WIA_PaperSizes,
-  ImgList {$ifndef fpc}, ImageList{$endif};
+  ImgList {$ifndef fpc}, ImageList, NumberBox{$endif};
 
 const
   //False to display then measurement in Inchs
@@ -55,10 +55,15 @@ type
     cbResolution: TComboBox;
     cbUseNativeUI: TCheckBox;
     edBrightness: TSpinEdit;
+    {$ifdef fpc}
     edPaperH: TFloatSpinEdit;
+    edPaperW: TFloatSpinEdit;
+    {$else}
+    edPaperH: TNumberBox;
+    edPaperW: TNumberBox;
+    {$endif}
     edResolution: TSpinEdit;
     edContrast: TSpinEdit;
-    edPaperW: TFloatSpinEdit;
     gbPaperAlign: TGroupBox;
     gbPaperSize: TGroupBox;
     imgAlign: TImage;
@@ -124,7 +129,7 @@ var
 
 implementation
 
-{$ifdef FPC}
+{$ifdef fpc}
   {$R *.lfm}
 {$else}
   {$R *.dfm}
@@ -235,7 +240,11 @@ end;
 
 procedure TWIASettingsSource.trHAlignChange(Sender: TObject);
 begin
+  {$ifdef fpc}
   imgAlign.ImageIndex:= (trVAlign.Position*3)+trHAlign.Position;
+  {$else}
+  imgListAlign.GetIcon((trVAlign.Position*3)+trHAlign.Position, imgAlign.Picture.Icon);
+  {$endif}
 end;
 
 procedure TWIASettingsSource.SelectCurrentItem(AIndex: Integer);
@@ -311,7 +320,7 @@ begin
          trHAlign.Position:= 0;
          trVAlign.Position:= 0;
        end;
-  imgAlign.ImageIndex:= (trVAlign.Position*3)+trHAlign.Position;
+  trHAlignChange(nil);
 
   //Set Max,Current Values for Custom Paper Size
   edPaperW.Value:= 0;

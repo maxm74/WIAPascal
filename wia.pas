@@ -19,12 +19,14 @@
 unit WIA;
 
 {$H+}
+{$R-}
 {$POINTERMATH ON}
 
 interface
 
 uses
-  Windows, Classes, SysUtils, ComObj, ActiveX, WiaDef, WIA_LH, Wia_PaperSizes;
+  Windows, DelphiCompatibility, Classes, SysUtils, ComObj, ActiveX,
+  WiaDef, WIA_LH, Wia_PaperSizes;
 
 type
   //Dinamic Array types
@@ -625,12 +627,6 @@ implementation
 
 uses WIA_SelectForm;
 
-{$ifndef fpc}
-const
-  AllowDirectorySeparators : set of AnsiChar = ['\','/'];
-  DirectorySeparator = '\';
-{$endif}
-
 procedure VersionStrToInt(const s: String; var Ver, VerSub: Integer);
 var
    pPos, ppPos: Integer;
@@ -689,7 +685,7 @@ var
 begin
   Result:= wicNULL;
 
-  for i in TWIAItemCategory do
+  for i:=Low(TWIAItemCategory) to High(TWIAItemCategory) do
     if (WiaItemCategoryGUID[i] = AGUID) then
     begin
       Result:= i;
@@ -745,7 +741,7 @@ var
 begin
   Result:= False;
 
-  for i in TWIAImageFormat do
+  for i:=Low(TWIAImageFormat) to High(TWIAImageFormat) do
     if (WiaImageFormatGUID[i] = AGUID) then
     begin
       Value:= i;
@@ -2062,8 +2058,12 @@ begin
 end;
 
 function TWIADevice.SetRotation(const Value: TWIARotation; useRoot: Boolean): Boolean;
+var
+   iValue: Integer;
+
 begin
-  Result:= SetProperty(WIA_IPS_ROTATION, VT_I4, Value, useRoot);
+  iValue:= Integer(Value); // Avoid Delphi Release Optimization Error
+  Result:= SetProperty(WIA_IPS_ROTATION, VT_I4, iValue, useRoot);
 end;
 
 function TWIADevice.GetBrightness(var Current: Integer; useRoot: Boolean): Boolean;

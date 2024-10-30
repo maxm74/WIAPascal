@@ -91,7 +91,7 @@ object FormWIADemo: TFormWIADemo
       Width = 1
     end
     object btNative: TButton
-      Left = 256
+      Left = 260
       Height = 32
       Top = 8
       Width = 40
