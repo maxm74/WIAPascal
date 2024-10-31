@@ -202,17 +202,22 @@ object WIASelectForm: TWIASelectForm
       Align = alClient
       Columns = <
         item
-          AutoSize = True
           Caption = 'Name'
+          MinWidth = 100
+          Width = 100
         end
         item
-          AutoSize = True
           Caption = 'Manufacturer'
+          MinWidth = 100
+          Width = 100
         end
         item
-          Width = 316
+          Caption = 'Type'
+          MinWidth = 100
+          Width = 100
         end>
       ColumnClick = False
+      FlatScrollBars = True
       HideSelection = False
       ReadOnly = True
       RowSelect = True

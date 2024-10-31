@@ -204,17 +204,19 @@ object WIASelectForm: TWIASelectForm
       AutoWidthLastColumn = True
       Columns = <      
         item
-          AutoSize = True
           Caption = 'Name'
-          Width = 47
+          MinWidth = 100
+          Width = 100
         end      
         item
-          AutoSize = True
           Caption = 'Manufacturer'
-          Width = 87
+          MinWidth = 100
+          Width = 100
         end      
         item
-          Width = 316
+          Caption = 'Type'
+          MinWidth = 100
+          Width = 100
         end>
       ColumnClick = False
       HideSelection = False
