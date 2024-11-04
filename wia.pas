@@ -507,6 +507,9 @@ type
     function FindDevice(Value: TWIADevice): Integer; overload;
     function FindDevice(AName: String; AManufacturer: String=''): Integer; overload;
 
+    //Find a Device by it's ID and Select the given Item
+    function SelectDeviceItem(ADeviceID, ADeviceItem: String): TWIADevice;
+
     //Kind of Enum, if True Enum even disconnected Devices
     property EnumAll: Boolean read rEnumAll write SetEnumAll;
 
@@ -2694,6 +2697,26 @@ begin
          (curDev.Name = AName) and
          ((AManufacturer <> '') and (curDev.Manufacturer = AManufacturer))
       then begin Result:=i; break; end;
+    end;
+end;
+
+function TWIAManager.SelectDeviceItem(ADeviceID, ADeviceItem: String): TWIADevice;
+var
+   i      :Integer;
+   curDev :TWIADevice;
+
+begin
+    Result:= nil;
+    for i:=0 to DevicesCount-1 do
+    begin
+      curDev:= Devices[i];
+      if (curDev <> nil) and
+         (curDev.ID = ADeviceID) then
+      begin
+        Result:= curDev;
+        curDev.SelectItem(ADeviceItem);
+        break;
+      end;
     end;
 end;
 

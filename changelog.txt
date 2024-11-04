@@ -1,6 +1,9 @@
 WIAPASCAL CHANGE LOG
 ======================
 
+2024/11/ 
+        04 Added TWIAManager.SelectDeviceItem
+
 2024/10/
         31 Columns width adjustments in SelectForm
         30 Delphi Compatibility
