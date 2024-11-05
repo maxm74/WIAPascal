@@ -2,6 +2,11 @@ WIAPASCAL CHANGE LOG
 ======================
 
 2024/11/ 
+        05 Renamed Interfaces property to xxxIntf;
+	   Added property SelectedItem: PWIAItem;
+	   Added method RefreshDeviceList;
+	   SettingsForm select the first Item if started with -1;
+	   Updated tests;
         04 Added TWIAManager.SelectDeviceItem
 
 2024/10/

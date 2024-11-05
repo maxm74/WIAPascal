@@ -551,14 +551,17 @@ begin
 
     try
       //Select the Initial Item to ASelectedItemIndex
+      if (ASelectedItemIndex < 0)
+      then WIASelectedItemIndex:= 0
+      else WIASelectedItemIndex:= ASelectedItemIndex;
       try
-         WIASource.SelectedItemIndex:= ASelectedItemIndex;
+         WIASource.SelectedItemIndex:= WIASelectedItemIndex;
       except
          WIASource.SelectedItemIndex:= 0;
       end;
       WIASelectedItemIndex:= WIASource.SelectedItemIndex;
 
-      PageSourceTypes.Enabled:= (WIASource.SelectedItem <> nil);
+      PageSourceTypes.Enabled:= (WIASource.SelectedItemIntf <> nil);
       if (PageSourceTypes.Enabled)
       then SelectCurrentItem(WIASelectedItemIndex)
       else MessageDlg('Error Selecting Source '+WIASource.Items[WIASelectedItemIndex]^.Name+' of '+WIASource.Name+

@@ -248,14 +248,15 @@ type
     rDownload_Ext,
     rDownload_FileName: String;
 
-    function GeItem(Index: Integer): PWIAItem;
+    function GetItem(Index: Integer): PWIAItem;
     function GetItemCount: Integer;
     procedure SetSelectedItemIndex(AValue: Integer);
+    function GetSelectedItem: PWIAItem;
 
-    function GetRootItem: IWiaItem2;
-    function GetSelectedItem: IWiaItem2;
-    function GetRootProperties: IWiaPropertyStorage;
-    function GetSelectedProperties: IWiaPropertyStorage;
+    function GetRootItemIntf: IWiaItem2;
+    function GetSelectedItemIntf: IWiaItem2;
+    function GetRootPropertiesIntf: IWiaPropertyStorage;
+    function GetSelectedPropertiesIntf: IWiaPropertyStorage;
 
     //Enumerate the avaliable items
     function EnumerateItems: Boolean;
@@ -447,14 +448,16 @@ type
     //     https://docs.microsoft.com/en-us/windows-hardware/drivers/image/simple-duplex-capable-document-feeder
 
     { #todo 10 -oMaxM : It would be better to keep an array of Item Classes where you can move the various Get/Set Properties methods}
-    property Items[Index: Integer]: PWIAItem read GeItem;
+    property Items[Index: Integer]: PWIAItem read GetItem;
 
-    property RootItem: IWiaItem2 read GetRootItem;
-    property SelectedItem: IWiaItem2 read GetSelectedItem;
+    property RootItemIntf: IWiaItem2 read GetRootItemIntf;
+    property RootPropertiesIntf: IWiaPropertyStorage read GetRootPropertiesIntf;
+
+    property SelectedItemIntf: IWiaItem2 read GetSelectedItemIntf;
+    property SelectedPropertiesIntf: IWiaPropertyStorage read GetSelectedPropertiesIntf;
+
+    property SelectedItem: PWIAItem read GetSelectedItem;
     property SelectedItemIndex: Integer read rSelectedItemIndex write SetSelectedItemIndex;
-
-    property RootProperties: IWiaPropertyStorage read GetRootProperties;
-    property SelectedProperties: IWiaPropertyStorage read GetSelectedProperties;
 
     property Downloaded: Boolean read rDownloaded;
     property Download_Count: Integer read rDownload_Count;
@@ -498,6 +501,9 @@ type
 
     //Clears the list of sources
     procedure ClearDeviceList;
+
+    //Refresh the list of sources
+    procedure RefreshDeviceList;
 
     //Display a dialog to let the user choose a Device and returns it's index
     function SelectDeviceDialog: Integer; virtual;
@@ -755,7 +761,7 @@ end;
 
 { TWIADevice }
 
-function TWIADevice.GetRootItem: IWiaItem2;
+function TWIADevice.GetRootItemIntf: IWiaItem2;
 begin
   Result :=nil;
 
@@ -771,7 +777,7 @@ begin
   end;
 end;
 
-function TWIADevice.GetSelectedItem: IWiaItem2;
+function TWIADevice.GetSelectedItemIntf: IWiaItem2;
 begin
   //Enumerate Items if needed
   if not(HasEnumerated)
@@ -783,11 +789,11 @@ begin
   else Result:= nil;
 end;
 
-function TWIADevice.GetRootProperties: IWiaPropertyStorage;
+function TWIADevice.GetRootPropertiesIntf: IWiaPropertyStorage;
 begin
   Result:= nil;
 
-  if (pRootItem = nil) then GetRootItem;
+  if (pRootItem = nil) then GetRootItemIntf;
   if (pRootItem <> nil) then
   begin
     if (pRootProperties = nil)
@@ -797,16 +803,16 @@ begin
   end;
 end;
 
-function TWIADevice.GetSelectedProperties: IWiaPropertyStorage;
+function TWIADevice.GetSelectedPropertiesIntf: IWiaPropertyStorage;
 begin
   Result:= nil;
 
-  if (pSelectedItem = nil) then GetSelectedItem;
+  if (pSelectedItem = nil) then GetSelectedItemIntf;
   if (pSelectedItem <> nil)
   then Result:= pSelectedProperties;
 end;
 
-function TWIADevice.GeItem(Index: Integer): PWIAItem;
+function TWIADevice.GetItem(Index: Integer): PWIAItem;
 begin
   if (Index >= 0) and (Index < Length(rItemList))
   then Result:= @rItemList[Index]
@@ -836,6 +842,11 @@ begin
        end;
 end;
 
+function TWIADevice.GetSelectedItem: PWIAItem;
+begin
+  Result:= GetItem(rSelectedItemIndex);
+end;
+
 function TWIADevice.EnumerateItems: Boolean;
 var
    pIEnumItem: IEnumWiaItem2;
@@ -854,7 +865,7 @@ begin
   try
   rItemList:= nil;
 
-  lres:= GetRootItem.EnumChildItems(nil, pIEnumItem);
+  lres:= GetRootItemIntf.EnumChildItems(nil, pIEnumItem);
   if (lres = S_OK) then
   begin
     lres:= pIEnumItem.GetCount(iCount);
@@ -1068,7 +1079,7 @@ var
 begin
   Result:= 0;
 
-  if (pSelectedItem = nil) then GetSelectedItem;
+  if (pSelectedItem = nil) then GetSelectedItemIntf;
   if (pSelectedItem <> nil) then
   begin
     lres:= pSelectedItem.QueryInterface(IID_IWiaTransfer, pWiaTransfer);
@@ -1151,7 +1162,7 @@ var
 begin
   Result:= 0;
 
-  if (pRootItem = nil) then GetRootItem;
+  if (pRootItem = nil) then GetRootItemIntf;
   if (pRootItem <> nil) then
   begin
     if (APath = '') or CharInSet(APath[Length(APath)], AllowDirectorySeparators)
@@ -1213,8 +1224,8 @@ begin
   Result:= False;
 
   if useRoot
-  then curProp:= GetRootProperties
-  else curProp:= GetSelectedProperties;
+  then curProp:= GetRootPropertiesIntf
+  else curProp:= GetSelectedPropertiesIntf;
 
   if (curProp <> nil) then
   begin
@@ -1268,8 +1279,8 @@ begin
   Result:= [];
 
   if useRoot
-  then curProp:= GetRootProperties
-  else curProp:= GetSelectedProperties;
+  then curProp:= GetRootPropertiesIntf
+  else curProp:= GetSelectedPropertiesIntf;
 
   if (curProp <> nil) then
   begin
@@ -1590,8 +1601,8 @@ begin
   Result:= False;
 
   if useRoot
-  then curProp:= GetRootProperties
-  else curProp:= GetSelectedProperties;
+  then curProp:= GetRootPropertiesIntf
+  else curProp:= GetSelectedPropertiesIntf;
 
   if (curProp <> nil) then
   begin
@@ -2653,6 +2664,11 @@ end;
 procedure TWIAManager.ClearDeviceList;
 begin
   EmptyDeviceList(True);
+end;
+
+procedure TWIAManager.RefreshDeviceList;
+begin
+  HasEnumerated:= EnumerateDevices;
 end;
 
 function TWIAManager.FindDevice(AID: String): Integer;

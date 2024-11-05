@@ -192,7 +192,7 @@ begin
        Memo2.Lines.Add('  ID : '+curDev.ID);
        Memo2.Lines.Add('  Manufacturer : '+curDev.Manufacturer);
        Memo2.Lines.Add('  Name : '+curDev.Name);
-       Memo2.Lines.Add('  Type : '+WIADeviceTypeStr[curDev.Type_]);
+       Memo2.Lines.Add('  Type : '+WIADeviceTypeDescr[curDev.Type_]);
      end
      else Memo2.Lines.Add('['+IntToStr(i)+'] = NIL');
   end;
@@ -239,7 +239,7 @@ begin
 
       curDev.SetProperty(WIA_IPS_XRES, VT_INT, v);
       curDev.SetProperty(WIA_IPS_YRES, VT_INT, v);
-      c:= curDev.Download('', 'WiaTest.bmp');
+      c:= curDev.Download('', 'WiaTest', '.bmp');
       Memo2.Lines.Add('Item Downloaded '+IntToStr(c)+' Files');
   finally
   end;
@@ -304,7 +304,7 @@ begin
      if edSelItemName.Text <> ''
      then curDev.SelectItem(edSelItemName.Text);
 
-     pWiaPropertyStorage:= curDev.SelectedProperties;
+     pWiaPropertyStorage:= curDev.SelectedPropertiesIntf;
 
      if pWiaPropertyStorage=nil then
      begin
@@ -449,7 +449,7 @@ begin
   begin
     curItem:= curDev.Items[i];
     if curItem <> nil
-    then  Memo2.Lines.Add('  Name='+curItem^.Name+'  Kind='+IntToHex(curItem^.ItemType));
+    then  Memo2.Lines.Add('  Name='+curItem^.Name+'  Kind='+IntToHex(Integer(curItem^.ItemType)));
   end;
 end;
 
