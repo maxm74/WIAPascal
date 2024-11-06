@@ -115,6 +115,21 @@ type
   );
   TWIARotationSet = set of TWIARotation;
 
+  TWIADocumentHandling = (
+    wdhFeeder,
+    wdhFlatbed,
+    wdhDuplex,
+    wdhFront_First,
+    wdhBack_First,
+    wdhFront_Only,
+    wdhBack_Only,
+    wdhNext_Page,
+    wdhPreFeed,
+    wdhAuto_Advance,
+    wdhAdvanced_Duplex
+  );
+  TWIADocumentHandlingSet = set of TWIADocumentHandling;
+
   TWIAAlignVertical = (waVTop, waVCenter, waVBottom);
   TWIAAlignHorizontal = (waHLeft, waHCenter, waHRight);
 
@@ -164,7 +179,7 @@ type
     NativeUI: Boolean;
     PaperType: TWIAPaperType;
 
-    //Used only if PaperType=
+    //Used only if PaperType=wptCUSTOM
     PaperW,
     PaperH: Integer;
 
@@ -176,6 +191,7 @@ type
     //BitDepth,
     Brightness: Integer;
     DataType: TWIADataType;
+//    DocHandling: TWIADocumentHandlingSet; { #todo 5 -oMaxM : Must be tested in a Duplex Scanner first }
   end;
   TArrayWIAParams = array of TWIAParams;
 
@@ -208,6 +224,9 @@ type
     DataTypeCurrent,
     DataTypeDefault: TWIADataType;
     DataTypeSet: TWIADataTypeSet;
+    (*DocHandlingCurrent,
+    DocHandlingDefault,
+    DocHandlingSet: TWIADocumentHandlingSet;*) { #todo 5 -oMaxM : Must be tested in a Duplex Scanner first }
   end;
   TArrayWIAParamsCapabilities = array of TWIAParamsCapabilities;
 
@@ -379,10 +398,20 @@ type
     //Get Available Rotations
     function GetRotation(var Current, Default: TWIARotation; var Values: TWIARotationSet; useRoot: Boolean=False): Boolean; overload;
 
-    //Set Current Paper Landscape,
+    //Set Current Rotation,
     //  Not to be confused with PaperLandscape, this function only uses WIA_IPS_ROTATION
     //  which rotates the image after capturing it
     function SetRotation(const Value: TWIARotation; useRoot: Boolean=False): Boolean;
+
+    //Get Current DocumentHandling,
+    function GetDocumentHandling(var Value: TWIADocumentHandlingSet; useRoot: Boolean=False): Boolean; overload;
+    //Get Available DocumentHandling
+    function GetDocumentHandling(var Current, Default, Values: TWIADocumentHandlingSet; useRoot: Boolean=False): Boolean; overload;
+
+    //Set Current Rotation,
+    //  Not to be confused with PaperLandscape, this function only uses WIA_IPS_ROTATION
+    //  which rotates the image after capturing it
+    function SetDocumentHandling(const Value: TWIADocumentHandlingSet; useRoot: Boolean=False): Boolean;
 
     //Get Current Brightness
     function GetBrightness(var Current: Integer; useRoot: Boolean=False): Boolean; overload;
@@ -430,6 +459,9 @@ type
     //Set Params to Current Selected Item
     function SetParams(const AParams: TWIAParams): Boolean;
 
+    //Get Sub Items of Selected Item if any
+    function GetSelectedItemSubItems(var AItemArray: TArrayWIAItem): Boolean;
+
     property ID: String read rID;
     property Manufacturer: String read rManufacturer;
     property Name: String read rName;
@@ -474,7 +506,7 @@ type
   TWIAManager = class(TObject)
   protected
     rEnumAll: Boolean;
-    pWIA_DevMgr: WIA_LH.IWiaDevMgr2;
+    pDevMgr: WIA_LH.IWiaDevMgr2;
     lres: HResult;
     HasEnumerated: Boolean;
     rSelectedDeviceIndex: Integer;
@@ -482,6 +514,7 @@ type
     rOnAfterDeviceTransfer,
     rOnBeforeDeviceTransfer: TOnDeviceTransfer;
 
+    function GetDevMgrIntf: WIA_LH.IWiaDevMgr2;
     procedure SetEnumAll(AValue: Boolean);
     function GetSelectedDevice: TWIADevice;
     procedure SetSelectedDeviceIndex(AValue: Integer);
@@ -515,6 +548,8 @@ type
 
     //Find a Device by it's ID and Select the given Item
     function SelectDeviceItem(ADeviceID, ADeviceItem: String): TWIADevice;
+
+    property DevMgrIntf: WIA_LH.IWiaDevMgr2 read GetDevMgrIntf;
 
     //Kind of Enum, if True Enum even disconnected Devices
     property EnumAll: Boolean read rEnumAll write SetEnumAll;
@@ -724,8 +759,9 @@ begin
     Resolution:= WIACap.ResolutionCurrent;
     Contrast:= WiaCap.ContrastCurrent;
     Brightness:= WIACap.BrightnessCurrent;
+    //DocHandling:= WIACap.DocHandlingCurrent;
     //BitDepth:= WIACap.BitDepthCurrent;
-    //PixelType:= WIACap.PixelTypeCurrent;
+    DataType:= WIACap.DataTypeCurrent;
   end;
 end;
 
@@ -738,6 +774,7 @@ begin
     Resolution:= WIACap.ResolutionDefault;
     Contrast:= WiaCap.ContrastDefault;
     Brightness:= WIACap.BrightnessDefault;
+    //DocHandling:= WIACap.DocHandlingDefault;
     //BitDepth:= WIACap.BitDepthDefault;
     DataType:= WIACap.DataTypeDefault;
   end;
@@ -759,6 +796,40 @@ begin
     end;
 end;
 
+function WIADocumentHandling(iDocumentHandling: Integer): TWIADocumentHandlingSet;
+begin
+  Result :=[];
+
+  if (iDocumentHandling and FEEDER <> 0) then Result:= Result+[wdhFeeder];
+  if (iDocumentHandling and FLATBED <> 0) then Result:= Result+[wdhFlatbed];
+  if (iDocumentHandling and DUPLEX <> 0) then Result:= Result+[wdhDuplex];
+  if (iDocumentHandling and FRONT_FIRST <> 0) then Result:= Result+[wdhFront_First];
+  if (iDocumentHandling and BACK_FIRST <> 0) then Result:= Result+[wdhBack_First];
+  if (iDocumentHandling and FRONT_ONLY <> 0) then Result:= Result+[wdhFront_Only];
+  if (iDocumentHandling and BACK_ONLY <> 0) then Result:= Result+[wdhBack_Only];
+  if (iDocumentHandling and NEXT_PAGE <> 0) then Result:= Result+[wdhNext_Page];
+  if (iDocumentHandling and PREFEED <> 0) then Result:= Result+[wdhPreFeed];
+  if (iDocumentHandling and AUTO_ADVANCE <> 0) then Result:= Result+[wdhAuto_Advance];
+  if (iDocumentHandling and ADVANCED_DUPLEX <> 0) then Result:= Result+[wdhAdvanced_Duplex];
+end;
+
+function WIADocumentHandlingInt(sDocumentHandling: TWIADocumentHandlingSet): Integer;
+begin
+  Result :=0;
+
+  if (wdhFeeder in sDocumentHandling) then Result:= Result or FEEDER;
+  if (wdhFlatbed in sDocumentHandling) then Result:= Result or FLATBED;
+  if (wdhDuplex in sDocumentHandling) then Result:= Result or DUPLEX;
+  if (wdhFront_First in sDocumentHandling) then Result:= Result or FRONT_FIRST;
+  if (wdhBack_First in sDocumentHandling) then Result:= Result or BACK_FIRST;
+  if (wdhFront_Only in sDocumentHandling) then Result:= Result or FRONT_ONLY;
+  if (wdhBack_Only in sDocumentHandling) then Result:= Result or BACK_ONLY;
+  if (wdhNext_Page in sDocumentHandling) then Result:= Result or NEXT_PAGE;
+  if (wdhPreFeed in sDocumentHandling) then Result:= Result or PREFEED;
+  if (wdhAuto_Advance in sDocumentHandling) then Result:= Result or AUTO_ADVANCE;
+  if (wdhAdvanced_Duplex in sDocumentHandling) then Result:= Result or ADVANCED_DUPLEX;
+end;
+
 { TWIADevice }
 
 function TWIADevice.GetRootItemIntf: IWiaItem2;
@@ -769,7 +840,7 @@ begin
   begin
     if (pRootItem = nil)
     then try
-           lres :=rOwner.pWIA_DevMgr.CreateDevice(0, StringToOleStr(Self.rID), pRootItem);
+           lres :=rOwner.pDevMgr.CreateDevice(0, StringToOleStr(Self.rID), pRootItem);
            if (lres = S_OK) then Result :=pRootItem;
          finally
          end
@@ -865,7 +936,9 @@ begin
   try
   rItemList:= nil;
 
-  lres:= GetRootItemIntf.EnumChildItems(nil, pIEnumItem);
+  if (GetRootItemIntf = nil) then exit;
+
+  lres:= pRootItem.EnumChildItems(nil, pIEnumItem);
   if (lres = S_OK) then
   begin
     lres:= pIEnumItem.GetCount(iCount);
@@ -961,9 +1034,13 @@ begin
     WIA_TRANSFER_MSG_STATUS: begin
     end;
     WIA_TRANSFER_MSG_END_OF_STREAM: begin
+      if (pWiaTransferParams^.ulTransferredBytes > 0)
+      then Inc(rDownload_Count);
+
+      rDownloaded:= (rDownload_Count > 0);
     end;
     WIA_TRANSFER_MSG_END_OF_TRANSFER: begin
-      rDownloaded:= True;
+      //rDownloaded:= True;
       pWiaTransferParams^.lPercentComplete:=100;
     end;
     WIA_TRANSFER_MSG_DEVICE_STATUS: begin
@@ -991,7 +1068,7 @@ begin
   else Result:= CreateDestinationStream(rDownload_Path+rDownload_FileName+
                                         '-'+IntToStr(rDownload_Count)+rDownload_Ext, ppDestination);
 
-  Inc(rDownload_Count);
+  //Inc(rDownload_Count);
 end;
 
 constructor TWIADevice.Create(AOwner: TWIAManager; AIndex: Integer; ADeviceID: String);
@@ -1185,7 +1262,7 @@ begin
     lres:= pRootItem.DeviceDlg(dlgFlags, hwndParent,
                                 StringToOleStr(rDownload_Path), StringToOleStr(rDownload_FileName),
                                 rDownload_Count, filePaths, itemArray);
-(*  lres:= rOwner.pWIA_DevMgr.GetImageDlg(0, StringToOleStr(Self.ID), hwndParent,
+(*  lres:= rOwner.pDevMgr.GetImageDlg(0, StringToOleStr(Self.ID), hwndParent,
                                 StringToOleStr(rDownload_Path), StringToOleStr(rDownload_FileName),
                                 rDownload_Count, filePaths, itemArray);
 *)
@@ -1326,8 +1403,8 @@ begin
                     end;
                if (WIAProp_FLAG in Result)
                then begin
-                      numElems:= pPropInfo.cai.cElems; //pElems[WIA_FLAG_NUM_ELEMS];
-                      firstElem:= 0; //WIA_FLAG_VALUES;
+                      numElems:= pPropInfo.cai.cElems-WIA_FLAG_VALUES; //WIA_FLAG_NUM_ELEMS;
+                      firstElem:= WIA_FLAG_VALUES; //0;
                       SmallInt(APropDefaultValue):= pPropInfo.cai.pElems[WIA_FLAG_NOM];
                     end;
 
@@ -1356,8 +1433,8 @@ begin
                     end;
                if (WIAProp_FLAG in Result)
                then begin
-                      numElems:= pPropInfo.cal.cElems; //pElems[WIA_FLAG_NUM_ELEMS];
-                      firstElem:= 0; //WIA_FLAG_VALUES;
+                      numElems:= pPropInfo.cal.cElems-WIA_FLAG_VALUES; //WIA_FLAG_NUM_ELEMS;
+                      firstElem:= WIA_FLAG_VALUES; //0;
                       Integer(APropDefaultValue):= pPropInfo.cal.pElems[WIA_FLAG_NOM];
                     end;
 
@@ -1459,8 +1536,8 @@ begin
                     end;
                if (WIAProp_FLAG in Result)
                then begin
-                      numElems:= pPropInfo.caub.cElems; //pElems[WIA_FLAG_NUM_ELEMS];
-                      firstElem:= 0; //WIA_FLAG_VALUES;
+                      numElems:= pPropInfo.caub.cElems-WIA_FLAG_VALUES; //WIA_FLAG_NUM_ELEMS;
+                      firstElem:= WIA_FLAG_VALUES;
                       Byte(APropDefaultValue):= pPropInfo.caub.pElems[WIA_FLAG_NOM];
                     end;
 
@@ -1489,8 +1566,8 @@ begin
                     end;
                if (WIAProp_FLAG in Result)
                then begin
-                      numElems:= pPropInfo.caui.cElems; //pElems[WIA_FLAG_NUM_ELEMS];
-                      firstElem:= 0; //WIA_FLAG_VALUES;
+                      numElems:= pPropInfo.caui.cElems-WIA_FLAG_VALUES; //WIA_FLAG_NUM_ELEMS;
+                      firstElem:= WIA_FLAG_VALUES; //0;
                       Word(APropDefaultValue):= pPropInfo.caui.pElems[WIA_FLAG_NOM];
                     end;
 
@@ -1519,8 +1596,8 @@ begin
                     end;
                if (WIAProp_FLAG in Result)
                then begin
-                      numElems:= pPropInfo.caul.cElems; //pElems[WIA_FLAG_NUM_ELEMS];
-                      firstElem:= 0; //WIA_FLAG_VALUES;
+                      numElems:= pPropInfo.caul.cElems-WIA_FLAG_VALUES; //WIA_FLAG_NUM_ELEMS;
+                      firstElem:= WIA_FLAG_VALUES; //0;
                       LongWord(APropDefaultValue):= pPropInfo.caul.pElems[WIA_FLAG_NOM];
                     end;
 
@@ -1825,10 +1902,12 @@ begin
             pFlags:= GetProperty(WIA_IPS_PAGE_SIZE, propType, Current, Default, intValues, useRoot);
             if not(WIAProp_READ in pFlags) then Exit;
 
-            if (WIAProp_LIST in pFlags)
-            then for i:=0 to Length(intValues)-1 do Values:= Values+[TWIAPaperType(intValues[i])];
+            if (WIAProp_LIST in pFlags) then
+            begin
+              for i:=0 to Length(intValues)-1 do Values:= Values+[TWIAPaperType(intValues[i])];
 
-            Result:= True;
+              Result:= True;
+            end;
           end;
 
   finally
@@ -2062,13 +2141,23 @@ var
    pFlags: TWIAPropertyFlags;
 
 begin
-  pFlags:= GetProperty(WIA_IPS_ROTATION, propType, Current, Default, intValues, useRoot);
-  if not(WIAProp_READ in pFlags) then Exit;
+  Result:= False;
+  try
+     Values:=[];
 
-  if (WIAProp_LIST in pFlags)
-  then for i:=0 to Length(intValues)-1 do Values:= Values+[TWIARotation(intValues[i])];
+     pFlags:= GetProperty(WIA_IPS_ROTATION, propType, Current, Default, intValues, useRoot);
+     if not(WIAProp_READ in pFlags) then Exit;
 
-  Result:= True;
+     if (WIAProp_LIST in pFlags) then
+     begin
+       for i:=0 to Length(intValues)-1 do Values:= Values+[TWIARotation(intValues[i])];
+
+       Result:= True;
+     end;
+
+  finally
+    intValues:= nil;
+  end;
 end;
 
 function TWIADevice.SetRotation(const Value: TWIARotation; useRoot: Boolean): Boolean;
@@ -2078,6 +2167,56 @@ var
 begin
   iValue:= Integer(Value); // Avoid Delphi Release Optimization Error
   Result:= SetProperty(WIA_IPS_ROTATION, VT_I4, iValue, useRoot);
+end;
+
+function TWIADevice.GetDocumentHandling(var Value: TWIADocumentHandlingSet; useRoot: Boolean): Boolean;
+var
+   propType: TVarType;
+   iCurrent: Integer;
+
+begin
+  Result:= GetProperty(WIA_IPS_DOCUMENT_HANDLING_SELECT, propType, iCurrent, useRoot);
+  if Result then Value:= WIADocumentHandling(iCurrent);
+end;
+
+function TWIADevice.GetDocumentHandling(var Current, Default, Values: TWIADocumentHandlingSet; useRoot: Boolean): Boolean;
+var
+   i,
+   iCurrent,
+   iDefault: Integer;
+   intValues: TArrayInteger;
+   propType: TVarType;
+   pFlags: TWIAPropertyFlags;
+
+begin
+  Result:= False;
+  try
+     Values:=[];
+
+     pFlags:= GetProperty(WIA_IPS_DOCUMENT_HANDLING_SELECT, propType, iCurrent, iDefault, intValues, useRoot);
+     if not(WIAProp_READ in pFlags) then Exit;
+
+     if (WIAProp_FLAG in pFlags) then
+     begin
+       Current:= WIADocumentHandling(iCurrent);
+       Default:= WIADocumentHandling(iDefault);
+       Values:= WIADocumentHandling(TArrayInteger(intValues)[0]);
+
+       Result:= True;
+     end;
+
+   finally
+     intValues:= nil;
+   end;
+end;
+
+function TWIADevice.SetDocumentHandling(const Value: TWIADocumentHandlingSet; useRoot: Boolean): Boolean;
+var
+   iValue: Integer;
+
+begin
+  iValue:= WIADocumentHandlingInt(Value);
+  Result:= SetProperty(WIA_IPS_DOCUMENT_HANDLING_SELECT, VT_I4, iValue, useRoot);
 end;
 
 function TWIADevice.GetBrightness(var Current: Integer; useRoot: Boolean): Boolean;
@@ -2241,10 +2380,12 @@ begin
 
      { #note 5 -oMaxM : what to do if the propType is not the expected one VT_I4}
 
-     if (WIAProp_LIST in pFlags)
-     then for i:=0 to Length(intValues)-1 do Values:= Values+[TWIADataType(intValues[i])];
+     if (WIAProp_LIST in pFlags) then
+     begin
+       for i:=0 to Length(intValues)-1 do Values:= Values+[TWIADataType(intValues[i])];
 
-     Result:= True;
+       Result:= True;
+     end;
 
   finally
     intValues:= nil;
@@ -2295,6 +2436,10 @@ begin
     Result:= GetRotation(RotationCurrent, RotationDefault, RotationSet);
     if not(Result) then exit;
 
+//    Result:= GetDocumentHandling(DocHandlingCurrent, DocHandlingDefault, DocHandlingSet);
+// { #todo 5 -oMaxM : Must be tested in a Duplex Scanner first }
+//    GetSelectedItemSubItems(AItemArray); -> return nil if non duplex
+
     pFlags:= GetResolutionsX(ResolutionCurrent, ResolutionDefault, ResolutionArray);
     Result:= (WIAProp_READ in pFlags);
     if not(Result) then exit;
@@ -2333,6 +2478,9 @@ begin
     else Result:= SetPaperType(PaperType);
     if not(Result) then raise Exception.Create('SetPaperType');
 
+//    Result:= SetDocumentHandling(DocHandling);
+//    if not(Result) then raise Exception.Create('SetDocumentHandling');
+
     Result:= SetBrightness(Brightness);
     if not(Result) then raise Exception.Create('SetBrightness');
 
@@ -2346,6 +2494,79 @@ begin
 
     Result:= SetDataType(DataType);
     if not(Result) then raise Exception.Create('SetDataType');
+  end;
+end;
+
+function TWIADevice.GetSelectedItemSubItems(var AItemArray: TArrayWIAItem): Boolean;
+var
+   pIEnumItem: IEnumWiaItem2;
+   pItem: IWiaItem2;
+   iCount,
+   itemFetched: ULONG;
+   itemType: LONG;
+   itemCategory: TGUID;
+   i: Integer;
+   pPropSpec: PROPSPEC;
+   pPropVar: PROPVARIANT;
+   pWiaPropertyStorage: IWiaPropertyStorage;
+
+begin
+  Result :=False;
+  try
+  AItemArray:= nil;
+
+  if (GetSelectedItemIntf = nil) then exit;
+
+  lres:= pSelectedItem.EnumChildItems(nil, pIEnumItem);
+  if (lres = S_OK) then
+  begin
+    lres:= pIEnumItem.GetCount(iCount);
+    if (lres = S_OK) then
+    begin
+      SetLength(AItemArray, iCount);
+
+      for i:=0 to iCount-1 do
+      begin
+        lres:= pIEnumItem.Next(1, pItem, itemFetched);
+
+        Result := (lres = S_OK);
+        if Result then
+        begin
+          lres:= pItem.GetItemType(itemType);
+          if (lres = S_OK)
+          then AItemArray[i].ItemType :=WIAItemTypes(itemType)
+          else AItemArray[i].ItemType :=[];
+
+          lres:= pItem.GetItemCategory(itemCategory);
+          if (lres = S_OK)
+          then AItemArray[i].ItemCategory :=WIAItemCategory(itemCategory)
+          else AItemArray[i].ItemCategory :=wicNULL;
+
+          lres:= pItem.QueryInterface(IID_IWiaPropertyStorage, pWiaPropertyStorage);
+          if (lres = S_OK) and (pWiaPropertyStorage <> nil) then
+          begin
+            pPropSpec.ulKind := PRSPEC_PROPID;
+            pPropSpec.propid := WIA_IPA_ITEM_NAME; //WIA_IPA_FULL_ITEM_NAME
+
+            lres := pWiaPropertyStorage.ReadMultiple(1, @pPropSpec, @pPropVar);
+
+            if (VT_BSTR = pPropVar.vt)
+            then AItemArray[i].Name :=pPropVar.bstrVal
+            else AItemArray[i].Name :='?';
+          end;
+        end
+        else break;
+      end;
+
+      Result :=True;
+    end;
+
+    pIEnumItem:= nil;
+  end;
+
+  except
+    AItemArray:= nil;
+    Result:= False;
   end;
 end;
 
@@ -2442,6 +2663,14 @@ end;
 
 { TWIAManager }
 
+function TWIAManager.GetDevMgrIntf: WIA_LH.IWiaDevMgr2;
+begin
+  if (pDevMgr = nil)
+  then pDevMgr:= WIA_LH.IWiaDevMgr2(CreateDevManager);
+
+  Result:=pDevMgr;
+end;
+
 procedure TWIAManager.SetEnumAll(AValue: Boolean);
 begin
   if (rEnumAll <> AValue) then
@@ -2482,9 +2711,6 @@ end;
 
 function TWIAManager.GetDevicesCount: Integer;
 begin
- // if (pWIA_DevMgr = nil)
- // then pWIA_DevMgr:= WIA_LH.IWiaDevMgr2(CreateDevManager);
-
   //Enumerate devices if needed
   if not(HasEnumerated)
   then HasEnumerated:= EnumerateDevices;
@@ -2524,14 +2750,14 @@ begin
   SetLength(rDeviceList, 0);
 
   try
-    if (pWIA_DevMgr = nil)
-    then pWIA_DevMgr:= WIA_LH.IWiaDevMgr2(CreateDevManager);
+    if (pDevMgr = nil)
+    then pDevMgr:= WIA_LH.IWiaDevMgr2(CreateDevManager);
 
-    if pWIA_DevMgr<>nil then
+    if pDevMgr<>nil then
     begin
       if EnumAll
-      then lres :=pWIA_DevMgr.EnumDeviceInfo(WIA_DEVINFO_ENUM_ALL, ppIEnum)
-      else lres :=pWIA_DevMgr.EnumDeviceInfo(WIA_DEVINFO_ENUM_LOCAL, ppIEnum);
+      then lres :=pDevMgr.EnumDeviceInfo(WIA_DEVINFO_ENUM_ALL, ppIEnum)
+      else lres :=pDevMgr.EnumDeviceInfo(WIA_DEVINFO_ENUM_LOCAL, ppIEnum);
 
       if (lres=S_OK) and (ppIEnum<>nil) then
       begin
@@ -2648,7 +2874,7 @@ begin
   inherited Create;
 
   HasEnumerated:= False;
-  pWIA_DevMgr:= nil;
+  pDevMgr:= nil;
   rSelectedDeviceIndex:= -1;
   rEnumAll:= AEnumAll;
 end;
@@ -2656,7 +2882,7 @@ end;
 destructor TWIAManager.Destroy;
 begin
   EmptyDeviceList(True);
-  if (pWIA_DevMgr<>nil) then pWIA_DevMgr :=nil; //Free the Interface
+  if (pDevMgr<>nil) then pDevMgr :=nil; //Free the Interface
 
   inherited Destroy;
 end;

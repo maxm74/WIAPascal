@@ -1,7 +1,10 @@
 WIAPASCAL CHANGE LOG
 ======================
 
-2024/11/ 
+2024/11/
+        06 Added DocumentHandling for first Duplex tests (i need a Duplex Scanner);
+	   Added GetSelectedItemSubItems;
+	   Changed way GetProperty returns WIAProp_FLAG array 
         05 Renamed Interfaces property to xxxIntf;
 	   Added property SelectedItem: PWIAItem;
 	   Added method RefreshDeviceList;

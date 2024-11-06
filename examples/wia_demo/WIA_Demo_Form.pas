@@ -180,6 +180,7 @@ var
    propType: TVarType;
    x, y, w, h:Integer;
    aFormat: TWIAImageFormat;
+   AItemArray: TArrayWIAItem;
 
 begin
   WIASource:= FWia.SelectedDevice;
@@ -202,6 +203,9 @@ begin
       end;
       WIASource.SelectedItemIndex:= SelectedItemIndex;
 
+      WIASource.GetSelectedItemSubItems(AItemArray);
+      AItemArray:= nil;
+
       aPath:= ExtractFilePath(ParamStr(0));
 
       if WIAParams[SelectedItemIndex].NativeUI
@@ -223,6 +227,7 @@ begin
                                   mtInformation, [mbOk], 0)
              end;
 
+//             WIAParams[SelectedItemIndex].DocHandling:= [wdhDuplex];
              WIASource.SetParams(WIAParams[SelectedItemIndex]);
 
              if cbTest.Checked then
