@@ -1,7 +1,8 @@
 object WIASettingsSource: TWIASettingsSource
   Left = 311
   Top = 147
-  BorderStyle = bsSizeToolWin
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsSingle
   Caption = 'Settings of WIA Source'
   ClientHeight = 372
   ClientWidth = 543
@@ -490,11 +491,12 @@ object WIASettingsSource: TWIASettingsSource
       OnClick = cbUseNativeUIChange
     end
     object PageSourceTypes: TPageControl
-      Left = 8
+      Left = 2
       Top = 50
-      Width = 528
-      Height = 248
+      Width = 539
+      Height = 280
       ActivePage = tbSource_Scanner
+      Align = alBottom
       TabOrder = 1
       object tbSource_Scanner: TTabSheet
         Caption = 'Scanner'
@@ -514,15 +516,15 @@ object WIASettingsSource: TWIASettingsSource
           Caption = 'Resolution :'
         end
         object Label4: TLabel
-          Left = 225
-          Top = 136
+          Left = 2
+          Top = 137
           Width = 61
           Height = 15
           Caption = 'Brightness :'
         end
         object Label5: TLabel
-          Left = 225
-          Top = 181
+          Left = 2
+          Top = 182
           Width = 51
           Height = 15
           Caption = 'Contrast :'
@@ -559,8 +561,8 @@ object WIASettingsSource: TWIASettingsSource
         end
         object btBrightness0: TSpeedButton
           Tag = 1
-          Left = 419
-          Top = 153
+          Left = 196
+          Top = 154
           Width = 16
           Height = 13
           Caption = '0'
@@ -569,8 +571,8 @@ object WIASettingsSource: TWIASettingsSource
         end
         object btBrightnessD: TSpeedButton
           Tag = 1
-          Left = 419
-          Top = 166
+          Left = 196
+          Top = 167
           Width = 16
           Height = 13
           Caption = 'd'
@@ -579,8 +581,8 @@ object WIASettingsSource: TWIASettingsSource
         end
         object btContrast0: TSpeedButton
           Tag = 2
-          Left = 419
-          Top = 198
+          Left = 196
+          Top = 199
           Width = 16
           Height = 13
           Caption = '0'
@@ -589,8 +591,8 @@ object WIASettingsSource: TWIASettingsSource
         end
         object btContrastD: TSpeedButton
           Tag = 2
-          Left = 419
-          Top = 211
+          Left = 196
+          Top = 212
           Width = 16
           Height = 13
           Caption = 'd'
@@ -625,8 +627,8 @@ object WIASettingsSource: TWIASettingsSource
           TabOrder = 1
         end
         object trBrightness: TTrackBar
-          Left = 225
-          Top = 153
+          Left = 2
+          Top = 154
           Width = 144
           Height = 25
           Max = 1000
@@ -636,8 +638,8 @@ object WIASettingsSource: TWIASettingsSource
           OnChange = trBrightnessChange
         end
         object edBrightness: TSpinEdit
-          Left = 367
-          Top = 153
+          Left = 144
+          Top = 154
           Width = 50
           Height = 24
           MaxValue = 1000
@@ -647,8 +649,8 @@ object WIASettingsSource: TWIASettingsSource
           OnChange = edBrightnessChange
         end
         object trContrast: TTrackBar
-          Left = 226
-          Top = 198
+          Left = 3
+          Top = 199
           Width = 144
           Height = 25
           Max = 1000
@@ -658,8 +660,8 @@ object WIASettingsSource: TWIASettingsSource
           OnChange = trContrastChange
         end
         object edContrast: TSpinEdit
-          Left = 367
-          Top = 198
+          Left = 144
+          Top = 199
           Width = 50
           Height = 24
           MaxValue = 1000
@@ -710,7 +712,7 @@ object WIASettingsSource: TWIASettingsSource
         object gbPaperAlign: TGroupBox
           Left = 225
           Top = 45
-          Width = 89
+          Width = 94
           Height = 90
           Caption = 'Paper Align'
           TabOrder = 10
@@ -784,6 +786,48 @@ object WIASettingsSource: TWIASettingsSource
             MaxValue = 100.000000000000000000
             TabOrder = 1
             SpinButtonOptions.Placement = nbspCompact
+          end
+        end
+        object gbFeeder: TGroupBox
+          Left = 224
+          Top = 136
+          Width = 94
+          Height = 112
+          Caption = 'Feeder'
+          TabOrder = 12
+          Visible = False
+          object rbFrontOnly: TRadioButton
+            Left = 2
+            Top = 16
+            Width = 89
+            Height = 19
+            Caption = 'Front Only'
+            TabOrder = 0
+          end
+          object rbFrontBack: TRadioButton
+            Left = 2
+            Top = 38
+            Width = 89
+            Height = 19
+            Caption = 'Front/Back'
+            TabOrder = 1
+          end
+          object rbBackOnly: TRadioButton
+            Left = 2
+            Top = 80
+            Width = 89
+            Height = 19
+            Caption = 'Back Only'
+            TabOrder = 2
+          end
+          object cbBackFirst: TCheckBox
+            Left = 16
+            Top = 58
+            Width = 75
+            Height = 19
+            Caption = 'Back First'
+            Enabled = False
+            TabOrder = 3
           end
         end
       end

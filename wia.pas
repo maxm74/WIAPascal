@@ -191,7 +191,7 @@ type
     //BitDepth,
     Brightness: Integer;
     DataType: TWIADataType;
-//    DocHandling: TWIADocumentHandlingSet; { #todo 5 -oMaxM : Must be tested in a Duplex Scanner first }
+    DocHandling: TWIADocumentHandlingSet; { #todo 5 -oMaxM : Must be tested in a Duplex Scanner first }
   end;
   TArrayWIAParams = array of TWIAParams;
 
@@ -224,9 +224,9 @@ type
     DataTypeCurrent,
     DataTypeDefault: TWIADataType;
     DataTypeSet: TWIADataTypeSet;
-    (*DocHandlingCurrent,
+    DocHandlingCurrent,
     DocHandlingDefault,
-    DocHandlingSet: TWIADocumentHandlingSet;*) { #todo 5 -oMaxM : Must be tested in a Duplex Scanner first }
+    DocHandlingSet: TWIADocumentHandlingSet; { #todo 5 -oMaxM : Must be tested in a Duplex Scanner }
   end;
   TArrayWIAParamsCapabilities = array of TWIAParamsCapabilities;
 
@@ -547,7 +547,7 @@ type
     function FindDevice(AName: String; AManufacturer: String=''): Integer; overload;
 
     //Find a Device by it's ID and Select the given Item
-    function SelectDeviceItem(ADeviceID, ADeviceItem: String): TWIADevice;
+    procedure SelectDeviceItem(ADeviceID, ADeviceItem: String; var ADevice: TWIADevice; var AIndex: Integer);
 
     property DevMgrIntf: WIA_LH.IWiaDevMgr2 read GetDevMgrIntf;
 
@@ -759,7 +759,7 @@ begin
     Resolution:= WIACap.ResolutionCurrent;
     Contrast:= WiaCap.ContrastCurrent;
     Brightness:= WIACap.BrightnessCurrent;
-    //DocHandling:= WIACap.DocHandlingCurrent;
+    DocHandling:= WIACap.DocHandlingCurrent;
     //BitDepth:= WIACap.BitDepthCurrent;
     DataType:= WIACap.DataTypeCurrent;
   end;
@@ -774,7 +774,7 @@ begin
     Resolution:= WIACap.ResolutionDefault;
     Contrast:= WiaCap.ContrastDefault;
     Brightness:= WIACap.BrightnessDefault;
-    //DocHandling:= WIACap.DocHandlingDefault;
+    DocHandling:= WIACap.DocHandlingDefault;
     //BitDepth:= WIACap.BitDepthDefault;
     DataType:= WIACap.DataTypeDefault;
   end;
@@ -2421,9 +2421,11 @@ end;
 function TWIADevice.GetParamsCapabilities(var Value: TWIAParamsCapabilities): Boolean;
 var
    pFlags: TWIAPropertyFlags;
+   subItemArray: TArrayWIAItem;
 
 begin
   Result:= False;
+  FillChar(Value, SizeOf(TWIAParamsCapabilities), 0);
 
   with Value do
   begin
@@ -2435,10 +2437,6 @@ begin
 
     Result:= GetRotation(RotationCurrent, RotationDefault, RotationSet);
     if not(Result) then exit;
-
-//    Result:= GetDocumentHandling(DocHandlingCurrent, DocHandlingDefault, DocHandlingSet);
-// { #todo 5 -oMaxM : Must be tested in a Duplex Scanner first }
-//    GetSelectedItemSubItems(AItemArray); -> return nil if non duplex
 
     pFlags:= GetResolutionsX(ResolutionCurrent, ResolutionDefault, ResolutionArray);
     Result:= (WIAProp_READ in pFlags);
@@ -2458,6 +2456,30 @@ begin
     *)
 
     Result:= GetDataType(DataTypeCurrent, DataTypeDefault, DataTypeSet);
+    if not(Result) then exit;
+
+    //Take the specific Capabilities according to the category (from this point onwards Result is True)
+    Case rItemList[rSelectedItemIndex].ItemCategory of
+      wicFEEDER: begin
+        Result:= GetDocumentHandling(DocHandlingCurrent, DocHandlingDefault, DocHandlingSet);
+        //if not(Result) then exit;
+
+        { #todo 5 -oMaxM : Must be tested in a Duplex Scanner }
+        Result:= GetSelectedItemSubItems(subItemArray); //return nil if non duplex
+        if Result
+        then begin
+               DocHandlingSet:= DocHandlingSet+[wdhDuplex];
+             end
+        else if (subItemArray = nil) then
+             begin
+
+             end;
+      end
+      else begin
+           end;
+    end;
+    Result:= True;
+
   end;
 end;
 
@@ -2942,24 +2964,33 @@ begin
     end;
 end;
 
-function TWIAManager.SelectDeviceItem(ADeviceID, ADeviceItem: String): TWIADevice;
+procedure TWIAManager.SelectDeviceItem(ADeviceID, ADeviceItem: String; var ADevice: TWIADevice; var AIndex: Integer);
 var
    i      :Integer;
    curDev :TWIADevice;
 
 begin
-    Result:= nil;
+  ADevice:= nil;
+  AIndex:= -1;
+
+  try
     for i:=0 to DevicesCount-1 do
     begin
       curDev:= Devices[i];
+
       if (curDev <> nil) and
          (curDev.ID = ADeviceID) then
       begin
-        Result:= curDev;
-        curDev.SelectItem(ADeviceItem);
+        ADevice:= curDev;
+        if curDev.SelectItem(ADeviceItem) then AIndex:= i;
         break;
       end;
     end;
+
+  except
+    ADevice:= nil;
+    AIndex:= -1;
+  end;
 end;
 
 end.

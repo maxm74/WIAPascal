@@ -4,7 +4,7 @@ object WIASelectForm: TWIASelectForm
   Top = 222
   Width = 458
   ActiveControl = lvSources
-  BorderStyle = bsSizeToolWin
+  BorderIcons = [biSystemMenu]
   Caption = 'Select WIA Device'
   ClientHeight = 321
   ClientWidth = 458

@@ -2,6 +2,11 @@ WIAPASCAL CHANGE LOG
 ======================
 
 2024/11/
+        07 Changed params of SelectDeviceItem;
+	   Added use of GetDocumentHandling in Feeder (cannot test);
+	   Moved wptMAX PaperType at end (Problems with XML Write);
+	   Deleted use of initItemValues in SettingsForm.SelectCurrentItem
+	   Added Feeder GroupBox in SettingsForm
         06 Added DocumentHandling for first Duplex tests (i need a Duplex Scanner);
 	   Added GetSelectedItemSubItems;
 	   Changed way GetProperty returns WIAProp_FLAG array 

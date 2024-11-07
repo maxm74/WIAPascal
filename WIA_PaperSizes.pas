@@ -31,7 +31,6 @@ type
   end;
 
   TWIAPaperType = (
-   wptMAX = $FF, // Use  WIA_IPS_MAX_HORIZONTAL/VERTICAL_SIZE
    wptA4 = WIA_PAGE_A4, //  8267 x 11692
    wptLETTER = WIA_PAGE_LETTER, //  8500 x 11000
    wptCUSTOM = WIA_PAGE_CUSTOM, // Use a Range from  WIA_IPS_MIN_*_SIZE to WIA_IPS_MAX_*_SIZE
@@ -86,7 +85,8 @@ type
    wptJIS_4A = WIA_PAGE_JIS_4A, //  66220 x  93622
    wptDIN_2B = WIA_PAGE_DIN_2B, //  55669 x 78740
    wptDIN_4B = WIA_PAGE_DIN_4B, //  78740 x 111338
-   wptAUTO = WIA_PAGE_AUTO
+   wptAUTO = WIA_PAGE_AUTO,
+   wptMAX = $FF // Use  WIA_IPS_MAX_HORIZONTAL/VERTICAL_SIZE
   );
   TWIAPaperTypeSet = set of TWIAPaperType;
 
@@ -230,6 +230,7 @@ var
 begin
   Result:= [wptMAX];
 
+  //We need always the Vertical Dimensions, PaperSizesWIA is Portrait
   if (Max_Width > Max_Height) then
   begin
     iSwap:= Max_Height;
@@ -239,6 +240,7 @@ begin
 
   for i:=wptA4 to PaperSizesWIA_MaxIndex do
   begin
+    //if the Paper is inside the Max Area then include it as selectable
     if (PaperSizesWIA[i].w <= Max_Width) and (PaperSizesWIA[i].h <= Max_Height)
     then Result:= Result + [i];
   end;
@@ -252,6 +254,8 @@ begin
   Result:= wptCUSTOM;
   for i:=wptA4 to PaperSizesWIA_MaxIndex do
   begin
+    //if the Width/Height is equals to a Paper then select it
+    { #note -oMaxM : It might be helpful to include a margin of error }
     if (PaperSizesWIA[i].w = AWidth) and (PaperSizesWIA[i].h = AHeight)
     then begin Result:= i; break; end;
   end;

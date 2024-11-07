@@ -54,6 +54,7 @@ type
     cbDataType: TComboBox;
     cbResolution: TComboBox;
     cbUseNativeUI: TCheckBox;
+    cbBackFirst: TCheckBox;
     edBrightness: TSpinEdit;
     {$ifdef fpc}
     edPaperH: TFloatSpinEdit;
@@ -66,6 +67,7 @@ type
     edContrast: TSpinEdit;
     gbPaperAlign: TGroupBox;
     gbPaperSize: TGroupBox;
+    gbFeeder: TGroupBox;
     imgAlign: TImage;
     imgListAlign: TImageList;
     imgList: TImageList;
@@ -82,6 +84,9 @@ type
     panelButtons: TPanel;
     btBrightness0: TSpeedButton;
     btBrightnessD: TSpeedButton;
+    rbFrontBack: TRadioButton;
+    rbFrontOnly: TRadioButton;
+    rbBackOnly: TRadioButton;
     tbSource_Scanner: TTabSheet;
     trBrightness: TTrackBar;
     trHAlign: TTrackBar;
@@ -255,16 +260,14 @@ var
    paperI: TWIAPaperType;
    dataI: TWIADataType;
    i, cbSelected: Integer;
+   curItem: PWIAItem;
 
 begin
   AParams:= WIAParams[AIndex];
   ACap:= WIACaps[AIndex];
-  //WiaSource.SelectedItemIndex:= AIndex; No Need we have ACap already Filled
+  curItem:= WIASource.Items[AIndex];
 
-  if (initItemValues = initParams)
-  then cbUseNativeUI.Checked:= AParams.NativeUI
-  else cbUseNativeUI.Checked:= False;
-
+  cbUseNativeUI.Checked:= AParams.NativeUI;
   PageSourceTypes.Enabled:= not(cbUseNativeUI.Checked);
 
   with ACap do
@@ -292,54 +295,41 @@ begin
          end;
     end;
 
-    case initItemValues of
-    initDefault: begin if (paperI = PaperTypeDefault) then cbSelected :=cbPaperType.Items.Count-1; end;
-    initParams:  begin if (paperI = AParams.PaperType) then cbSelected :=cbPaperType.Items.Count-1; end;
-    initCurrent: begin if (paperI = PaperTypeCurrent) then cbSelected :=cbPaperType.Items.Count-1; end;
-    end;
+    if (paperI = AParams.PaperType) then cbSelected :=cbPaperType.Items.Count-1;
   end;
   cbPaperType.ItemIndex:=cbSelected;
 
   //Set Landscape/Portrait Button
-  case initItemValues of
-  initDefault: btPaperOrientation.Down:= (RotationDefault in [wrLandscape, wrRot270]); //270 is basically landscape
-  initParams:  btPaperOrientation.Down:= (AParams.Rotation in [wrLandscape, wrRot270]);
-  initCurrent: btPaperOrientation.Down:= (RotationCurrent in [wrLandscape, wrRot270]);
-  end;
+  btPaperOrientation.Down:= (AParams.Rotation in [wrLandscape, wrRot270]);
   if btPaperOrientation.Down
   then begin btPaperOrientation.ImageIndex:= 1; btPaperOrientation.Hint:= 'Landscape'; end
   else begin btPaperOrientation.ImageIndex:= 0; btPaperOrientation.Hint:= 'Portrait'; end;
 
   //Paper Align
-  if (initItemValues = initParams)
-  then begin
-         trHAlign.Position:= Integer(AParams.HAlign);
-         trVAlign.Position:= Integer(AParams.VAlign);
-       end
-  else begin
-         trHAlign.Position:= 0;
-         trVAlign.Position:= 0;
-       end;
+  trHAlign.Position:= Integer(AParams.HAlign);
+  trVAlign.Position:= Integer(AParams.VAlign);
   trHAlignChange(nil);
 
   //Set Max,Current Values for Custom Paper Size
-  edPaperW.Value:= 0;
-  edPaperH.Value:= 0;
   edPaperW.MaxValue:= THInchToSize(WIASettings_Unit_cm, PaperSizeMaxWidth);
   edPaperH.MaxValue:= THInchToSize(WIASettings_Unit_cm, PaperSizeMaxHeight);
-
-  if (TWIAPaperType(PtrUInt(cbPaperType.Items.Objects[cbPaperType.ItemIndex])) = wptCUSTOM) and
-     (initItemValues = initParams)
-  then begin
-         edPaperW.Value:= THInchToSize(WIASettings_Unit_cm, AParams.PaperW);
-         edPaperH.Value:= THInchToSize(WIASettings_Unit_cm, AParams.PaperH);
-       end
-  else begin
-         edPaperW.Value:= THInchToSize(WIASettings_Unit_cm, PaperSizeMaxWidth);
-         edPaperH.Value:= THInchToSize(WIASettings_Unit_cm, PaperSizeMaxHeight);
-       end;
-
+  if (AParams.PaperType = wptCUSTOM) then
+  begin
+    edPaperW.Value:= THInchToSize(WIASettings_Unit_cm, AParams.PaperW);
+    edPaperH.Value:= THInchToSize(WIASettings_Unit_cm, AParams.PaperH);
+  end;
   cbPaperTypeChange(nil);
+
+  if (curItem <> nil) and (curItem^.ItemCategory = wicFEEDER) then
+  begin
+    { #todo 5 -oMaxM : Must be tested in a Duplex Scanner }
+    gbFeeder.Visible:= True;
+    rbFrontOnly.Enabled:= (wdhFront_Only in DocHandlingSet);
+    rbFrontBack.Enabled:= (wdhDuplex in DocHandlingSet) or (wdhAdvanced_Duplex in DocHandlingSet);
+    rbBackOnly.Enabled:= (wdhBack_Only in DocHandlingSet);
+    cbBackFirst.Enabled:= (wdhBack_First in DocHandlingSet);
+    rbFrontOnly.Checked:= (wdhFront_Only in AParams.DocHandling);
+  end;
 
 (*
   { #todo 10 -oMaxM : In theory the selectable BitDepths depend on ImageType,
@@ -375,11 +365,7 @@ begin
     else begin
            cbDataType.Items.AddObject(WIADataTypeDescr[dataI], TObject(PtrUInt(dataI)));
 
-           case initItemValues of
-           initDefault: begin if (dataI = DataTypeDefault) then cbSelected :=cbDataType.Items.Count-1; end;
-           initParams:  begin if (dataI = AParams.DataType) then cbSelected :=cbDataType.Items.Count-1; end;
-           initCurrent: begin if (dataI = DataTypeCurrent) then cbSelected :=cbDataType.Items.Count-1; end;
-           end;
+           if (dataI = AParams.DataType) then cbSelected :=cbDataType.Items.Count-1;
          end;
     end;
   end;
@@ -393,11 +379,7 @@ begin
          trResolution.Min:= ResolutionArray[WIA_RANGE_MIN];
          trResolution.Max:= ResolutionArray[WIA_RANGE_MAX];
          trResolution.LineSize:= ResolutionArray[WIA_RANGE_STEP];
-         case initItemValues of
-         initDefault: trResolution.Position:= ResolutionDefault;
-         initParams:  trResolution.Position:= AParams.Resolution;
-         initCurrent: trResolution.Position:= ResolutionCurrent;
-         end;
+         trResolution.Position:= AParams.Resolution;
          edResolution.MinValue:= ResolutionArray[WIA_RANGE_MIN];
          edResolution.MaxValue:= ResolutionArray[WIA_RANGE_MAX];
          edResolution.Increment:= ResolutionArray[WIA_RANGE_STEP];
@@ -414,11 +396,7 @@ begin
          begin
            cbResolution.Items.AddObject(IntToStr(ResolutionArray[i]), TObject(PtrUInt(i)));
 
-           case initItemValues of
-           initDefault: begin if (ResolutionArray[i] = ResolutionDefault) then cbSelected :=cbResolution.Items.Count-1; end;
-           initParams:  begin if (ResolutionArray[i] = AParams.Resolution) then cbSelected :=cbResolution.Items.Count-1; end;
-           initCurrent: begin if (ResolutionArray[i] = ResolutionCurrent) then cbSelected :=cbResolution.Items.Count-1; end;
-           end;
+           if (ResolutionArray[i] = AParams.Resolution) then cbSelected :=cbResolution.Items.Count-1;
          end;
          cbResolution.ItemIndex:=cbSelected;
        end;
@@ -427,11 +405,7 @@ begin
   trBrightness.Min:= BrightnessMin;
   trBrightness.Max:= BrightnessMax;
   trBrightness.LineSize:= BrightnessStep;
-  case initItemValues of
-  initDefault: trBrightness.Position:= BrightnessDefault;
-  initParams:  trBrightness.Position:= AParams.Brightness;
-  initCurrent: trBrightness.Position:= BrightnessCurrent;
-  end;
+  trBrightness.Position:= AParams.Brightness;
   edBrightness.MinValue:= BrightnessMin;
   edBrightness.MaxValue:= BrightnessMax;
   edBrightness.Increment:= BrightnessStep;
@@ -441,11 +415,7 @@ begin
   trContrast.Min:= ContrastMin;
   trContrast.Max:= ContrastMax;
   trContrast.LineSize:= ContrastStep;
-  case initItemValues of
-  initDefault: trContrast.Position:= ContrastDefault;
-  initParams:  trContrast.Position:= AParams.Contrast;
-  initCurrent: trContrast.Position:= ContrastCurrent;
-  end;
+  trContrast.Position:= AParams.Contrast;
   edContrast.MinValue:= ContrastMin;
   edContrast.MaxValue:= ContrastMax;
   edContrast.Increment:= ContrastStep;
@@ -538,13 +508,14 @@ begin
       //Get Item[i] Default Values
       WIASource.SelectedItemIndex:= i;
       if not(WIASource.GetParamsCapabilities(WiaCaps[i]))
-      then raise Exception.Create('Cannot Get Capabilities for Source Item');
+      then raise Exception.Create('Cannot Get Capabilities for Source Item '+IntToStr(i));
 
-      //if is a new Item then Assign Default or Current Values
-      if (i >= lenAParams)
-      then if (initItemValues = initCurrent)
-           then WIAParams[i]:= WIACopyCurrentValues(WiaCaps[i])
-           else WIAParams[i]:= WIACopyDefaultValues(WiaCaps[i]);
+      Case initItemValues of
+      initDefault: WIAParams[i]:= WIACopyDefaultValues(WiaCaps[i]);
+      initParams : if (i >= lenAParams) //if is a new Item then Assign Default Values
+                   then WIAParams[i]:= WIACopyDefaultValues(WiaCaps[i]);
+      initCurrent: WIAParams[i]:= WIACopyCurrentValues(WiaCaps[i]);
+      end;
 
       cbSourceItem.Items.AddObject(WIASource.Items[i]^.Name, TObject(PtrUInt(i)));
     end;
