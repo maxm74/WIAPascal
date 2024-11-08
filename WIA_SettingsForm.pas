@@ -49,12 +49,11 @@ type
     btRefreshCurrent: TBitBtn;
     btRefreshDefault: TBitBtn;
     cbBitDepth: TComboBox;
-    cbSourceItem: TComboBox;
     cbPaperType: TComboBox;
     cbDataType: TComboBox;
     cbResolution: TComboBox;
-    cbUseNativeUI: TCheckBox;
     cbBackFirst: TCheckBox;
+    cbUseNativeUI: TCheckBox;
     edBrightness: TSpinEdit;
     {$ifdef fpc}
     edPaperH: TFloatSpinEdit;
@@ -68,19 +67,21 @@ type
     gbPaperAlign: TGroupBox;
     gbPaperSize: TGroupBox;
     gbFeeder: TGroupBox;
+    ImgListSource: TImageList;
     imgAlign: TImage;
     imgListAlign: TImageList;
     imgList: TImageList;
-    Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
     Label5: TLabel;
     Label6: TLabel;
     Label7: TLabel;
-    Label8: TLabel;
+    LabelPaperSize: TLabel;
+    lvSourceItems: TListView;
     PageSourceTypes: TPageControl;
     Panel1: TPanel;
+    panelCenter: TPanel;
     panelButtons: TPanel;
     btBrightness0: TSpeedButton;
     btBrightnessD: TSpeedButton;
@@ -97,10 +98,10 @@ type
     procedure btDClick(Sender: TObject);
     procedure btPaperOrientationClick(Sender: TObject);
     procedure cbPaperTypeChange(Sender: TObject);
-    procedure cbSourceItemChange(Sender: TObject);
     procedure cbUseNativeUIChange(Sender: TObject);
     procedure edBrightnessChange(Sender: TObject);
     procedure edContrastChange(Sender: TObject);
+    procedure lvSourceItemsSelectItem(Sender: TObject; Item: TListItem; Selected: Boolean);
     procedure trBrightnessChange(Sender: TObject);
     procedure trContrastChange(Sender: TObject);
     procedure trHAlignChange(Sender: TObject);
@@ -154,18 +155,6 @@ begin
   trBrightness.Position:=edBrightness.Value;
 end;
 
-procedure TWIASettingsSource.cbSourceItemChange(Sender: TObject);
-begin
-  Case MessageDlg('Apply Changes to Item '+WIASource.Items[WIASelectedItemIndex]^.Name+' of '+WIASource.Name,
-                 mtConfirmation, [mbYes, mbNo, mbCancel], 0) of
-    mrYes: begin
-            StoreCurrentItemParams;
-            SelectCurrentItem(cbSourceItem.ItemIndex);
-    end;
-    mrNo: SelectCurrentItem(cbSourceItem.ItemIndex);
-  end;
-end;
-
 procedure TWIASettingsSource.cbUseNativeUIChange(Sender: TObject);
 begin
   PageSourceTypes.Enabled:= not(cbUseNativeUI.Checked);
@@ -215,20 +204,28 @@ begin
   Case selPaperSize of
     wptMAX, wptAUTO: begin
        gbPaperAlign.Enabled:= False;
+       btPaperOrientation.Enabled:= False;
        gbPaperSize.Visible:= True;
        gbPaperSize.Enabled:= False;
-       btPaperOrientation.Enabled:= False;
+       edPaperW.Value:= edPaperW.MaxValue;
+       edPaperH.Value:= edPaperW.MaxValue;
     end;
     wptCUSTOM: begin
        gbPaperAlign.Enabled:= True;
-       gbPaperSize.Visible:= True;
-       gbPaperSize.Enabled:= True;
        btPaperOrientation.Enabled:= True;
+       gbPaperSize.Visible:= True;
+       edPaperW.Visible:= True;
+       edPaperH.Visible:= True;
+       gbPaperSize.Enabled:= True;
+       edPaperW.Value:= THInchToSize(WIASettings_Unit_cm, WIAParams[WIASelectedItemIndex].PaperW);
+       edPaperH.Value:= THInchToSize(WIASettings_Unit_cm, WIAParams[WIASelectedItemIndex].PaperH);
     end;
     else begin
        gbPaperAlign.Enabled:= True;
-       gbPaperSize.Visible:= False;
        btPaperOrientation.Enabled:= True;
+       gbPaperSize.Visible:= False;
+       edPaperW.Value:= THInchToSize(WIASettings_Unit_cm, WIAParams[WIASelectedItemIndex].PaperW);
+       edPaperH.Value:= THInchToSize(WIASettings_Unit_cm, WIAParams[WIASelectedItemIndex].PaperH);
     end;
   end;
 end;
@@ -236,6 +233,19 @@ end;
 procedure TWIASettingsSource.edContrastChange(Sender: TObject);
 begin
   trContrast.Position:=edContrast.Value;
+end;
+
+procedure TWIASettingsSource.lvSourceItemsSelectItem(Sender: TObject; Item: TListItem; Selected: Boolean);
+begin
+  if Selected and (Item.Index <> WIASelectedItemIndex) then
+  Case MessageDlg('Apply Changes to Item '+WIASource.Items[WIASelectedItemIndex]^.Name+' of '+WIASource.Name,
+                 mtConfirmation, [mbYes, mbNo, mbCancel], 0) of
+    mrYes: begin
+            StoreCurrentItemParams;
+            SelectCurrentItem(lvSourceItems.ItemIndex);
+    end;
+    mrNo: SelectCurrentItem(lvSourceItems.ItemIndex);
+  end;
 end;
 
 procedure TWIASettingsSource.trContrastChange(Sender: TObject);
@@ -313,12 +323,6 @@ begin
   //Set Max,Current Values for Custom Paper Size
   edPaperW.MaxValue:= THInchToSize(WIASettings_Unit_cm, PaperSizeMaxWidth);
   edPaperH.MaxValue:= THInchToSize(WIASettings_Unit_cm, PaperSizeMaxHeight);
-  if (AParams.PaperType = wptCUSTOM) then
-  begin
-    edPaperW.Value:= THInchToSize(WIASettings_Unit_cm, AParams.PaperW);
-    edPaperH.Value:= THInchToSize(WIASettings_Unit_cm, AParams.PaperH);
-  end;
-  cbPaperTypeChange(nil);
 
   if (curItem <> nil) and (curItem^.ItemCategory = wicFEEDER) then
   begin
@@ -329,7 +333,8 @@ begin
     rbBackOnly.Enabled:= (wdhBack_Only in DocHandlingSet);
     cbBackFirst.Enabled:= (wdhBack_First in DocHandlingSet);
     rbFrontOnly.Checked:= (wdhFront_Only in AParams.DocHandling);
-  end;
+  end
+  else gbFeeder.Visible:= False;
 
 (*
   { #todo 10 -oMaxM : In theory the selectable BitDepths depend on ImageType,
@@ -425,6 +430,7 @@ begin
   curParams:= AParams;
   curCap:= ACap;
   WIASelectedItemIndex:= AIndex;
+  cbPaperTypeChange(nil);
 end;
 
 procedure TWIASettingsSource.StoreCurrentItemParams;
@@ -476,6 +482,8 @@ var
   i,
   itemCount,
   lenAParams: Integer;
+  curListItem: TListItem;
+  curItem: PWIAItem;
 
 begin
   Result:= False;
@@ -501,12 +509,17 @@ begin
 
     SetLength(WiaCaps, itemCount);
 
-    //Get Capabilities and Fill ComboBox of Source Items
-    cbSourceItem.Clear;
+    //Get Capabilities and Fill ListView of Source Items
+    lvSourceItems.Clear;
     for i:=0 to itemCount-1 do
     begin
       //Get Item[i] Default Values
       WIASource.SelectedItemIndex:= i;
+      curItem:= WIASource.Items[i];
+
+      if (curItem = nil)
+      then raise Exception.Create('Cannot Get Source Item '+IntToStr(i));
+
       if not(WIASource.GetParamsCapabilities(WiaCaps[i]))
       then raise Exception.Create('Cannot Get Capabilities for Source Item '+IntToStr(i));
 
@@ -517,7 +530,21 @@ begin
       initCurrent: WIAParams[i]:= WIACopyCurrentValues(WiaCaps[i]);
       end;
 
-      cbSourceItem.Items.AddObject(WIASource.Items[i]^.Name, TObject(PtrUInt(i)));
+      curListItem:= lvSourceItems.Items.Add;
+      curListItem.Caption :=WIASource.Items[i]^.Name;
+      curListItem.Data:= Pointer(i);
+
+      Case curItem^.ItemCategory of
+      wicFLATBED: curListItem.ImageIndex:= 1;
+      wicFEEDER,
+      wicFEEDER_FRONT,
+      wicFEEDER_BACK:  curListItem.ImageIndex:= 2;
+      wicFILM:  curListItem.ImageIndex:= 3;
+      wicROOT,
+      wicFOLDER:  curListItem.ImageIndex:= 5;
+      wicBARCODE_READER: curListItem.ImageIndex:= 6;
+      else  curListItem.ImageIndex:= 0;
+      end;
     end;
 
     try
@@ -542,7 +569,9 @@ begin
        MessageDlg('Error Selecting Source ['+IntToStr(WIASelectedItemIndex)+'] of '+WIASource.Name+
                  #13#10+E.Message+#13#10'Try to Select another Source Item', mtError, [mbOk], 0);
     end;
-    cbSourceItem.ItemIndex:= WIASelectedItemIndex;
+    //cbSourceItem.ItemIndex:= WIASelectedItemIndex;
+    lvSourceItems.ItemIndex:= WIASelectedItemIndex;
+    SelectCurrentItem(WIASelectedItemIndex);
 
     Result := (ShowModal=mrOk);
 

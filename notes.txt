@@ -1,16 +1,3 @@
 Add in dfm
-//PageSourceTypes - align to Bottom - Height=280
-//Contrast/Brightess to Left
-//PaperAlign Width to 94
-//Forms Border Icon only SystemMenu, 
- //Select Form BorderStyle to bsSizeable
- //Setting Form BorderStyle to bsSingle
-//Add Box Feeder with Copy/Paste 
 
 Delphi Properties not found in dfm
-
-//nativeui.onchange changed to onclick
-//pagesources.showtabs using TabVisible
-//imgAlign.Images code with GetIcon
-//TFloatSpinEdit using NumberBox
-//imgList.Bitmap Format error, using Export/Import
