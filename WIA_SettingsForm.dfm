@@ -682,6 +682,7 @@ object WIASettingsSource: TWIASettingsSource
           ShowSelRange = False
           TabOrder = 8
           Visible = False
+          OnChange = trResolutionChange
         end
         object edResolution: TSpinEdit
           Left = 144
@@ -693,6 +694,7 @@ object WIASettingsSource: TWIASettingsSource
           TabOrder = 9
           Value = 0
           Visible = False
+          OnChange = edResolutionChange
         end
         object gbPaperAlign: TGroupBox
           Left = 225
@@ -815,6 +817,7 @@ object WIASettingsSource: TWIASettingsSource
             Caption = 'Back First'
             Enabled = False
             TabOrder = 3
+            OnClick = cbBackFirstClick
           end
         end
       end

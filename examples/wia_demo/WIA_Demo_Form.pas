@@ -70,6 +70,7 @@ end;
 
 procedure TFormWIADemo.FormDestroy(Sender: TObject);
 begin
+  WIAParams:= nil;
   if (FWIA<>nil) then FWia.Free;
 end;
 
@@ -124,8 +125,13 @@ begin
       WIASource:= FWia.SelectedDevice;
       if (WIASource <> nil) then
       begin
-        btAcquire.Enabled := WiaSource.GetParamsCapabilities(WIACap);
+        btAcquire.Enabled := True; ///WiaSource.GetParamsCapabilities(WIACap);
         lbSelected.Caption:= 'Selected : '+WIASource.Name;
+
+        //SetLength(WIAParams, 1);
+        //WIAParams[0]:= WIACopyDefaultValues(WIACap);
+        //WIAParams[0]:= WIACopyCurrentValues(WIACap);
+        WIAParams:= nil;
 
         if cbTest.Checked then
         begin
@@ -137,10 +143,6 @@ begin
                     else MessageDlg('ImageFormat Error', mtInformation, [mbOk], 0);
 
         end;
-
-        SetLength(WIAParams, 1);
-        WIAParams[0]:= WIACopyDefaultValues(WIACap);
-        //WIAParams:= WIACopyCurrentValues(WIACap);
       end
       else MessageDlg('Error Connecting Device', mtError, [mbOk], 0);
     end;
@@ -228,6 +230,8 @@ begin
              end;
 
 //             WIAParams[SelectedItemIndex].DocHandling:= [wdhDuplex];
+//             WIAParams[SelectedItemIndex].Resolution:= 200;
+//             WIAParams[SelectedItemIndex].DataType:= wdtGRAYSCALE;
              WIASource.SetParams(WIAParams[SelectedItemIndex]);
 
              if cbTest.Checked then

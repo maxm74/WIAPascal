@@ -642,6 +642,7 @@ object WIASettingsSource: TWIASettingsSource
           Min = -1000
           Position = 0
           ShowSelRange = False
+          OnChange = trResolutionChange
           TabOrder = 8
           Visible = False
         end
@@ -654,6 +655,7 @@ object WIASettingsSource: TWIASettingsSource
           MinValue = -1000
           TabOrder = 9
           Visible = False
+          OnChange = edResolutionChange
         end
         object btBrightness0: TSpeedButton
           Tag = 1
@@ -832,6 +834,7 @@ object WIASettingsSource: TWIASettingsSource
             Caption = 'Back First'
             Enabled = False
             TabOrder = 3
+            OnClick = cbBackFirstClick
           end
         end
       end

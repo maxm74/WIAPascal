@@ -2428,56 +2428,61 @@ begin
   FillChar(Value, SizeOf(TWIAParamsCapabilities), 0);
 
   with Value do
+  if (GetSelectedItemIntf <> nil) then
   begin
-    Result:= GetPaperSizeMax(PaperSizeMaxWidth, PaperSizeMaxHeight);
-    if not(Result) then exit;
+    if (rItemList[rSelectedItemIndex].ItemCategory <> wicAUTO) then
+    begin
+      Result:= GetPaperSizeMax(PaperSizeMaxWidth, PaperSizeMaxHeight);
+      //if not(Result) then raise Exception.Create('GetPaperSizeMax');
 
-    Result:= GetPaperType(PaperTypeCurrent, PaperTypeDefault, PaperTypeSet);
-    if not(Result) then exit;
+      Result:= GetPaperType(PaperTypeCurrent, PaperTypeDefault, PaperTypeSet);
+      //if not(Result) then raise Exception.Create('GetPaperType');
 
-    Result:= GetRotation(RotationCurrent, RotationDefault, RotationSet);
-    if not(Result) then exit;
+      Result:= GetRotation(RotationCurrent, RotationDefault, RotationSet);
+      //if not(Result) then raise Exception.Create('GetRotation');
 
-    pFlags:= GetResolutionsX(ResolutionCurrent, ResolutionDefault, ResolutionArray);
-    Result:= (WIAProp_READ in pFlags);
-    if not(Result) then exit;
-    ResolutionRange:= WIAProp_RANGE in pFlags;
+      pFlags:= GetResolutionsX(ResolutionCurrent, ResolutionDefault, ResolutionArray);
+      Result:= (WIAProp_READ in pFlags);
+      //if not(Result) then raise Exception.Create('GetResolutionsX');
+      ResolutionRange:= WIAProp_RANGE in pFlags;
 
-    Result:= GetBrightness(BrightnessCurrent, BrightnessDefault, BrightnessMin, BrightnessMax, BrightnessStep);
-    if not(Result) then exit;
+      Result:= GetBrightness(BrightnessCurrent, BrightnessDefault, BrightnessMin, BrightnessMax, BrightnessStep);
+      //if not(Result) then raise Exception.Create('GetBrightness');
 
-    Result:= GetContrast(ContrastCurrent, ContrastDefault, ContrastMin, ContrastMax, ContrastStep);
-    if not(Result) then exit;
+      Result:= GetContrast(ContrastCurrent, ContrastDefault, ContrastMin, ContrastMax, ContrastStep);
+      //if not(Result) then raise Exception.Create('GetContrast');
 
-    (*
-    pFlags:= GetBitDepth(BitDepthCurrent, BitDepthDefault, BitDepthArray);
-    Result:= (WIAProp_READ in pFlags);
-    if not(Result) then exit;
-    *)
+      (*
+      pFlags:= GetBitDepth(BitDepthCurrent, BitDepthDefault, BitDepthArray);
+      Result:= (WIAProp_READ in pFlags);
+      if not(Result) then exit;
+      *)
 
-    Result:= GetDataType(DataTypeCurrent, DataTypeDefault, DataTypeSet);
-    if not(Result) then exit;
+      Result:= GetDataType(DataTypeCurrent, DataTypeDefault, DataTypeSet);
+      //if not(Result) then raise Exception.Create('GetDataType');
 
-    //Take the specific Capabilities according to the category (from this point onwards Result is True)
-    Case rItemList[rSelectedItemIndex].ItemCategory of
-      wicFEEDER: begin
-        Result:= GetDocumentHandling(DocHandlingCurrent, DocHandlingDefault, DocHandlingSet);
-        //if not(Result) then exit;
+      //Take the specific Capabilities according to the category (from this point onwards Result is True)
+      Case rItemList[rSelectedItemIndex].ItemCategory of
+        wicFEEDER: begin
+          Result:= GetDocumentHandling(DocHandlingCurrent, DocHandlingDefault, DocHandlingSet);
+          //if not(Result) then exit;
 
-        { #todo 5 -oMaxM : Must be tested in a Duplex Scanner }
-        Result:= GetSelectedItemSubItems(subItemArray); //return nil if non duplex
-        if Result
-        then begin
-               DocHandlingSet:= DocHandlingSet+[wdhDuplex];
-             end
-        else if (subItemArray = nil) then
-             begin
+          { #todo 5 -oMaxM : Must be tested in a Duplex Scanner }
+          Result:= GetSelectedItemSubItems(subItemArray); //return nil if non duplex
+          if Result
+          then begin
+                 DocHandlingSet:= DocHandlingSet+[wdhDuplex];
+               end
+          else if (subItemArray = nil) then
+               begin
 
+               end;
+        end
+        else begin
              end;
-      end
-      else begin
-           end;
+      end;
     end;
+
     Result:= True;
 
   end;
@@ -2488,34 +2493,42 @@ begin
   Result:= False;
 
   with AParams do
+  if (GetSelectedItemIntf <> nil) then
   begin
-    Result:= SetResolution(Resolution, Resolution);
-    if not(Result) then raise Exception.Create('SetResolution');
+    if (rItemList[rSelectedItemIndex].ItemCategory <> wicAUTO) then
+    begin
+      Result:= SetResolution(Resolution, Resolution);
+      //if not(Result) then raise Exception.Create('SetResolution');
 
-    Result:= SetPaperAlign((Rotation in [wrLandscape, wrRot270]), HAlign, VAlign);
-    if not(Result) then raise Exception.Create('SetPaperAlign');
+      Result:= SetPaperAlign((Rotation in [wrLandscape, wrRot270]), HAlign, VAlign);
+      //if not(Result) then raise Exception.Create('SetPaperAlign');
 
-    if (PaperType = wptCUSTOM)
-    then Result:= SetPaperSize(PaperW, PaperH)
-    else Result:= SetPaperType(PaperType);
-    if not(Result) then raise Exception.Create('SetPaperType');
+      if (PaperType = wptCUSTOM)
+      then Result:= SetPaperSize(PaperW, PaperH)
+      else Result:= SetPaperType(PaperType);
+      //if not(Result) then raise Exception.Create('SetPaperType');
 
-//    Result:= SetDocumentHandling(DocHandling);
-//    if not(Result) then raise Exception.Create('SetDocumentHandling');
+      if (rItemList[rSelectedItemIndex].ItemCategory = wicFEEDER) then
+      begin
+        Result:= SetDocumentHandling(DocHandling);
+        //if not(Result) then raise Exception.Create('SetDocumentHandling');
+      end;
 
-    Result:= SetBrightness(Brightness);
-    if not(Result) then raise Exception.Create('SetBrightness');
+      Result:= SetBrightness(Brightness);
+      //if not(Result) then raise Exception.Create('SetBrightness');
 
-    Result:= SetContrast(Contrast);
-    if not(Result) then raise Exception.Create('SetContrast');
+      Result:= SetContrast(Contrast);
+      //if not(Result) then raise Exception.Create('SetContrast');
 
-    (*
-    Result:= WIASource.SetBitDepth(BitDepth);
-    if not(Result) then raise Exception.Create('SetBitDepth');
-    *)
+      (*
+      Result:= WIASource.SetBitDepth(BitDepth);
+      if not(Result) then raise Exception.Create('SetBitDepth');
+      *)
 
-    Result:= SetDataType(DataType);
-    if not(Result) then raise Exception.Create('SetDataType');
+      Result:= SetDataType(DataType);
+      //if not(Result) then raise Exception.Create('SetDataType');
+    end
+    else Result:= True;
   end;
 end;
 
