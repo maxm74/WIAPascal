@@ -299,10 +299,16 @@ type
 
     function SelectItem(AName: String): Boolean;
 
-    //Download the Selected Item and return the number of files transfered
-    function Download(APath, AFileName, AExt: String): Integer; overload;
-    function Download(APath, AFileName, AExt: String; AFormat: TWIAImageFormat): Integer; overload;
+    //Download the Selected Item and return the number of files transfered.
+    //  In Wia 2 the user must specify what to download from the feeder using the ADocHandling parameter,
+    //  the SettingsForm store DocHandling in Params so the user can use here.
+    function Download(APath, AFileName, AExt: String; ADocHandling: TWIADocumentHandlingSet=[]): Integer; overload;
+    function Download(APath, AFileName, AExt: String;
+                      AFormat: TWIAImageFormat;
+                      ADocHandling: TWIADocumentHandlingSet=[]): Integer; overload;
 
+    //Download using Native UI and return the number of files transfered in DownloadedFiles array.
+    //  The system dialog works at Device level, so the selected item is ignored
     function DownloadNativeUI(hwndParent: HWND; useSystemUI: Boolean;
                               APath, AFileName: String;
                               var DownloadedFiles: TStringArray): Integer;
@@ -1147,11 +1153,65 @@ begin
   then Result:= EnumerateItems;
 end;
 
-function TWIADevice.Download(APath, AFileName, AExt: String): Integer;
+function TWIADevice.Download(APath, AFileName, AExt: String; ADocHandling: TWIADocumentHandlingSet): Integer;
 var
    pWiaTransfer: IWiaTransfer;
    myTickStart, curTick: UInt64;
-   selItemType: TWIAItemTypes;
+   selItem: TWIAItem;
+
+   procedure DownloadSingleItem;
+   begin
+     lres:= pSelectedItem.QueryInterface(IID_IWiaTransfer, pWiaTransfer);
+     if (lres = S_OK) and (pWiaTransfer <> nil) then
+     try
+       { #todo 10 -oMaxM : Check this in Various Scanner / Camera }
+       // in My Samsung 00082007 =  [witImage,witFile,witFolder,witProgrammableDataSource] WHY witFolder?
+       // in Kyocera via LAN = [witFolder, witStorage]
+       (*
+       if (witTransfer in selItem.ItemType) then
+       begin
+         if (witProgrammableDataSource in selItem.ItemType)
+         then lres:= pWiaTransfer.Download(0, Self)
+         else
+         if (witDocument in selItem.ItemType) then
+         begin
+           if (witFolder in selItem.ItemType)
+           then begin
+                  lres:= pWiaTransfer.Download(WIA_TRANSFER_ACQUIRE_CHILDREN, Self);
+                end
+           else
+           if (witFile in selItem.ItemType)
+           then begin
+                  lres:= pWiaTransfer.Download(0, Self);
+                end;
+         end;
+       end;
+       *)
+
+       lres:= pWiaTransfer.Download(0, Self);
+
+     finally
+       // Release the IWiaTransfer
+       pWiaTransfer:= nil;
+     end;
+   end;
+
+   procedure DownloadAdvDuplex;
+   var
+      AItemArray: TArrayWIAItem;
+      curSubItem: IWiaItem2;
+
+   begin
+     try
+        if GetSelectedItemSubItems(AItemArray) then
+        begin
+          { #todo 10 -oMaxM : Implement me (If i find a Duplex Scanner for Free) }
+        end;
+
+     finally
+       AItemArray:= nil;
+     end;
+   end;
 
 begin
   Result:= 0;
@@ -1159,44 +1219,24 @@ begin
   if (pSelectedItem = nil) then GetSelectedItemIntf;
   if (pSelectedItem <> nil) then
   begin
-    lres:= pSelectedItem.QueryInterface(IID_IWiaTransfer, pWiaTransfer);
-    if (lres = S_OK) and (pWiaTransfer <> nil) then
-    begin
-      selItemType:= rItemList[rSelectedItemIndex].ItemType;
+    selItem:= rItemList[rSelectedItemIndex];
 
-      if (APath = '') or CharInSet(APath[Length(APath)], AllowDirectorySeparators)
-      then rDownload_Path:= APath
-      else rDownload_Path:= APath+DirectorySeparator;
+    if (APath = '') or CharInSet(APath[Length(APath)], AllowDirectorySeparators)
+    then rDownload_Path:= APath
+    else rDownload_Path:= APath+DirectorySeparator;
 
-      rDownload_FileName:= AFileName;
-      rDownload_Ext:= AExt;
-      rDownload_Count:= 0;
-      rDownloaded:= False;
+    rDownload_FileName:= AFileName;
+    rDownload_Ext:= AExt;
+    rDownload_Count:= 0;
+    rDownloaded:= False;
 
-      { #todo 10 -oMaxM : Check this in Various Scanner / Camera }
-      // in My Samsung 00082007 =  [witImage,witFile,witFolder,witProgrammableDataSource] WHY witFolder?
-      // in Kyocera via LAN = [witFolder, witStorage]
-      (*
-      if (witTransfer in selItemType) then
-      begin
-        if (witProgrammableDataSource in selItemType)
-        then lres:= pWiaTransfer.Download(0, Self)
-        else
-        if (witDocument in selItemType) then
-        begin
-          if (witFolder in selItemType)
-          then begin
-                 lres:= pWiaTransfer.Download(WIA_TRANSFER_ACQUIRE_CHILDREN, Self);
-               end
-          else
-          if (witFile in selItemType)
-          then begin
-                 lres:= pWiaTransfer.Download(0, Self);
-               end;
-        end;
-      end;
-      *)
-      lres:= pWiaTransfer.Download(0, Self);
+    if (selItem.ItemCategory = wicFEEDER)
+    then begin
+           if (rVersion = 2) and (wdhAdvanced_Duplex in ADocHandling) //or have SubItems?
+           then DownloadAdvDuplex
+           else DownloadSingleItem;
+         end
+     else DownloadSingleItem;
 
       { #todo 2 -oMaxM : Test if all Scanner is Synch }
       (*
@@ -1210,22 +1250,19 @@ begin
       until (rDownloaded) or ((curTick-myTickStart) > 27666);
       *)
 
-      // Release the IWiaTransfer
-      pWiaTransfer:= nil;
-
       if rDownloaded
       then Result:= rDownload_Count
       else Result:= 0;
-    end;
   end;
 end;
 
-function TWIADevice.Download(APath, AFileName, AExt: String; AFormat: TWIAImageFormat): Integer;
+function TWIADevice.Download(APath, AFileName, AExt: String;
+                             AFormat: TWIAImageFormat; ADocHandling: TWIADocumentHandlingSet): Integer;
 begin
   Result:= 0;
 
   if SetImageFormat(AFormat)
-  then Result:= Download(APath, AFileName, AExt);
+  then Result:= Download(APath, AFileName, AExt, ADocHandling);
 end;
 
 function TWIADevice.DownloadNativeUI(hwndParent: HWND; useSystemUI: Boolean; APath, AFileName: String;
@@ -2464,19 +2501,19 @@ begin
       //Take the specific Capabilities according to the category (from this point onwards Result is True)
       Case rItemList[rSelectedItemIndex].ItemCategory of
         wicFEEDER: begin
+          { #todo 5 -oMaxM : Must be tested in a Duplex Scanner }
           Result:= GetDocumentHandling(DocHandlingCurrent, DocHandlingDefault, DocHandlingSet);
           //if not(Result) then exit;
 
-          { #todo 5 -oMaxM : Must be tested in a Duplex Scanner }
-          Result:= GetSelectedItemSubItems(subItemArray); //return nil if non duplex
+          (*Result:= GetSelectedItemSubItems(subItemArray); //return nil if non duplex
           if Result
           then begin
-                 DocHandlingSet:= DocHandlingSet+[wdhDuplex];
+                 DocHandlingSet:= DocHandlingSet+[wdhAdvanced_Duplex];
                end
           else if (subItemArray = nil) then
                begin
 
-               end;
+               end;*)
         end
         else begin
              end;
@@ -2508,7 +2545,9 @@ begin
       else Result:= SetPaperType(PaperType);
       //if not(Result) then raise Exception.Create('SetPaperType');
 
-      if (rItemList[rSelectedItemIndex].ItemCategory = wicFEEDER) then
+      //Set only if we are in Wia 1, in Wia 2 the user must specify what to download
+      //from the feeder in the Download method using the ADocHandling parameter.
+      if (rVersion = 1) and (rItemList[rSelectedItemIndex].ItemCategory = wicFEEDER) then
       begin
         Result:= SetDocumentHandling(DocHandling);
         //if not(Result) then raise Exception.Create('SetDocumentHandling');
@@ -2995,7 +3034,11 @@ begin
          (curDev.ID = ADeviceID) then
       begin
         ADevice:= curDev;
-        if curDev.SelectItem(ADeviceItem) then AIndex:= i;
+
+        if curDev.SelectItem(ADeviceItem)
+        then AIndex:= ADevice.SelectedItemIndex
+        else AIndex:= -1;
+
         break;
       end;
     end;

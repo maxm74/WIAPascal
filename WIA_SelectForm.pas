@@ -120,17 +120,17 @@ begin
   if (WIASelectForm = nil)
   then WIASelectForm :=TWIASelectForm.Create(nil);
 
+  if (WIASelectForm <> nil) then
   with WIASelectForm do
-  begin
-    {$IFDEF DELPHI_2006_UP}
-      PopupMode := pmAuto;
-    {$ENDIF}
-
+  try
     WIAManager:= AWIAManager;
     FillList;
 
     if (ShowModal = mrOk)
     then Result:= lvSources.ItemIndex;
+
+  finally
+     WIASelectForm.Free; WIASelectForm:= nil;
   end;
 end;
 

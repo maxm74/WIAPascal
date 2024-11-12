@@ -182,7 +182,6 @@ var
    propType: TVarType;
    x, y, w, h:Integer;
    aFormat: TWIAImageFormat;
-   AItemArray: TArrayWIAItem;
 
 begin
   WIASource:= FWia.SelectedDevice;
@@ -204,9 +203,6 @@ begin
 
       end;
       WIASource.SelectedItemIndex:= SelectedItemIndex;
-
-      WIASource.GetSelectedItemSubItems(AItemArray);
-      AItemArray:= nil;
 
       aPath:= ExtractFilePath(ParamStr(0));
 
@@ -269,7 +265,8 @@ begin
                     aExt:= '.bmp';
                   end;
 
-             c:= WIASource.Download(aPath, 'test_wia', aExt, aFormat);
+             c:= WIASource.Download(aPath, 'test_wia', aExt,
+                                    aFormat, WIAParams[SelectedItemIndex].DocHandling);
 
              if (c>0)
              then begin

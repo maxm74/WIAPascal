@@ -351,18 +351,31 @@ begin
     begin
       { #todo 5 -oMaxM : Must be tested in a Duplex Scanner }
       gbFeeder.Visible:= True;
-      rbFrontOnly.Enabled:= (wdhFront_Only in DocHandlingSet);
-      rbFrontBack.Enabled:= (wdhDuplex in DocHandlingSet) or (wdhAdvanced_Duplex in DocHandlingSet);
-      rbBackOnly.Enabled:= (wdhBack_Only in DocHandlingSet);
-      cbBackFirst.Enabled:= (wdhBack_First in DocHandlingSet);
-      rbFrontOnly.Checked:= (wdhFront_Only in AParams.DocHandling);
-
+      if (wdhAdvanced_Duplex in DocHandlingSet)
+      then begin
+             //WIA 2 Item structure
+             rbFrontOnly.Enabled:= True;
+             rbFrontBack.Enabled:= True;
+             rbBackOnly.Enabled:= True;
+             cbBackFirst.Enabled:= True;
+           end
+      else begin
+             rbFrontOnly.Enabled:= (wdhFront_Only in DocHandlingSet);
+             rbFrontBack.Enabled:= (wdhDuplex in DocHandlingSet);
+             rbBackOnly.Enabled:= (wdhBack_Only in DocHandlingSet);
+             cbBackFirst.Enabled:= (wdhBack_First in DocHandlingSet);
+           end;
       {$ifdef UI_Tests}
         rbFrontOnly.Enabled:= True;
         rbFrontBack.Enabled:= True;
         rbBackOnly.Enabled:= True;
         cbBackFirst.Enabled:= True;
       {$endif}
+
+      rbFrontOnly.Checked:= (wdhFront_Only in AParams.DocHandling);
+      rbFrontBack.Checked:= (wdhDuplex in AParams.DocHandling) or (wdhAdvanced_Duplex in AParams.DocHandling);
+      rbBackOnly.Enabled:= (wdhBack_Only in AParams.DocHandling);
+      cbBackFirst.Enabled:= (wdhBack_First in AParams.DocHandling);
      end
      else gbFeeder.Visible:= False;
 
@@ -517,7 +530,11 @@ begin
         else
         if rbFrontBack.Checked
         then begin
-               DocHandling:= DocHandling+[wdhDuplex];
+               //if is A WIA2 structure add wdhAdvanced_Duplex so TWIADevice.Download understand how to work
+               if (wdhAdvanced_Duplex in WIACaps[WIASelectedItemIndex].DocHandlingSet)
+               then DocHandling:= DocHandling+[wdhAdvanced_Duplex]
+               else DocHandling:= DocHandling+[wdhDuplex];
+
                if cbBackFirst.Checked then DocHandling:= DocHandling+[wdhBack_First];
              end
         else
@@ -563,6 +580,7 @@ begin
   if (WIASettingsSource=nil)
   then WIASettingsSource :=TWIASettingsSource.Create(nil);
 
+  if (WIASettingsSource <> nil) then
   with WIASettingsSource do
   try
     WIASource:= AWIASource;
@@ -662,6 +680,7 @@ begin
   finally
     WIAParams:= nil;
     WIACaps:= nil;
+    WIASettingsSource.Free; WIASettingsSource:= nil;
   end;
 end;
 
