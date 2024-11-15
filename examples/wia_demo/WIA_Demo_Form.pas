@@ -266,7 +266,7 @@ begin
                   end;
 
              c:= WIASource.Download(aPath, 'test_wia', aExt,
-                                    aFormat, WIAParams[SelectedItemIndex].DocHandling);
+                                    aFormat (*, WIAParams[SelectedItemIndex].DocHandling*));
 
              if (c>0)
              then begin

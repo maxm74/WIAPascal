@@ -300,12 +300,15 @@ type
     function SelectItem(AName: String): Boolean;
 
     //Download the Selected Item and return the number of files transfered.
-    //  In Wia 2 the user must specify what to download from the feeder using the ADocHandling parameter,
+(*    //  In Wia 2 the user must specify what to download from the feeder using the ADocHandling parameter,
     //  the SettingsForm store DocHandling in Params so the user can use here.
     function Download(APath, AFileName, AExt: String; ADocHandling: TWIADocumentHandlingSet=[]): Integer; overload;
     function Download(APath, AFileName, AExt: String;
                       AFormat: TWIAImageFormat;
                       ADocHandling: TWIADocumentHandlingSet=[]): Integer; overload;
+*)
+    function Download(APath, AFileName, AExt: String): Integer; overload;
+    function Download(APath, AFileName, AExt: String; AFormat: TWIAImageFormat): Integer; overload;
 
     //Download using Native UI and return the number of files transfered in DownloadedFiles array.
     //  The system dialog works at Device level, so the selected item is ignored
@@ -357,6 +360,10 @@ type
     function GetResolutionsX(var Current, Default: Integer; var Values: TArrayInteger; useRoot: Boolean=False): TWIAPropertyFlags;
     //Get Available Values for YResolutions
     function GetResolutionsY(var Current, Default: Integer; var Values: TArrayInteger; useRoot: Boolean=False): TWIAPropertyFlags;
+
+    //Get the Minimun and Maximum Resolutions Values
+    function GetResolutionsLimit(var AMin, AMax: Integer; useRoot: Boolean=False): Boolean; overload;
+    function GetResolutionsLimit(var AMinX, AMaxX, AMinY, AMaxY: Integer; useRoot: Boolean=False): Boolean; overload;
 
     //Get Current Resolutions
     function GetResolution(var AXRes, AYRes: Integer; useRoot: Boolean=False): Boolean;
@@ -668,8 +675,12 @@ function WIAItemCategory(const AGUID: TGUID): TWIAItemCategory;
 
 function WIAPropertyFlags(pFlags: ULONG): TWIAPropertyFlags;
 
-function WIACopyCurrentValues(const WIACap: TWIAParamsCapabilities): TWIAParams;
-function WIACopyDefaultValues(const WIACap: TWIAParamsCapabilities): TWIAParams;
+function WIACopyCurrentValues(const WIACap: TWIAParamsCapabilities;
+                              aHAlign: TWIAAlignHorizontal=waHLeft;
+                              aVAlign: TWIAAlignVertical=waVTop): TWIAParams;
+function WIACopyDefaultValues(const WIACap: TWIAParamsCapabilities;
+                              aHAlign: TWIAAlignHorizontal=waHLeft;
+                              aVAlign: TWIAAlignVertical=waVTop): TWIAParams;
 
 function WIAImageFormat(const AGUID: TGUID; var Value: TWIAImageFormat): Boolean;
 
@@ -757,7 +768,9 @@ begin
   if (pFlags and WIA_PROP_CACHEABLE <> 0) then Result:= Result+[WIAProp_CACHEABLE];
 end;
 
-function WIACopyCurrentValues(const WIACap: TWIAParamsCapabilities): TWIAParams;
+function WIACopyCurrentValues(const WIACap: TWIAParamsCapabilities;
+                              aHAlign: TWIAAlignHorizontal=waHLeft;
+                              aVAlign: TWIAAlignVertical=waVTop): TWIAParams;
 begin
   with Result do
   begin
@@ -768,10 +781,14 @@ begin
     DocHandling:= WIACap.DocHandlingCurrent;
     //BitDepth:= WIACap.BitDepthCurrent;
     DataType:= WIACap.DataTypeCurrent;
+    HAlign:= aHAlign;
+    VAlign:= aVAlign;
   end;
 end;
 
-function WIACopyDefaultValues(const WIACap: TWIAParamsCapabilities): TWIAParams;
+function WIACopyDefaultValues(const WIACap: TWIAParamsCapabilities;
+                              aHAlign: TWIAAlignHorizontal=waHLeft;
+                              aVAlign: TWIAAlignVertical=waVTop): TWIAParams;
 begin
   FillChar(Result, Sizeof(Result), 0);
   with Result do
@@ -783,6 +800,8 @@ begin
     DocHandling:= WIACap.DocHandlingDefault;
     //BitDepth:= WIACap.BitDepthDefault;
     DataType:= WIACap.DataTypeDefault;
+    HAlign:= aHAlign;
+    VAlign:= aVAlign;
   end;
 end;
 
@@ -1153,7 +1172,7 @@ begin
   then Result:= EnumerateItems;
 end;
 
-function TWIADevice.Download(APath, AFileName, AExt: String; ADocHandling: TWIADocumentHandlingSet): Integer;
+function TWIADevice.Download(APath, AFileName, AExt: String): Integer;
 var
    pWiaTransfer: IWiaTransfer;
    myTickStart, curTick: UInt64;
@@ -1230,13 +1249,13 @@ begin
     rDownload_Count:= 0;
     rDownloaded:= False;
 
-    if (selItem.ItemCategory = wicFEEDER)
+    (*if (selItem.ItemCategory = wicFEEDER)
     then begin
            if (rVersion = 2) and (wdhAdvanced_Duplex in ADocHandling) //or have SubItems?
            then DownloadAdvDuplex
            else DownloadSingleItem;
          end
-     else DownloadSingleItem;
+     else*) DownloadSingleItem;
 
       { #todo 2 -oMaxM : Test if all Scanner is Synch }
       (*
@@ -1256,13 +1275,12 @@ begin
   end;
 end;
 
-function TWIADevice.Download(APath, AFileName, AExt: String;
-                             AFormat: TWIAImageFormat; ADocHandling: TWIADocumentHandlingSet): Integer;
+function TWIADevice.Download(APath, AFileName, AExt: String; AFormat: TWIAImageFormat): Integer;
 begin
   Result:= 0;
 
   if SetImageFormat(AFormat)
-  then Result:= Download(APath, AFileName, AExt, ADocHandling);
+  then Result:= Download(APath, AFileName, AExt);
 end;
 
 function TWIADevice.DownloadNativeUI(hwndParent: HWND; useSystemUI: Boolean; APath, AFileName: String;
@@ -1804,6 +1822,101 @@ var
 begin
   Result:= GetProperty(WIA_IPS_YRES, propType, Current, Default, Values, useRoot);
   { #note 5 -oMaxM : what to do if the propType is not the expected one VT_I4}
+end;
+
+function TWIADevice.GetResolutionsLimit(var AMin, AMax: Integer; useRoot: Boolean): Boolean;
+var
+   propType: TVarType;
+   Current,
+   Default: Integer;
+   pFlags: TWIAPropertyFlags;
+   Values: TArrayInteger;
+
+begin
+  Result:= False;
+  try
+     pFlags:= GetProperty(WIA_IPS_XRES, propType, Current, Default, Values, useRoot);
+     if not(WIAProp_READ in pFlags) then exit;
+
+     if (WIAProp_RANGE in pFlags)
+     then begin
+            AMin:= Values[WIA_RANGE_MIN];
+            AMax:= Values[WIA_RANGE_MAX];
+            Result:= True;
+        end
+     else
+     if (WIAProp_LIST in pFlags)
+     then begin
+            //In theory the minimum is the first value and the maximum is the last,
+            //  but you never know a little paranoia doesn't hurt
+            AMin:= MaxInt;
+            AMax:= 0;
+            for Current:=0 to Length(Values)-1 do
+            begin
+              if (Values[Current] < AMin) then AMin:= Values[Current];
+              if (Values[Current] > AMax) then AMax:= Values[Current];
+            end;
+            Result:= True;
+          end;
+
+  finally
+    Values:= nil;
+  end;
+end;
+
+function TWIADevice.GetResolutionsLimit(var AMinX, AMaxX, AMinY, AMaxY: Integer; useRoot: Boolean): Boolean;
+var
+   propType: TVarType;
+   Current,
+   Default: Integer;
+   pFlags: TWIAPropertyFlags;
+   ValuesX,
+   ValuesY: TArrayInteger;
+
+begin
+  Result:= False;
+  try
+     pFlags:= GetProperty(WIA_IPS_XRES, propType, Current, Default, ValuesX, useRoot);
+     if not(WIAProp_READ in pFlags) then exit;
+
+     pFlags:= GetProperty(WIA_IPS_YRES, propType, Current, Default, ValuesY, useRoot);
+     if not(WIAProp_READ in pFlags) then exit;
+
+     if (WIAProp_RANGE in pFlags)
+     then begin
+            AMinX:= ValuesX[WIA_RANGE_MIN];
+            AMaxX:= ValuesX[WIA_RANGE_MAX];
+            AMinY:= ValuesY[WIA_RANGE_MIN];
+            AMaxY:= ValuesY[WIA_RANGE_MAX];
+            Result:= True;
+        end
+     else
+     if (WIAProp_LIST in pFlags)
+     then begin
+            //In theory the minimum is the first value and the maximum is the last,
+            //  but you never know a little paranoia doesn't hurt
+            AMinX:= MaxInt;
+            AMaxX:= 0;
+            AMinY:= MaxInt;
+            AMaxY:= 0;
+            for Current:=0 to Length(ValuesX)-1 do
+            begin
+              if (ValuesX[Current] < AMinX) then AMinX:= ValuesX[Current];
+              if (ValuesX[Current] > AMaxX) then AMaxX:= ValuesX[Current];
+              try
+                 //Y may have a different size than X, use try/except block
+                 if (ValuesY[Current] < AMinY) then AMinY:= ValuesY[Current];
+                 if (ValuesY[Current] > AMaxY) then AMaxY:= ValuesY[Current];
+              except
+              end;
+            end;
+            Result:= True;
+          end;
+
+  finally
+    ValuesX:= nil;
+    ValuesY:= nil;
+  end;
 end;
 
 function TWIADevice.GetResolution(var AXRes, AYRes: Integer; useRoot: Boolean): Boolean;
@@ -2547,7 +2660,7 @@ begin
 
       //Set only if we are in Wia 1, in Wia 2 the user must specify what to download
       //from the feeder in the Download method using the ADocHandling parameter.
-      if (rVersion = 1) and (rItemList[rSelectedItemIndex].ItemCategory = wicFEEDER) then
+      if (*(rVersion = 1) and*) (rItemList[rSelectedItemIndex].ItemCategory = wicFEEDER) then
       begin
         Result:= SetDocumentHandling(DocHandling);
         //if not(Result) then raise Exception.Create('SetDocumentHandling');
@@ -2821,7 +2934,8 @@ var
 
 begin
   Result :=False;
-  SetLength(rDeviceList, 0);
+  //SetLength(rDeviceList, 0);
+  EmptyDeviceList(True);
 
   try
     if (pDevMgr = nil)

@@ -61,8 +61,9 @@ implementation
 
 procedure TWIASelectForm.btRefreshClick(Sender: TObject);
 begin
-  WIAManager.ClearDeviceList;
+  WIAManager.RefreshDeviceList;
   FillList;
+  lvSources.SetFocus;
 end;
 
 procedure TWIASelectForm.FillList;

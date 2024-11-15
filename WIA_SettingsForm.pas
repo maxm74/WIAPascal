@@ -351,6 +351,7 @@ begin
     begin
       { #todo 5 -oMaxM : Must be tested in a Duplex Scanner }
       gbFeeder.Visible:= True;
+      (*
       if (wdhAdvanced_Duplex in DocHandlingSet)
       then begin
              //WIA 2 Item structure
@@ -365,6 +366,11 @@ begin
              rbBackOnly.Enabled:= (wdhBack_Only in DocHandlingSet);
              cbBackFirst.Enabled:= (wdhBack_First in DocHandlingSet);
            end;
+      *)
+      rbFrontOnly.Enabled:= (wdhFront_Only in DocHandlingSet);
+      rbFrontBack.Enabled:= (wdhAdvanced_Duplex in DocHandlingSet) or (wdhDuplex in DocHandlingSet);
+      rbBackOnly.Enabled:= (wdhBack_Only in DocHandlingSet);
+      cbBackFirst.Enabled:= (wdhBack_First in DocHandlingSet);
       {$ifdef UI_Tests}
         rbFrontOnly.Enabled:= True;
         rbFrontBack.Enabled:= True;
@@ -530,10 +536,10 @@ begin
         else
         if rbFrontBack.Checked
         then begin
-               //if is A WIA2 structure add wdhAdvanced_Duplex so TWIADevice.Download understand how to work
+               (*//if is A WIA2 structure add wdhAdvanced_Duplex so TWIADevice.Download understand how to work
                if (wdhAdvanced_Duplex in WIACaps[WIASelectedItemIndex].DocHandlingSet)
                then DocHandling:= DocHandling+[wdhAdvanced_Duplex]
-               else DocHandling:= DocHandling+[wdhDuplex];
+               else*) DocHandling:= DocHandling+[wdhDuplex];
 
                if cbBackFirst.Checked then DocHandling:= DocHandling+[wdhBack_First];
              end
@@ -613,10 +619,18 @@ begin
       then raise Exception.Create('Cannot Get Capabilities for Source Item '+IntToStr(i));
 
       Case initItemValues of
-      initDefault: WIAParams[i]:= WIACopyDefaultValues(WiaCaps[i]);
-      initParams : if (i >= lenAParams) //if is a new Item then Assign Default Values
-                   then WIAParams[i]:= WIACopyDefaultValues(WiaCaps[i]);
-      initCurrent: WIAParams[i]:= WIACopyCurrentValues(WiaCaps[i]);
+      initDefault:  if (curItem^.ItemCategory = wicFEEDER)
+                    then WIAParams[i]:= WIACopyDefaultValues(WiaCaps[i], waHCenter)
+                    else WIAParams[i]:= WIACopyDefaultValues(WiaCaps[i]);
+      initParams : if (i >= lenAParams) then //if is a new Item then Assign Default Values
+                   begin
+                     if (curItem^.ItemCategory = wicFEEDER)
+                     then WIAParams[i]:= WIACopyDefaultValues(WiaCaps[i], waHCenter)
+                     else WIAParams[i]:= WIACopyDefaultValues(WiaCaps[i]);
+                   end;
+      initCurrent: if (curItem^.ItemCategory = wicFEEDER)
+                   then WIAParams[i]:= WIACopyCurrentValues(WiaCaps[i], waHCenter)
+                   else WIAParams[i]:= WIACopyCurrentValues(WiaCaps[i]);
       end;
 
       curListItem:= lvSourceItems.Items.Add;
