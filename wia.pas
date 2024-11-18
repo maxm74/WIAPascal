@@ -309,6 +309,8 @@ type
 *)
     function Download(APath, AFileName, AExt: String): Integer; overload;
     function Download(APath, AFileName, AExt: String; AFormat: TWIAImageFormat): Integer; overload;
+    function Download(APath, AFileName, AExt: String; AFormat: TWIAImageFormat;
+                      var DownloadedFiles: TStringArray): Integer; overload;
 
     //Download using Native UI and return the number of files transfered in DownloadedFiles array.
     //  The system dialog works at Device level, so the selected item is ignored
@@ -425,6 +427,15 @@ type
     //  Not to be confused with PaperLandscape, this function only uses WIA_IPS_ROTATION
     //  which rotates the image after capturing it
     function SetDocumentHandling(const Value: TWIADocumentHandlingSet; useRoot: Boolean=False): Boolean;
+
+    //Get Current Pages (0 = All)
+    function GetPages(var Current: Integer; useRoot: Boolean=False): Boolean; overload;
+    //Get Current, Default and Range Values for Pages
+    function GetPages(var Current, Default, AMin, AMax, AStep: Integer; useRoot: Boolean=False): Boolean; overload;
+
+    //Set Current Pages (0 = All)
+    //  If a Feeder Scanner is unable to scan only one side of a page while in Duplex you must use an even value
+    function SetPages(const Value: Integer; useRoot: Boolean=False): Boolean;
 
     //Get Current Brightness
     function GetBrightness(var Current: Integer; useRoot: Boolean=False): Boolean; overload;
@@ -1281,6 +1292,28 @@ begin
 
   if SetImageFormat(AFormat)
   then Result:= Download(APath, AFileName, AExt);
+end;
+
+function TWIADevice.Download(APath, AFileName, AExt: String; AFormat: TWIAImageFormat;
+                             var DownloadedFiles: TStringArray): Integer;
+var
+   i: Integer;
+
+begin
+  Result:= 0;
+
+  if SetImageFormat(AFormat) then
+  begin
+    Result:= Download(APath, AFileName, AExt);
+    if (Result > 0 ) then
+    begin
+      SetLength(DownloadedFiles, Result);
+      DownloadedFiles[0]:= rDownload_Path+rDownload_FileName+rDownload_Ext;
+      for i:=1 to Result-1 do
+        DownloadedFiles[i]:= rDownload_Path+rDownload_FileName+
+                             '-'+IntToStr(i)+rDownload_Ext;
+    end;
+  end;
 end;
 
 function TWIADevice.DownloadNativeUI(hwndParent: HWND; useSystemUI: Boolean; APath, AFileName: String;
@@ -2367,6 +2400,44 @@ var
 begin
   iValue:= WIADocumentHandlingInt(Value);
   Result:= SetProperty(WIA_IPS_DOCUMENT_HANDLING_SELECT, VT_I4, iValue, useRoot);
+end;
+
+function TWIADevice.GetPages(var Current: Integer; useRoot: Boolean): Boolean;
+var
+   propType: TVarType;
+
+begin
+  Result:= GetProperty(WIA_IPS_PAGES, propType, Current, useRoot);
+end;
+
+function TWIADevice.GetPages(var Current, Default, AMin, AMax, AStep: Integer; useRoot: Boolean): Boolean;
+var
+   propType: TVarType;
+   pFlags: TWIAPropertyFlags;
+   intValues: TArrayInteger;
+
+begin
+  Result:= False;
+  try
+     pFlags:= GetProperty(WIA_IPS_PAGES, propType, Current, Default, intValues, useRoot);
+
+     Result:= (WIAProp_RANGE in pFlags) and (Length(intValues) = WIA_RANGE_NUM_ELEMS);
+
+     if Result then
+     begin
+       AMin:= intValues[WIA_RANGE_MIN];
+       AMax:= intValues[WIA_RANGE_MAX];
+       AStep:= intValues[WIA_RANGE_STEP];
+     end;
+
+  finally
+    intValues:= nil;
+  end;
+end;
+
+function TWIADevice.SetPages(const Value: Integer; useRoot: Boolean): Boolean;
+begin
+  Result:= SetProperty(WIA_IPS_PAGES, VT_I4, Value, useRoot);
 end;
 
 function TWIADevice.GetBrightness(var Current: Integer; useRoot: Boolean): Boolean;

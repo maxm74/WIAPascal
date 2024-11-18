@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, ComCtrls,
+  ExtCtrls, ComCtrls, Spin,
   WIA, WIA_LH, WiaDef, WIA_SettingsForm;
 
 type
@@ -24,10 +24,12 @@ type
     cbEnumLocal: TCheckBox;
     edTests: TEdit;
     ImageHolder: TImage;
+    Label1: TLabel;
     lbSelected: TLabel;
     lbProgress: TLabel;
     Panel1: TPanel;
     progressBar: TProgressBar;
+    edPages: TSpinEdit;
     procedure btNativeClick(Sender: TObject);
     procedure btSelectClick(Sender: TObject);
     procedure btAcquireClick(Sender: TObject);
@@ -229,6 +231,9 @@ begin
 //             WIAParams[SelectedItemIndex].Resolution:= 200;
 //             WIAParams[SelectedItemIndex].DataType:= wdtGRAYSCALE;
              WIASource.SetParams(WIAParams[SelectedItemIndex]);
+
+             capRet:= WIASource.GetPages(c, x, y, w, h);
+             if capRet then WIASource.SetPages(edPages.Value);
 
              if cbTest.Checked then
              begin

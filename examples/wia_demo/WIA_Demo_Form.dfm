@@ -1,9 +1,9 @@
 object FormWIADemo: TFormWIADemo
-  Left = 260
-  Top = 102
+  Left = 264
+  Top = 97
   Caption = 'WIA Demo'
-  ClientHeight = 576
-  ClientWidth = 769
+  ClientHeight = 600
+  ClientWidth = 800
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -16,8 +16,8 @@ object FormWIADemo: TFormWIADemo
   object ImageHolder: TImage
     Left = 0
     Top = 48
-    Width = 769
-    Height = 528
+    Width = 800
+    Height = 552
     Align = alClient
     Proportional = True
     Stretch = True
@@ -25,12 +25,12 @@ object FormWIADemo: TFormWIADemo
   object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 769
+    Width = 800
     Height = 48
     Align = alTop
     TabOrder = 0
     object lbProgress: TLabel
-      Left = 304
+      Left = 400
       Top = 0
       Width = 3
       Height = 15
@@ -40,6 +40,13 @@ object FormWIADemo: TFormWIADemo
       Top = 32
       Width = 3
       Height = 15
+    end
+    object Label1: TLabel
+      Left = 311
+      Top = 0
+      Width = 37
+      Height = 15
+      Caption = 'Pages :'
     end
     object btAcquire: TButton
       Left = 208
@@ -61,31 +68,33 @@ object FormWIADemo: TFormWIADemo
       OnClick = btSelectClick
     end
     object progressBar: TProgressBar
-      Left = 304
+      Left = 400
       Top = 16
       Width = 300
       Height = 24
       TabOrder = 2
     end
     object cbTest: TCheckBox
-      Left = 657
-      Top = 8
+      Left = 704
+      Top = 0
       Width = 44
       Height = 19
       Caption = 'Tests'
+      Enabled = False
       TabOrder = 3
     end
     object edTests: TEdit
-      Left = 707
-      Top = 8
-      Width = 56
+      Left = 754
+      Top = 0
+      Width = 37
       Height = 23
+      Enabled = False
       TabOrder = 4
     end
     object cbEnumLocal: TCheckBox
       Left = 96
       Top = 8
-      Width = 110
+      Width = 104
       Height = 19
       Caption = 'Only Connected'
       Checked = True
@@ -101,6 +110,16 @@ object FormWIADemo: TFormWIADemo
       Enabled = False
       TabOrder = 6
       OnClick = btNativeClick
+    end
+    object edPages: TSpinEdit
+      Left = 312
+      Top = 17
+      Width = 50
+      Height = 24
+      MaxValue = 255
+      MinValue = 0
+      TabOrder = 7
+      Value = 0
     end
   end
 end

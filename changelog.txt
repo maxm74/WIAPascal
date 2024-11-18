@@ -2,6 +2,8 @@ WIAPASCAL CHANGE LOG
 ======================
 
 2024/11/
+        18 Added Get/SetPages;
+	   Added Download overload with String Array.
         12 Added DocHandling in Download;
 	   Changed SettingsForm the Way duplex radiobutton enabled/checked;
 	   Select/Settings Form auto destruct after execute;
