@@ -1255,6 +1255,8 @@ begin
     then rDownload_Path:= APath
     else rDownload_Path:= APath+DirectorySeparator;
 
+    if not(ForceDirectories(rDownload_Path)) then exit;
+
     rDownload_FileName:= AFileName;
     rDownload_Ext:= AExt;
     rDownload_Count:= 0;
@@ -1970,7 +1972,7 @@ begin
   else Exit;
 
   Result:= SetProperty(WIA_IPS_YRES, VT_I4, AYRes, useRoot);
-  if Result then rYRes:= AXRes;
+  if Result then rYRes:= AYRes;
 end;
 
 function TWIADevice.GetPaperAlign(var ALandscape: Boolean; var HAlign: TWIAAlignHorizontal; var VAlign: TWIAAlignVertical;
