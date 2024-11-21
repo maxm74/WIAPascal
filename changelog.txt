@@ -2,6 +2,7 @@ WIAPASCAL CHANGE LOG
 ======================
 
 2024/11/
+        21 Added More Show of Paper Position in Demo
         19 Added ForceDirectories in Download
         18 Added Get/SetPages;
 	   Added Download overload with String Array.

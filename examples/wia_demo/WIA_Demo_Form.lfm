@@ -59,7 +59,6 @@ object FormWIADemo: TFormWIADemo
       Top = 0
       Width = 44
       Caption = 'Tests'
-      Enabled = False
       TabOrder = 3
     end
     object edTests: TEdit
@@ -67,7 +66,6 @@ object FormWIADemo: TFormWIADemo
       Height = 23
       Top = 0
       Width = 37
-      Enabled = False
       TabOrder = 4
     end
     object cbEnumLocal: TCheckBox

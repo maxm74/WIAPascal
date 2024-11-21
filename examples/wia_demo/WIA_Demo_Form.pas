@@ -11,7 +11,7 @@ interface
 uses
   Windows, Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls,
   ExtCtrls, ComCtrls, Spin,
-  WIA, WIA_LH, WiaDef, WIA_SettingsForm;
+  WIA, WIA_LH, WiaDef, WIA_PaperSizes, WIA_SettingsForm;
 
 type
   { TFormWIADemo }
@@ -219,7 +219,7 @@ begin
                capRet:= WIASource.GetProperty(WIA_IPS_YPOS, propType, y);
                capRet:= WIASource.GetProperty(WIA_IPS_XEXTENT, propType, w);
                capRet:= WIASource.GetProperty(WIA_IPS_YEXTENT, propType, h);
-               if capRet then MessageDlg('Paper Position Before: '+
+               if capRet then MessageDlg('Paper Position Before SetParams: '+
                                   #13#10+'x: '+IntToStr(x)+
                                   #13#10+'y: '+IntToStr(y)+
                                   #13#10+'w: '+IntToStr(w)+
@@ -230,10 +230,14 @@ begin
 //             WIAParams[SelectedItemIndex].DocHandling:= [wdhDuplex];
 //             WIAParams[SelectedItemIndex].Resolution:= 200;
 //             WIAParams[SelectedItemIndex].DataType:= wdtGRAYSCALE;
-             WIASource.SetParams(WIAParams[SelectedItemIndex]);
 
-             capRet:= WIASource.GetPages(c, x, y, w, h);
-             if capRet then WIASource.SetPages(edPages.Value);
+{ #todo 10 -oMaxM : When switching from pages=1 to pages=0 my Brother scanner returns an image
+             shrunk by a factor N within the correct sized page.
+             N= (Resolution when pages=0) / (Resolution when pages=1). I'm stumped. }
+             WIASource.SetPages(edPages.Value);
+             //capRet:= WIASource.GetPages(c, x, y, w, h);
+
+             WIASource.SetParams(WIAParams[SelectedItemIndex]);
 
              if cbTest.Checked then
              begin
@@ -241,7 +245,7 @@ begin
                capRet:= WIASource.GetProperty(WIA_IPS_YPOS, propType, y);
                capRet:= WIASource.GetProperty(WIA_IPS_XEXTENT, propType, w);
                capRet:= WIASource.GetProperty(WIA_IPS_YEXTENT, propType, h);
-               if capRet then MessageDlg('Paper Position After: '+
+               if capRet then MessageDlg('Paper Position After SetParams: '+
                                     #13#10+'x: '+IntToStr(x)+
                                     #13#10+'y: '+IntToStr(y)+
                                     #13#10+'w: '+IntToStr(w)+
@@ -272,6 +276,21 @@ begin
 
              c:= WIASource.Download(aPath, 'test_wia', aExt,
                                     aFormat (*, WIAParams[SelectedItemIndex].DocHandling*));
+
+             if cbTest.Checked then
+             begin
+                 capRet:= WIASource.GetProperty(WIA_IPS_XPOS, propType, x);
+                 capRet:= WIASource.GetProperty(WIA_IPS_YPOS, propType, y);
+                 capRet:= WIASource.GetProperty(WIA_IPS_XEXTENT, propType, w);
+                 capRet:= WIASource.GetProperty(WIA_IPS_YEXTENT, propType, h);
+                 if capRet then MessageDlg('Paper Position After Download: '+
+                                      #13#10+'x: '+IntToStr(x)+
+                                      #13#10+'y: '+IntToStr(y)+
+                                      #13#10+'w: '+IntToStr(w)+
+                                      #13#10+'h: '+IntToStr(h),
+                                      mtInformation, [mbOk], 0);
+
+             end;
 
              if (c>0)
              then begin
