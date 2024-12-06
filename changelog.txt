@@ -1,6 +1,8 @@
 WIAPASCAL CHANGE LOG
 ======================
 
+2024/12/06 Enabled Translation for Lazarus;
+	   Use resourcestring for Languages support.
 2024/11/
         21 Added More Show of Paper Position in Demo
         19 Added ForceDirectories in Download

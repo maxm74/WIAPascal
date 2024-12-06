@@ -26,6 +26,9 @@ uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, Buttons,
   ComCtrls, StdCtrls, WIA;
 
+resourcestring
+  rsNoDevicePresent = 'No Wia Devices present...';
+
 type
   { TWIASelectForm }
   TWIASelectForm = class(TForm)
@@ -112,7 +115,7 @@ begin
          then lvSources.ItemIndex :=selectedIndex
          else lvSources.ItemIndex :=0;
        end
-  else MessageDlg('No Wia Devices present...', mtError, [mbOk], 0);
+  else MessageDlg(rsNoDevicePresent, mtError, [mbOk], 0);
 end;
 
 class function TWIASelectForm.Execute(AWIAManager: TWIAManager): Integer;

@@ -34,6 +34,19 @@ const
   //False to display then measurement in Inchs
   WIASettings_Unit_cm: Boolean = True; //fucks inch
 
+resourcestring
+  rsLandscape = 'Landscape';
+  rsPortrait = 'Portrait';
+  rsApplyChanges = 'Apply Changes to Item %s of %s';
+  rsFullsize = 'Full size';
+  rsCustomsize = 'Custom size';
+  rsAutosize = 'Auto size';
+  rsAutotype = 'Auto type';
+  rsExcCannotGetSourceItem = 'Cannot Get Source Item %d';
+  rsExcCannotGetCapabilities = 'Cannot Get Capabilities for Source Item %d';
+  rsErrorSelecting = 'Error Selecting Item %s of %s'#13#10'Try to Select another Source Item';
+  rsErrorSelectingInt = 'Error Selecting Item [%d] of %s'#13#10'%s'#13#10'Try to Select another Source Item';
+
 type
   TInitialItemValues = (initDefault, initParams, initCurrent);
 
@@ -196,8 +209,8 @@ end;
 procedure TWIASettingsSource.btPaperOrientationClick(Sender: TObject);
 begin
   if btPaperOrientation.Down
-  then begin btPaperOrientation.ImageIndex:= 1; btPaperOrientation.Hint:= 'Landscape'; end
-  else begin btPaperOrientation.ImageIndex:= 0; btPaperOrientation.Hint:= 'Portrait'; end;
+  then begin btPaperOrientation.ImageIndex:= 1; btPaperOrientation.Hint:= rsLandscape; end
+  else begin btPaperOrientation.ImageIndex:= 0; btPaperOrientation.Hint:= rsPortrait; end;
 end;
 
 procedure TWIASettingsSource.cbBackFirstClick(Sender: TObject);
@@ -255,8 +268,8 @@ end;
 procedure TWIASettingsSource.lvSourceItemsSelectItem(Sender: TObject; Item: TListItem; Selected: Boolean);
 begin
   if Selected and (Item.Index <> WIASelectedItemIndex) then
-  Case MessageDlg('Apply Changes to Item '+WIASource.Items[WIASelectedItemIndex]^.Name+' of '+WIASource.Name,
-                 mtConfirmation, [mbYes, mbNo, mbCancel], 0) of
+  Case MessageDlg(Format(rsApplyChanges, [WIASource.Items[WIASelectedItemIndex]^.Name, WIASource.Name]),
+                  mtConfirmation, [mbYes, mbNo, mbCancel], 0) of
     mrYes: begin
             StoreCurrentItemParams;
             SelectCurrentItem(lvSourceItems.ItemIndex);
@@ -308,13 +321,13 @@ begin
     //Fill List of Papers
     cbPaperType.Clear;
     cbSelected :=0;
-    cbPaperType.Items.AddObject('Full size', TObject(PtrUInt(wptMAX)));
+    cbPaperType.Items.AddObject(rsFullsize, TObject(PtrUInt(wptMAX)));
     for paperI in PaperTypeSet do
     begin
       Case paperI of
       wptMAX:begin end;
-      wptCUSTOM: cbPaperType.Items.AddObject('Custom size', TObject(PtrUInt(wptCUSTOM)));
-      wptAUTO: cbPaperType.Items.AddObject('Auto size', TObject(PtrUInt(wptAUTO)));
+      wptCUSTOM: cbPaperType.Items.AddObject(rsCustomsize, TObject(PtrUInt(wptCUSTOM)));
+      wptAUTO: cbPaperType.Items.AddObject(rsAutosize, TObject(PtrUInt(wptAUTO)));
       else begin
              if WIASettings_Unit_cm
              then cbPaperType.Items.AddObject(PaperSizesWIA[paperI].name+' ('+
@@ -335,8 +348,8 @@ begin
     //Set Landscape/Portrait Button
     btPaperOrientation.Down:= (AParams.Rotation in [wrLandscape, wrRot270]);
     if btPaperOrientation.Down
-    then begin btPaperOrientation.ImageIndex:= 1; btPaperOrientation.Hint:= 'Landscape'; end
-    else begin btPaperOrientation.ImageIndex:= 0; btPaperOrientation.Hint:= 'Portrait'; end;
+    then begin btPaperOrientation.ImageIndex:= 1; btPaperOrientation.Hint:= rsLandscape; end
+    else begin btPaperOrientation.ImageIndex:= 0; btPaperOrientation.Hint:= rsPortrait; end;
 
     //Paper Align
     trHAlign.Position:= Integer(AParams.HAlign);
@@ -414,7 +427,7 @@ begin
     cbSelected :=0;
     for dataI in DataTypeSet do
       Case dataI of
-      wdtAUTO: cbDataType.Items.AddObject('Auto type', TObject(PtrUInt(wdtAUTO)));
+      wdtAUTO: cbDataType.Items.AddObject(rsAutotype, TObject(PtrUInt(wdtAUTO)));
       wdtDITHER, wdtCOLOR_DITHER: begin end;
       else begin
              cbDataType.Items.AddObject(WIADataTypeDescr[dataI], TObject(PtrUInt(dataI)));
@@ -613,10 +626,10 @@ begin
       curItem:= WIASource.Items[i];
 
       if (curItem = nil)
-      then raise Exception.Create('Cannot Get Source Item '+IntToStr(i));
+      then raise Exception.Create(Format(rsExcCannotGetSourceItem, [i]));
 
       if not(WIASource.GetParamsCapabilities(WiaCaps[i]))
-      then raise Exception.Create('Cannot Get Capabilities for Source Item '+IntToStr(i));
+      then raise Exception.Create(Format(rsExcCannotGetCapabilities, [i]));
 
       Case initItemValues of
       initDefault:  if (curItem^.ItemCategory = wicFEEDER)
@@ -665,12 +678,12 @@ begin
       PageSourceTypes.Enabled:= (WIASource.SelectedItemIntf <> nil);
       if (PageSourceTypes.Enabled)
       then SelectCurrentItem(WIASelectedItemIndex)
-      else MessageDlg('Error Selecting Source '+WIASource.Items[WIASelectedItemIndex]^.Name+' of '+WIASource.Name+
-                #13#10'Try to Select another Source Item', mtError, [mbOk], 0);
+      else MessageDlg(Format(rsErrorSelecting, [WIASource.Items[WIASelectedItemIndex]^.Name, WIASource.Name]),
+                      mtError, [mbOk], 0);
     except
        on E: Exception do
-       MessageDlg('Error Selecting Source ['+IntToStr(WIASelectedItemIndex)+'] of '+WIASource.Name+
-                 #13#10+E.Message+#13#10'Try to Select another Source Item', mtError, [mbOk], 0);
+       MessageDlg(Format(rsErrorSelectingInt, [WIASelectedItemIndex, WIASource.Name, E.Message]),
+                  mtError, [mbOk], 0);
     end;
     //cbSourceItem.ItemIndex:= WIASelectedItemIndex;
     lvSourceItems.ItemIndex:= WIASelectedItemIndex;
