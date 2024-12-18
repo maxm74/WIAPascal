@@ -10,6 +10,7 @@ uses
   athreads,
   {$ENDIF}
   Interfaces, // this includes the LCL widgetset
+  DefaultTranslator,
   Forms, WIA_Demo_Form;
 
 {$R *.res}

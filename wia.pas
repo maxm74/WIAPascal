@@ -300,17 +300,19 @@ type
     function SelectItem(AName: String): Boolean;
 
     //Download the Selected Item and return the number of files transfered.
-(*    //  In Wia 2 the user must specify what to download from the feeder using the ADocHandling parameter,
-    //  the SettingsForm store DocHandling in Params so the user can use here.
-    function Download(APath, AFileName, AExt: String; ADocHandling: TWIADocumentHandlingSet=[]): Integer; overload;
-    function Download(APath, AFileName, AExt: String;
-                      AFormat: TWIAImageFormat;
-                      ADocHandling: TWIADocumentHandlingSet=[]): Integer; overload;
-*)
+    // if multiple pages is downloaded then the file names are
+    // APath\AFileName-n.AExt where n is then Index (when 0 n is not present)
     function Download(APath, AFileName, AExt: String): Integer; overload;
     function Download(APath, AFileName, AExt: String; AFormat: TWIAImageFormat): Integer; overload;
     function Download(APath, AFileName, AExt: String; AFormat: TWIAImageFormat;
                       var DownloadedFiles: TStringArray): Integer; overload;
+    (*    //  In Wia 2 the user must specify what to download from the feeder using the ADocHandling parameter,
+        //  the SettingsForm store DocHandling in Params so the user can use here.
+        function Download(APath, AFileName, AExt: String; ADocHandling: TWIADocumentHandlingSet=[]): Integer; overload;
+        function Download(APath, AFileName, AExt: String;
+                          AFormat: TWIAImageFormat;
+                          ADocHandling: TWIADocumentHandlingSet=[]): Integer; overload;
+    *)
 
     //Download using Native UI and return the number of files transfered in DownloadedFiles array.
     //  The system dialog works at Device level, so the selected item is ignored

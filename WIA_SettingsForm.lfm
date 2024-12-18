@@ -503,7 +503,7 @@ object WIASettingsSource: TWIASettingsSource
           Left = 225
           Height = 23
           Top = 17
-          Width = 192
+          Width = 225
           ItemHeight = 15
           Style = csDropDownList
           TabOrder = 0
@@ -584,11 +584,11 @@ object WIASettingsSource: TWIASettingsSource
           Caption = 'Contrast :'
         end
         object btPaperOrientation: TSpeedButton
-          Left = 423
+          Left = 450
           Height = 22
           Hint = 'Paper Orientation'
           Top = 18
-          Width = 23
+          Width = 24
           AllowAllUp = True
           Flat = True
           GroupIndex = 1
@@ -711,10 +711,10 @@ object WIASettingsSource: TWIASettingsSource
           Left = 225
           Height = 90
           Top = 45
-          Width = 94
+          Width = 120
           Caption = 'Paper Align'
           ClientHeight = 70
-          ClientWidth = 90
+          ClientWidth = 116
           TabOrder = 10
           object trHAlign: TTrackBar
             Left = 26
@@ -756,13 +756,13 @@ object WIASettingsSource: TWIASettingsSource
           end
         end
         object gbPaperSize: TGroupBox
-          Left = 321
+          Left = 350
           Height = 90
           Top = 45
-          Width = 96
-          Caption = 'Paper Size'
+          Width = 120
+          Caption = 'Dimensione Carta'
           ClientHeight = 70
-          ClientWidth = 92
+          ClientWidth = 116
           Enabled = False
           TabOrder = 11
           object edPaperW: TFloatSpinEdit
@@ -796,10 +796,10 @@ object WIASettingsSource: TWIASettingsSource
           Left = 224
           Height = 112
           Top = 136
-          Width = 94
+          Width = 120
           Caption = 'Feeder'
           ClientHeight = 92
-          ClientWidth = 90
+          ClientWidth = 116
           TabOrder = 12
           Visible = False
           object rbFrontOnly: TRadioButton

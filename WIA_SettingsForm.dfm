@@ -515,9 +515,9 @@ object WIASettingsSource: TWIASettingsSource
           Caption = 'Contrast :'
         end
         object btPaperOrientation: TSpeedButton
-          Left = 423
+          Left = 450
           Top = 18
-          Width = 23
+          Width = 24
           Height = 22
           Hint = 'Paper Orientation'
           AllowAllUp = True
@@ -597,7 +597,7 @@ object WIASettingsSource: TWIASettingsSource
         object cbPaperType: TComboBox
           Left = 225
           Top = 17
-          Width = 192
+          Width = 225
           Height = 23
           Style = csDropDownList
           TabOrder = 0
@@ -699,7 +699,7 @@ object WIASettingsSource: TWIASettingsSource
         object gbPaperAlign: TGroupBox
           Left = 225
           Top = 45
-          Width = 94
+          Width = 120
           Height = 90
           Caption = 'Paper Align'
           TabOrder = 10
@@ -740,9 +740,9 @@ object WIASettingsSource: TWIASettingsSource
           end
         end
         object gbPaperSize: TGroupBox
-          Left = 321
+          Left = 350
           Top = 45
-          Width = 96
+          Width = 120
           Height = 90
           Caption = 'Paper Size'
           Enabled = False
@@ -780,7 +780,7 @@ object WIASettingsSource: TWIASettingsSource
         object gbFeeder: TGroupBox
           Left = 224
           Top = 136
-          Width = 94
+          Width = 120
           Height = 112
           Caption = 'Feeder'
           TabOrder = 12

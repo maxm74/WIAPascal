@@ -19,7 +19,7 @@
 {"hash":68331806,"name":"twiasettingssource.gbpaperalign.caption","sourcebytes":[80,97,112,101,114,32,65,108,105,103,110],"value":"Paper Align"},
 {"hash":257327934,"name":"twiasettingssource.trhalign.hint","sourcebytes":[72,111,114,105,122,111,110,116,97,108,32,65,108,105,103,110],"value":"Horizontal Align"},
 {"hash":48157550,"name":"twiasettingssource.trvalign.hint","sourcebytes":[86,101,114,116,105,99,97,108,32,65,108,105,103,110],"value":"Vertical Align"},
-{"hash":205588837,"name":"twiasettingssource.gbpapersize.caption","sourcebytes":[80,97,112,101,114,32,83,105,122,101],"value":"Paper Size"},
+{"hash":185917393,"name":"twiasettingssource.gbpapersize.caption","sourcebytes":[68,105,109,101,110,115,105,111,110,101,32,67,97,114,116,97],"value":"Dimensione Carta"},
 {"hash":88,"name":"twiasettingssource.labelpapersize.caption","sourcebytes":[88],"value":"X"},
 {"hash":80460482,"name":"twiasettingssource.gbfeeder.caption","sourcebytes":[70,101,101,100,101,114],"value":"Feeder"},
 {"hash":90283609,"name":"twiasettingssource.rbfrontonly.caption","sourcebytes":[70,114,111,110,116,32,79,110,108,121],"value":"Front Only"},

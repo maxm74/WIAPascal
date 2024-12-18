@@ -1,0 +1,9 @@
+{"version":1,"strings":[
+{"hash":221556623,"name":"tformwiademo.caption","sourcebytes":[87,73,65,32,68,101,109,111],"value":"WIA Demo"},
+{"hash":128499909,"name":"tformwiademo.btacquire.caption","sourcebytes":[65,99,113,117,105,114,101],"value":"Acquire"},
+{"hash":207909541,"name":"tformwiademo.btselect.caption","sourcebytes":[83,101,108,101,99,116,32,83,111,117,114,99,101],"value":"Select Source"},
+{"hash":5950131,"name":"tformwiademo.cbtest.caption","sourcebytes":[84,101,115,116,115],"value":"Tests"},
+{"hash":40953844,"name":"tformwiademo.cbenumlocal.caption","sourcebytes":[79,110,108,121,32,67,111,110,110,101,99,116,101,100],"value":"Only Connected"},
+{"hash":88649925,"name":"tformwiademo.btnative.caption","sourcebytes":[78,97,116,105,118,101],"value":"Native"},
+{"hash":108905834,"name":"tformwiademo.label1.caption","sourcebytes":[80,97,103,101,115,32,58],"value":"Pages :"}
+]}

@@ -1,0 +1,208 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8"
+
+#: twiaselectform.btrefresh.caption
+msgctxt "twiaselectform.btrefresh.caption"
+msgid "Refresh"
+msgstr ""
+
+#: twiaselectform.caption
+msgid "Select WIA Device"
+msgstr ""
+
+#: twiaselectform.lvsources.columns[0].caption
+msgctxt "twiaselectform.lvsources.columns[0].caption"
+msgid "Name"
+msgstr ""
+
+#: twiaselectform.lvsources.columns[1].caption
+msgctxt "twiaselectform.lvsources.columns[1].caption"
+msgid "Manufacturer"
+msgstr ""
+
+#: twiaselectform.lvsources.columns[2].caption
+msgid "Type"
+msgstr ""
+
+#: twiasettingssource.btbrightness0.caption
+msgctxt "twiasettingssource.btbrightness0.caption"
+msgid "0"
+msgstr ""
+
+#: twiasettingssource.btbrightnessd.caption
+msgctxt "twiasettingssource.btbrightnessd.caption"
+msgid "d"
+msgstr ""
+
+#: twiasettingssource.btcontrast0.caption
+msgctxt "twiasettingssource.btcontrast0.caption"
+msgid "0"
+msgstr ""
+
+#: twiasettingssource.btcontrastd.caption
+msgctxt "twiasettingssource.btcontrastd.caption"
+msgid "d"
+msgstr ""
+
+#: twiasettingssource.btpaperorientation.hint
+msgctxt "twiasettingssource.btpaperorientation.hint"
+msgid "Paper Orientation"
+msgstr ""
+
+#: twiasettingssource.btrefreshcurrent.caption
+msgid "Current"
+msgstr ""
+
+#: twiasettingssource.btrefreshdefault.caption
+msgid "Default"
+msgstr ""
+
+#: twiasettingssource.btrefreshundo.caption
+msgid "Undo"
+msgstr ""
+
+#: twiasettingssource.btresolutiond.caption
+msgctxt "twiasettingssource.btresolutiond.caption"
+msgid "d"
+msgstr ""
+
+#: twiasettingssource.caption
+msgid "Settings of WIA Source"
+msgstr ""
+
+#: twiasettingssource.cbbackfirst.caption
+msgid "Back First"
+msgstr ""
+
+#: twiasettingssource.cbusenativeui.caption
+msgctxt "twiasettingssource.cbusenativeui.caption"
+msgid "Use Native UI"
+msgstr ""
+
+#: twiasettingssource.gbfeeder.caption
+msgid "Feeder"
+msgstr ""
+
+#: twiasettingssource.gbpaperalign.caption
+msgid "Paper Align"
+msgstr ""
+
+#: twiasettingssource.gbpapersize.caption
+msgid "Paper Size"
+msgstr ""
+
+#: twiasettingssource.label2.caption
+msgid "Paper Type :"
+msgstr ""
+
+#: twiasettingssource.label3.caption
+msgctxt "twiasettingssource.label3.caption"
+msgid "Resolution :"
+msgstr ""
+
+#: twiasettingssource.label4.caption
+msgctxt "twiasettingssource.label4.caption"
+msgid "Brightness :"
+msgstr ""
+
+#: twiasettingssource.label5.caption
+msgctxt "twiasettingssource.label5.caption"
+msgid "Contrast :"
+msgstr ""
+
+#: twiasettingssource.label6.caption
+msgctxt "twiasettingssource.label6.caption"
+msgid "Bit Depth :"
+msgstr ""
+
+#: twiasettingssource.label7.caption
+msgctxt "twiasettingssource.label7.caption"
+msgid "Image Type :"
+msgstr ""
+
+#: twiasettingssource.labelpapersize.caption
+msgid "X"
+msgstr ""
+
+#: twiasettingssource.rbbackonly.caption
+msgid "Back Only"
+msgstr ""
+
+#: twiasettingssource.rbfrontback.caption
+msgid "Front/Back"
+msgstr ""
+
+#: twiasettingssource.rbfrontonly.caption
+msgid "Front Only"
+msgstr ""
+
+#: twiasettingssource.tbsource_scanner.caption
+msgid "Scanner"
+msgstr ""
+
+#: twiasettingssource.trhalign.hint
+msgid "Horizontal Align"
+msgstr ""
+
+#: twiasettingssource.trvalign.hint
+msgid "Vertical Align"
+msgstr ""
+
+#: wia_selectform.rsnodevicepresent
+msgid "No Wia Devices present..."
+msgstr ""
+
+#: wia_settingsform.rsapplychanges
+#, object-pascal-format
+msgid "Apply Changes to Item %s of %s"
+msgstr ""
+
+#: wia_settingsform.rsautosize
+msgid "Auto size"
+msgstr ""
+
+#: wia_settingsform.rsautotype
+msgid "Auto type"
+msgstr ""
+
+#: wia_settingsform.rscustomsize
+msgid "Custom size"
+msgstr ""
+
+#: wia_settingsform.rserrorselecting
+#, object-pascal-format
+msgid ""
+"Error Selecting Item %s of %s\n"
+"Try to Select another Source Item"
+msgstr ""
+
+#: wia_settingsform.rserrorselectingint
+#, object-pascal-format
+msgid ""
+"Error Selecting Item [%d] of %s\n"
+"%s\n"
+"Try to Select another Source Item"
+msgstr ""
+
+#: wia_settingsform.rsexccannotgetcapabilities
+#, object-pascal-format
+msgid "Cannot Get Capabilities for Source Item %d"
+msgstr ""
+
+#: wia_settingsform.rsexccannotgetsourceitem
+#, object-pascal-format
+msgid "Cannot Get Source Item %d"
+msgstr ""
+
+#: wia_settingsform.rsfullsize
+msgid "Full size"
+msgstr ""
+
+#: wia_settingsform.rslandscape
+msgid "Landscape"
+msgstr ""
+
+#: wia_settingsform.rsportrait
+msgid "Portrait"
+msgstr ""
+
