@@ -1,0 +1,57 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8"
+
+#: wia_settingsform.rsapplychanges
+#, object-pascal-format
+msgid "Apply Changes to Item %s of %s"
+msgstr ""
+
+#: wia_settingsform.rsautosize
+msgid "Auto size"
+msgstr ""
+
+#: wia_settingsform.rsautotype
+msgid "Auto type"
+msgstr ""
+
+#: wia_settingsform.rscustomsize
+msgid "Custom size"
+msgstr ""
+
+#: wia_settingsform.rserrorselecting
+#, object-pascal-format
+msgid ""
+"Error Selecting Item %s of %s\n"
+"Try to Select another Source Item"
+msgstr ""
+
+#: wia_settingsform.rserrorselectingint
+#, object-pascal-format
+msgid ""
+"Error Selecting Item [%d] of %s\n"
+"%s\n"
+"Try to Select another Source Item"
+msgstr ""
+
+#: wia_settingsform.rsexccannotgetcapabilities
+#, object-pascal-format
+msgid "Cannot Get Capabilities for Source Item %d"
+msgstr ""
+
+#: wia_settingsform.rsexccannotgetsourceitem
+#, object-pascal-format
+msgid "Cannot Get Source Item %d"
+msgstr ""
+
+#: wia_settingsform.rsfullsize
+msgid "Full size"
+msgstr ""
+
+#: wia_settingsform.rslandscape
+msgid "Landscape"
+msgstr ""
+
+#: wia_settingsform.rsportrait
+msgid "Portrait"
+msgstr ""
+

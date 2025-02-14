@@ -3,7 +3,7 @@
   <Package Version="5">
     <PathDelim Value="\"/>
     <Name Value="WIAPascal_pkg"/>
-    <Author Value="MaxM"/>
+    <Author Value="Massimo Magnano"/>
     <CompilerOptions>
       <Version Value="11"/>
       <PathDelim Value="\"/>
@@ -16,7 +16,7 @@
         </Optimizations>
       </CodeGeneration>
     </CompilerOptions>
-    <Description Value="WIA and STI features for Free Pascal"/>
+    <Description Value="WIA and STI features for Free Pascal and Delphi"/>
     <Version Release="2"/>
     <Files>
       <Item>

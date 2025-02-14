@@ -1,3 +1,18 @@
+(****************************************************************************
+*
+*  FILE: DelphiCompatibility.pas
+*
+*  VERSION:     1.0
+*
+*  DESCRIPTION:
+*    Types and Defines to make code compatible between FreePascal and Delphi.
+*
+*****************************************************************************
+*
+*  2024 Massimo Magnano
+*
+*
+*****************************************************************************)
 unit DelphiCompatibility;
 
 interface
