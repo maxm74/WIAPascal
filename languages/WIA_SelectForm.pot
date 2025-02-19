@@ -1,7 +1,8 @@
 msgid ""
 msgstr "Content-Type: text/plain; charset=UTF-8"
 
-#: wia_selectform.rsnodevicepresent
+#: wia_selectform.rsnowiadevicepresent
+msgctxt "wia_selectform.rsnowiadevicepresent"
 msgid "No Wia Devices present..."
 msgstr ""
 

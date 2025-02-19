@@ -27,7 +27,7 @@ uses
   ComCtrls, StdCtrls, WIA;
 
 resourcestring
-  rsNoDevicePresent = 'No Wia Devices present...';
+  rsNoWIADevicePresent = 'No Wia Devices present...';
 
 type
   { TWIASelectForm }
@@ -115,7 +115,7 @@ begin
          then lvSources.ItemIndex :=selectedIndex
          else lvSources.ItemIndex :=0;
        end
-  else MessageDlg(rsNoDevicePresent, mtError, [mbOk], 0);
+  else MessageDlg(rsNoWIADevicePresent, mtError, [mbOk], 0);
 end;
 
 class function TWIASelectForm.Execute(AWIAManager: TWIAManager): Integer;
