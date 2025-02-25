@@ -286,9 +286,9 @@ type
     //Behaviour Variables
     PaperSizes_Calculated: Boolean;
 
+    //IWiaTransferCallback implementation
     function TransferCallback(lFlags: LONG;
                               pWiaTransferParams: PWiaTransferParams): HRESULT; stdcall;
-
     function GetNextStream(lFlags: LONG;
                            bstrItemName,
                            bstrFullItemName: BSTR;
@@ -1284,7 +1284,7 @@ begin
       until (rDownloaded) or ((curTick-myTickStart) > 27666);
       *)
 
-      if rDownloaded
+      if (lres = S_OK) and rDownloaded
       then Result:= rDownload_Count
       else Result:= 0;
   end;
@@ -1294,8 +1294,7 @@ function TWIADevice.Download(APath, AFileName, AExt: String; AFormat: TWIAImageF
 begin
   Result:= 0;
 
-  if SetImageFormat(AFormat)
-  then Result:= Download(APath, AFileName, AExt);
+  if SetImageFormat(AFormat) then Result:= Download(APath, AFileName, AExt);
 end;
 
 function TWIADevice.Download(APath, AFileName, AExt: String; AFormat: TWIAImageFormat;
@@ -1305,6 +1304,7 @@ var
 
 begin
   Result:= 0;
+  DownloadedFiles:= nil;
 
   if SetImageFormat(AFormat) then
   begin
@@ -1330,6 +1330,7 @@ var
 
 begin
   Result:= 0;
+  DownloadedFiles:= nil;
 
   if (pRootItem = nil) then GetRootItemIntf;
   if (pRootItem <> nil) then
@@ -1338,11 +1339,12 @@ begin
     then rDownload_Path:= APath
     else rDownload_Path:= APath+DirectorySeparator;
 
+    if not(ForceDirectories(rDownload_Path)) then exit;
+
     rDownload_FileName:= AFileName;
     rDownload_Ext:= '';
     rDownload_Count:= 0;
     rDownloaded:= False;
-    SetLength(DownloadedFiles, 0);
 
     if useSystemUI
     then dlgFlags:= WIA_DEVICE_DIALOG_USE_COMMON_UI
@@ -1350,16 +1352,19 @@ begin
 
     filePaths:= nil;
     itemArray:= nil;
-           //pSelectedItem.
+
+           //Maybe pSelectedItem. but does not works
     lres:= pRootItem.DeviceDlg(dlgFlags, hwndParent,
-                                StringToOleStr(rDownload_Path), StringToOleStr(rDownload_FileName),
-                                rDownload_Count, filePaths, itemArray);
-(*  lres:= rOwner.pDevMgr.GetImageDlg(0, StringToOleStr(Self.ID), hwndParent,
+                               StringToOleStr(rDownload_Path), StringToOleStr(rDownload_FileName),
+                               rDownload_Count, filePaths, itemArray);
+(*  Alternative
+    lres:= rOwner.pDevMgr.GetImageDlg(0, StringToOleStr(Self.ID), hwndParent,
                                 StringToOleStr(rDownload_Path), StringToOleStr(rDownload_FileName),
                                 rDownload_Count, filePaths, itemArray);
 *)
-     if (filePaths <> nil) then
+     if (lres = S_OK) then
      begin
+       //Copy filePaths to DownloadedFiles and Free elements
        SetLength(DownloadedFiles, rDownload_Count);
        for i:=0 to rDownload_Count-1 do
        begin
@@ -1367,18 +1372,10 @@ begin
          SysFreeString(filePaths^[i]);
        end;
 
-       CoTaskMemFree(filePaths);
+       Result:= rDownload_Count;
      end;
-     (* { #note -oMaxM : Exception...Is it already cleared by the garbage collector? }
-     if (itemArray <> nil) then
-     begin
-       for i:=0 to rDownload_Count-1 do
-         itemArray^[i]._Release;
 
-       CoTaskMemFree(itemArray);
-     end; *)
-
-    Result:= rDownload_Count;
+     if (filePaths <> nil) then CoTaskMemFree(filePaths);
   end;
 end;
 

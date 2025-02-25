@@ -1,5 +1,7 @@
 WIAPASCAL CHANGE LOG
 ======================
+2025/02/25 Tested and fixed user cancel operations;
+           Fixed DownloadNativeUI missing ForceDirectories;
 
 2024/12/06 Enabled Translation for Lazarus;
 	   Use resourcestring for Languages support.
