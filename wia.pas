@@ -305,7 +305,7 @@ type
     function Download(APath, AFileName, AExt: String): Integer; overload;
     function Download(APath, AFileName, AExt: String; AFormat: TWIAImageFormat): Integer; overload;
     function Download(APath, AFileName, AExt: String; AFormat: TWIAImageFormat;
-                      var DownloadedFiles: TStringArray): Integer; overload;
+                      var DownloadedFiles: TStringArray; UseRelativePath: Boolean=False): Integer; overload;
     (*    //  In Wia 2 the user must specify what to download from the feeder using the ADocHandling parameter,
         //  the SettingsForm store DocHandling in Params so the user can use here.
         function Download(APath, AFileName, AExt: String; ADocHandling: TWIADocumentHandlingSet=[]): Integer; overload;
@@ -318,7 +318,7 @@ type
     //  The system dialog works at Device level, so the selected item is ignored
     function DownloadNativeUI(hwndParent: HWND; useSystemUI: Boolean;
                               APath, AFileName: String;
-                              var DownloadedFiles: TStringArray): Integer;
+                              var DownloadedFiles: TStringArray; UseRelativePath: Boolean=False): Integer;
 
     //Get Current Property Value and it's type given the ID
     function GetProperty(APropId: PROPID; var propType: TVarType;
@@ -722,6 +722,13 @@ begin
   except
 
   end;
+end;
+
+function FullPathToRelativePath(const ABasePath: String; var APath: String): Boolean;
+begin
+  Result:= (Pos(ABasePath, APath) = 1);
+  if Result
+  then APath:= '.'+DirectorySeparator+Copy(APath, Length(ABasePath)-1, MaxInt);
 end;
 
 function WIAItemTypes(pItemType: LONG): TWIAItemTypes;
@@ -1298,7 +1305,7 @@ begin
 end;
 
 function TWIADevice.Download(APath, AFileName, AExt: String; AFormat: TWIAImageFormat;
-                             var DownloadedFiles: TStringArray): Integer;
+                             var DownloadedFiles: TStringArray; UseRelativePath: Boolean): Integer;
 var
    i: Integer;
 
@@ -1312,16 +1319,24 @@ begin
     if (Result > 0 ) then
     begin
       SetLength(DownloadedFiles, Result);
-      DownloadedFiles[0]:= rDownload_Path+rDownload_FileName+rDownload_Ext;
-      for i:=1 to Result-1 do
-        DownloadedFiles[i]:= rDownload_Path+rDownload_FileName+
-                             '-'+IntToStr(i)+rDownload_Ext;
+
+      if UseRelativePath
+      then begin
+             DownloadedFiles[0]:= rDownload_FileName+rDownload_Ext;
+             for i:=1 to Result-1 do
+               DownloadedFiles[i]:= rDownload_FileName+'-'+IntToStr(i)+rDownload_Ext;
+           end
+      else begin
+             DownloadedFiles[0]:= rDownload_Path+rDownload_FileName+rDownload_Ext;
+             for i:=1 to Result-1 do
+               DownloadedFiles[i]:= rDownload_Path+rDownload_FileName+'-'+IntToStr(i)+rDownload_Ext;
+           end;
     end;
   end;
 end;
 
 function TWIADevice.DownloadNativeUI(hwndParent: HWND; useSystemUI: Boolean; APath, AFileName: String;
-  var DownloadedFiles: TStringArray): Integer;
+  var DownloadedFiles: TStringArray; UseRelativePath: Boolean): Integer;
 var
    dlgFlags: LONG;
    i: Integer;
@@ -1369,6 +1384,10 @@ begin
        for i:=0 to rDownload_Count-1 do
        begin
          DownloadedFiles[i]:= filePaths^[i];
+
+         if UseRelativePath
+         then FullPathToRelativePath(rDownload_Path, DownloadedFiles[i]);
+
          SysFreeString(filePaths^[i]);
        end;
 

@@ -1,6 +1,8 @@
 WIAPASCAL CHANGE LOG
 ======================
-2025/02/25 Tested and fixed user cancel operations;
+2025/02/
+        28 Added UseRelativePath to Download
+        25 Tested and fixed user cancel operations;
            Fixed DownloadNativeUI missing ForceDirectories;
 
 2024/12/06 Enabled Translation for Lazarus;
