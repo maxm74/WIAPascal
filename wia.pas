@@ -728,7 +728,7 @@ function FullPathToRelativePath(const ABasePath: String; var APath: String): Boo
 begin
   Result:= (Pos(ABasePath, APath) = 1);
   if Result
-  then APath:= '.'+DirectorySeparator+Copy(APath, Length(ABasePath)-1, MaxInt);
+  then APath:= '.'+DirectorySeparator+Copy(APath, Length(ABasePath)+1, MaxInt);
 end;
 
 function WIAItemTypes(pItemType: LONG): TWIAItemTypes;
