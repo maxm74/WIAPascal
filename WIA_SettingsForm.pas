@@ -689,6 +689,8 @@ begin
     lvSourceItems.ItemIndex:= WIASelectedItemIndex;
     SelectCurrentItem(WIASelectedItemIndex);
 
+    Caption:= Caption+' : '+WIASource.Manufacturer+' '+WIASource.Name;
+
     Result := (ShowModal=mrOk);
 
     if Result then

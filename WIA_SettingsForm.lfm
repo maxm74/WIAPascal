@@ -1,31 +1,32 @@
 object WIASettingsSource: TWIASettingsSource
   Left = 350
-  Height = 440
+  Height = 550
   Top = 127
-  Width = 543
+  Width = 679
   ActiveControl = lvSourceItems
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Settings of WIA Source'
-  ClientHeight = 440
-  ClientWidth = 543
+  ClientHeight = 550
+  ClientWidth = 679
+  DesignTimePPI = 120
   Position = poScreenCenter
-  LCLVersion = '3.99.0.0'
+  LCLVersion = '4.99.0.0'
   object panelButtons: TPanel
     Left = 0
-    Height = 40
-    Top = 400
+    Height = 50
+    Top = 390
     Width = 543
     Align = alBottom
     BevelOuter = bvSpace
-    ClientHeight = 40
+    ClientHeight = 50
     ClientWidth = 543
     TabOrder = 0
     object btCancel: TBitBtn
-      Left = 371
-      Height = 34
-      Top = 2
-      Width = 87
+      Left = 328
+      Height = 42
+      Top = -7
+      Width = 109
       Anchors = [akRight, akBottom]
       DefaultCaption = True
       Kind = bkCancel
@@ -33,10 +34,10 @@ object WIASettingsSource: TWIASettingsSource
       TabOrder = 0
     end
     object btOk: TBitBtn
-      Left = 462
-      Height = 34
-      Top = 2
-      Width = 75
+      Left = 441
+      Height = 42
+      Top = -7
+      Width = 94
       Anchors = [akRight, akBottom]
       Default = True
       DefaultCaption = True
@@ -45,10 +46,10 @@ object WIASettingsSource: TWIASettingsSource
       TabOrder = 1
     end
     object btRefreshUndo: TBitBtn
-      Left = 8
-      Height = 34
+      Left = 10
+      Height = 42
       Top = 2
-      Width = 91
+      Width = 114
       Caption = 'Undo'
       Glyph.Data = {
         36100000424D3610000000000000360000002800000020000000200000000100
@@ -186,10 +187,10 @@ object WIASettingsSource: TWIASettingsSource
       Visible = False
     end
     object btRefreshCurrent: TBitBtn
-      Left = 104
-      Height = 34
+      Left = 130
+      Height = 42
       Top = 2
-      Width = 101
+      Width = 126
       Caption = 'Current'
       Glyph.Data = {
         36100000424D3610000000000000360000002800000020000000200000000100
@@ -327,10 +328,10 @@ object WIASettingsSource: TWIASettingsSource
       Visible = False
     end
     object btRefreshDefault: TBitBtn
-      Left = 208
-      Height = 34
+      Left = 260
+      Height = 42
       Top = 2
-      Width = 101
+      Width = 126
       Caption = 'Default'
       Glyph.Data = {
         36100000424D3610000000000000360000002800000020000000200000000100
@@ -480,8 +481,8 @@ object WIASettingsSource: TWIASettingsSource
     TabOrder = 1
     object PageSourceTypes: TPageControl
       Left = 2
-      Height = 280
-      Top = 118
+      Height = 350
+      Top = 48
       Width = 539
       ActivePage = tbSource_Scanner
       Align = alBottom
@@ -493,17 +494,17 @@ object WIASettingsSource: TWIASettingsSource
         ClientWidth = 531
         TabVisible = False
         object Label2: TLabel
-          Left = 225
+          Left = 281
           Height = 15
           Top = 0
           Width = 63
           Caption = 'Paper Type :'
         end
         object cbPaperType: TComboBox
-          Left = 225
+          Left = 281
           Height = 23
-          Top = 17
-          Width = 225
+          Top = 21
+          Width = 281
           ItemHeight = 15
           Style = csDropDownList
           TabOrder = 0
@@ -512,24 +513,24 @@ object WIASettingsSource: TWIASettingsSource
         object Label3: TLabel
           Left = 2
           Height = 15
-          Top = 45
+          Top = 56
           Width = 62
           Caption = 'Resolution :'
         end
         object cbResolution: TComboBox
           Left = 2
           Height = 23
-          Top = 62
-          Width = 192
+          Top = 78
+          Width = 240
           ItemHeight = 15
           Style = csDropDownList
           TabOrder = 1
         end
         object trBrightness: TTrackBar
           Left = 2
-          Height = 25
-          Top = 153
-          Width = 144
+          Height = 31
+          Top = 191
+          Width = 180
           Max = 1000
           Min = -1000
           Position = 0
@@ -540,25 +541,25 @@ object WIASettingsSource: TWIASettingsSource
         object Label4: TLabel
           Left = 2
           Height = 15
-          Top = 136
+          Top = 170
           Width = 61
           Caption = 'Brightness :'
         end
         object edBrightness: TSpinEdit
-          Left = 144
+          Left = 180
           Height = 23
-          Top = 153
-          Width = 50
+          Top = 191
+          Width = 62
           MaxValue = 1000
           MinValue = -1000
           TabOrder = 3
           OnChange = edBrightnessChange
         end
         object trContrast: TTrackBar
-          Left = 3
-          Height = 25
-          Top = 198
-          Width = 144
+          Left = 4
+          Height = 31
+          Top = 248
+          Width = 180
           Max = 1000
           Min = -1000
           Position = 0
@@ -567,10 +568,10 @@ object WIASettingsSource: TWIASettingsSource
           TabOrder = 4
         end
         object edContrast: TSpinEdit
-          Left = 144
+          Left = 180
           Height = 23
-          Top = 198
-          Width = 50
+          Top = 248
+          Width = 62
           MaxValue = 1000
           MinValue = -1000
           TabOrder = 5
@@ -579,16 +580,16 @@ object WIASettingsSource: TWIASettingsSource
         object Label5: TLabel
           Left = 2
           Height = 15
-          Top = 181
+          Top = 226
           Width = 51
           Caption = 'Contrast :'
         end
         object btPaperOrientation: TSpeedButton
-          Left = 450
-          Height = 22
+          Left = 562
+          Height = 28
           Hint = 'Paper Orientation'
-          Top = 18
-          Width = 24
+          Top = 22
+          Width = 30
           AllowAllUp = True
           Flat = True
           GroupIndex = 1
@@ -602,7 +603,7 @@ object WIASettingsSource: TWIASettingsSource
         object Label6: TLabel
           Left = 2
           Height = 15
-          Top = 91
+          Top = 114
           Width = 55
           Caption = 'Bit Depth :'
           Visible = False
@@ -610,8 +611,8 @@ object WIASettingsSource: TWIASettingsSource
         object cbBitDepth: TComboBox
           Left = 2
           Height = 23
-          Top = 108
-          Width = 192
+          Top = 135
+          Width = 240
           ItemHeight = 15
           Style = csDropDownList
           TabOrder = 6
@@ -627,17 +628,17 @@ object WIASettingsSource: TWIASettingsSource
         object cbDataType: TComboBox
           Left = 2
           Height = 23
-          Top = 17
-          Width = 192
+          Top = 21
+          Width = 240
           ItemHeight = 15
           Style = csDropDownList
           TabOrder = 7
         end
         object trResolution: TTrackBar
           Left = 2
-          Height = 25
-          Top = 62
-          Width = 144
+          Height = 31
+          Top = 78
+          Width = 180
           Max = 1000
           Min = -1000
           Position = 0
@@ -647,10 +648,10 @@ object WIASettingsSource: TWIASettingsSource
           Visible = False
         end
         object edResolution: TSpinEdit
-          Left = 144
+          Left = 180
           Height = 23
-          Top = 62
-          Width = 50
+          Top = 78
+          Width = 62
           MaxValue = 1000
           MinValue = -1000
           TabOrder = 9
@@ -659,69 +660,69 @@ object WIASettingsSource: TWIASettingsSource
         end
         object btBrightness0: TSpeedButton
           Tag = 1
-          Left = 196
-          Height = 13
-          Top = 153
-          Width = 16
+          Left = 245
+          Height = 16
+          Top = 191
+          Width = 20
           Caption = '0'
           Flat = True
           OnClick = bt0Click
         end
         object btBrightnessD: TSpeedButton
           Tag = 1
-          Left = 196
-          Height = 13
-          Top = 166
-          Width = 16
+          Left = 245
+          Height = 16
+          Top = 208
+          Width = 20
           Caption = 'd'
           Flat = True
           OnClick = btDClick
         end
         object btContrast0: TSpeedButton
           Tag = 2
-          Left = 196
-          Height = 13
-          Top = 198
-          Width = 16
+          Left = 245
+          Height = 16
+          Top = 248
+          Width = 20
           Caption = '0'
           Flat = True
           OnClick = bt0Click
         end
         object btContrastD: TSpeedButton
           Tag = 2
-          Left = 196
-          Height = 13
-          Top = 211
-          Width = 16
+          Left = 245
+          Height = 16
+          Top = 264
+          Width = 20
           Caption = 'd'
           Flat = True
           OnClick = btDClick
         end
         object btResolutionD: TSpeedButton
           Tag = 3
-          Left = 196
-          Height = 13
-          Top = 67
-          Width = 16
+          Left = 245
+          Height = 16
+          Top = 84
+          Width = 20
           Caption = 'd'
           Flat = True
           OnClick = btDClick
         end
         object gbPaperAlign: TGroupBox
-          Left = 225
-          Height = 90
-          Top = 45
-          Width = 120
+          Left = 281
+          Height = 112
+          Top = 56
+          Width = 150
           Caption = 'Paper Align'
-          ClientHeight = 70
-          ClientWidth = 116
+          ClientHeight = 92
+          ClientWidth = 146
           TabOrder = 10
           object trHAlign: TTrackBar
-            Left = 26
-            Height = 25
+            Left = 32
+            Height = 31
             Hint = 'Horizontal Align'
             Top = 0
-            Width = 55
+            Width = 69
             Max = 2
             PageSize = 1
             Position = 0
@@ -732,11 +733,11 @@ object WIASettingsSource: TWIASettingsSource
             TabOrder = 0
           end
           object trVAlign: TTrackBar
-            Left = 8
-            Height = 55
+            Left = 10
+            Height = 69
             Hint = 'Vertical Align'
-            Top = 14
-            Width = 25
+            Top = 18
+            Width = 31
             Max = 2
             Orientation = trVertical
             PageSize = 1
@@ -748,44 +749,44 @@ object WIASettingsSource: TWIASettingsSource
             TabOrder = 1
           end
           object imgAlign: TImage
-            Left = 38
-            Height = 32
-            Top = 26
-            Width = 32
+            Left = 48
+            Height = 40
+            Top = 32
+            Width = 40
             Images = imgListAlign
           end
         end
         object gbPaperSize: TGroupBox
-          Left = 350
-          Height = 90
-          Top = 45
-          Width = 120
+          Left = 438
+          Height = 112
+          Top = 56
+          Width = 150
           Caption = 'Dimensione Carta'
-          ClientHeight = 70
-          ClientWidth = 116
+          ClientHeight = 92
+          ClientWidth = 146
           Enabled = False
           TabOrder = 11
           object edPaperW: TFloatSpinEdit
-            Left = 8
+            Left = 10
             Height = 23
-            Top = 4
-            Width = 80
+            Top = 5
+            Width = 100
             MaxValue = 100
             TabOrder = 0
           end
           object edPaperH: TFloatSpinEdit
-            Left = 8
+            Left = 10
             Height = 23
-            Top = 40
-            Width = 80
+            Top = 50
+            Width = 100
             MaxValue = 100
             TabOrder = 1
           end
           object LabelPaperSize: TLabel
-            Left = 8
-            Height = 15
-            Top = 26
-            Width = 80
+            Left = 10
+            Height = 19
+            Top = 32
+            Width = 100
             Alignment = taCenter
             AutoSize = False
             Caption = 'X'
@@ -793,17 +794,17 @@ object WIASettingsSource: TWIASettingsSource
           end
         end
         object gbFeeder: TGroupBox
-          Left = 224
-          Height = 112
-          Top = 136
-          Width = 120
+          Left = 280
+          Height = 140
+          Top = 170
+          Width = 150
           Caption = 'Feeder'
-          ClientHeight = 92
-          ClientWidth = 116
+          ClientHeight = 120
+          ClientWidth = 146
           TabOrder = 12
           Visible = False
           object rbFrontOnly: TRadioButton
-            Left = 4
+            Left = 5
             Height = 19
             Top = 0
             Width = 74
@@ -811,25 +812,25 @@ object WIASettingsSource: TWIASettingsSource
             TabOrder = 0
           end
           object rbFrontBack: TRadioButton
-            Left = 4
+            Left = 5
             Height = 19
-            Top = 22
+            Top = 28
             Width = 76
             Caption = 'Front/Back'
             TabOrder = 1
           end
           object rbBackOnly: TRadioButton
-            Left = 4
+            Left = 5
             Height = 19
-            Top = 64
+            Top = 80
             Width = 71
             Caption = 'Back Only'
             TabOrder = 2
           end
           object cbBackFirst: TCheckBox
-            Left = 20
+            Left = 25
             Height = 19
-            Top = 42
+            Top = 52
             Width = 68
             Caption = 'Back First'
             Enabled = False
@@ -841,7 +842,7 @@ object WIASettingsSource: TWIASettingsSource
     end
     object lvSourceItems: TListView
       Left = 2
-      Height = 80
+      Height = 100
       Top = 2
       Width = 539
       Align = alTop
@@ -869,9 +870,9 @@ object WIASettingsSource: TWIASettingsSource
       ClientWidth = 539
       TabOrder = 2
       object cbUseNativeUI: TCheckBox
-        Left = 8
+        Left = 10
         Height = 19
-        Top = 8
+        Top = 10
         Width = 88
         Caption = 'Use Native UI'
         TabOrder = 0
@@ -882,8 +883,8 @@ object WIASettingsSource: TWIASettingsSource
   object imgList: TImageList
     Height = 22
     Width = 22
-    Left = 32
-    Top = 296
+    Left = 40
+    Top = 370
     Bitmap = {
       4C7A0200000016000000160000004B0400000000000078DAED974B52DB401086
       C996152721B708A1BC0F8B0448729210CCC3C636181B48916D9CCA09525C8005
@@ -926,8 +927,8 @@ object WIASettingsSource: TWIASettingsSource
   object imgListAlign: TImageList
     Height = 32
     Width = 32
-    Left = 88
-    Top = 296
+    Left = 110
+    Top = 370
     Bitmap = {
       4C7A090000002000000020000000900400000000000078DAED9B4F6BE2401C86
       7BD95BD7C5464410A1082204410411449082208522944229F4D6EFD30F50D86F
@@ -972,8 +973,8 @@ object WIASettingsSource: TWIASettingsSource
   object ImgListSource: TImageList
     Height = 32
     Width = 44
-    Left = 157
-    Top = 296
+    Left = 196
+    Top = 370
     Bitmap = {
       4C7A070000002C00000020000000AE1800000000000078DAED5D0B5C0E69FB7E
       3B21679154CE4B74520A9D94632A3A50092156CE62D9250AC9A1ECAE5DE78FAC

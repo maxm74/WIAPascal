@@ -1,5 +1,7 @@
 WIAPASCAL CHANGE LOG
 ======================
+2025/05/12 Added Device Manufacturer+Name in Settings Form Caption
+
 2025/02/
         28 Added UseRelativePath to Download
         25 Tested and fixed user cancel operations;
