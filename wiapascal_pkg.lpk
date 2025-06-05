@@ -16,7 +16,7 @@
         </Optimizations>
       </CodeGeneration>
     </CompilerOptions>
-    <Description Value="WIA and STI features for Free Pascal and Delphi"/>
+    <Description Value="WIA features for Free Pascal and Delphi"/>
     <Version Release="2"/>
     <Files>
       <Item>

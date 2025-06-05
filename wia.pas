@@ -25,8 +25,9 @@ unit WIA;
 interface
 
 uses
-  Windows, DelphiCompatibility, Classes, SysUtils, ComObj, ActiveX,
-  WiaDef, WIA_LH, Wia_PaperSizes;
+  Windows, DelphiCompatibility, Classes, SysUtils,
+  {$ifdef fpc} testutils, {$endif}
+  ComObj, ActiveX, WiaDef, WIA_LH, Wia_PaperSizes;
 
 type
   //Dinamic Array types
@@ -767,7 +768,7 @@ begin
   Result:= wicNULL;
 
   for i:=Low(TWIAItemCategory) to High(TWIAItemCategory) do
-    if (WiaItemCategoryGUID[i] = AGUID) then
+    if IsEqualGUID(WiaItemCategoryGUID[i], AGUID) then
     begin
       Result:= i;
       break;
@@ -833,7 +834,7 @@ begin
   Result:= False;
 
   for i:=Low(TWIAImageFormat) to High(TWIAImageFormat) do
-    if (WiaImageFormatGUID[i] = AGUID) then
+    if IsEqualGUID(WiaImageFormatGUID[i], AGUID) then
     begin
       Value:= i;
       Result:= True;
