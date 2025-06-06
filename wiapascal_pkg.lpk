@@ -12,12 +12,12 @@
       </SearchPaths>
       <CodeGeneration>
         <Optimizations>
-          <OptimizationLevel Value="0"/>
+          <OptimizationLevel Value="2"/>
         </Optimizations>
       </CodeGeneration>
     </CompilerOptions>
     <Description Value="WIA features for Free Pascal and Delphi"/>
-    <Version Release="2"/>
+    <Version Major="1"/>
     <Files>
       <Item>
         <Filename Value="WIA_LH.pas"/>
