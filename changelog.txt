@@ -1,5 +1,14 @@
 WIAPASCAL CHANGE LOG
 ======================
+2025/06/
+        09 Added WIADeviceType function to avoid undefined scanner type exception;
+           Patch to avoid nil Download Path ForceDirectories;
+           Added WiaWSDsc Unit;
+           Updated tests example;
+           Updated Version Number to 1.0.1;
+
+        05 Use of IsEqualGUID for Compatibility with fpc 3.2
+
 2025/05/12 Added Device Manufacturer+Name in Settings Form Caption
 
 2025/02/

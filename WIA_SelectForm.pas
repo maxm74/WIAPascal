@@ -3,14 +3,14 @@
 *                                                                             *
 *  FILE: WIA_SelectForm.pas                                                   *
 *                                                                             *
-*  VERSION:     0.0.1                                                         *
+*  VERSION:     1.0.1                                                         *
 *                                                                             *
 *  DESCRIPTION:                                                               *
 *    WIA Select Device Dialog.                                                *
 *                                                                             *
 *******************************************************************************
 *                                                                             *
-*  (c) 2024 Massimo Magnano                                                   *
+*  (c) 2025 Massimo Magnano                                                   *
 *                                                                             *
 *  See changelog.txt for Change Log                                           *
 *                                                                             *
@@ -101,8 +101,8 @@ begin
            if (lvSources.Columns[1].Width < txtW) then lvSources.Columns[1].Width:= txtW;
 
            //Add Type
-           curItem.SubItems.Add(WIADeviceTypeDescr[curDevice.Type_]);
-           txtW:= lvSources.Canvas.TextWidth(WIADeviceTypeDescr[curDevice.Type_])+16;
+           curItem.SubItems.Add(WIADeviceType(curDevice.Type_));
+           txtW:= lvSources.Canvas.TextWidth(WIADeviceType(curDevice.Type_))+16;
            if (lvSources.Columns[2].Width < txtW) then lvSources.Columns[2].Width:= txtW;
 
            //if is Current Selected Scanner set selectedIndex

@@ -12,12 +12,12 @@
       </SearchPaths>
       <CodeGeneration>
         <Optimizations>
-          <OptimizationLevel Value="2"/>
+          <OptimizationLevel Value="0"/>
         </Optimizations>
       </CodeGeneration>
     </CompilerOptions>
-    <Description Value="WIA features for Free Pascal and Delphi"/>
-    <Version Major="1"/>
+    <Description Value="WIA Scanner features for Free Pascal and Delphi"/>
+    <Version Major="1" Release="1"/>
     <Files>
       <Item>
         <Filename Value="WIA_LH.pas"/>
@@ -62,6 +62,10 @@
       <Item>
         <Filename Value="DelphiCompatibility.pas"/>
         <UnitName Value="DelphiCompatibility"/>
+      </Item>
+      <Item>
+        <Filename Value="WiaWSDsc.pas"/>
+        <UnitName Value="WiaWSDsc"/>
       </Item>
     </Files>
     <i18n>

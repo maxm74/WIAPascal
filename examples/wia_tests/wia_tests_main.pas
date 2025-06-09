@@ -11,7 +11,7 @@ interface
 
 uses
   Windows, Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  Variants,
+  Spin, Variants,
   //ComObj, ActiveX, WIA_LH, WiaDef, WIA_TLB
   ComObj, ActiveX, WIA_LH, WiaDef, WIA;
 
@@ -26,7 +26,7 @@ type
     btListChilds: TButton;
     btSelect: TButton;
     edDevTest: TEdit;
-    edDPI: TEdit;
+    edDPI: TSpinEdit;
     edSelItemName: TEdit;
     Label1: TLabel;
     Label2: TLabel;
@@ -192,7 +192,7 @@ begin
        Memo2.Lines.Add('  ID : '+curDev.ID);
        Memo2.Lines.Add('  Manufacturer : '+curDev.Manufacturer);
        Memo2.Lines.Add('  Name : '+curDev.Name);
-       Memo2.Lines.Add('  Type : '+WIADeviceTypeDescr[curDev.Type_]);
+       Memo2.Lines.Add('  Type : '+WIADeviceType(curDev.Type_));
      end
      else Memo2.Lines.Add('['+IntToStr(i)+'] = NIL');
   end;
@@ -213,12 +213,9 @@ end;
 
 procedure TFormWIATests.btDownloadClick(Sender: TObject);
 var
-   test :IWiaItem2;
    curDev: TWIADevice;
-   OleStrID :POleStr;
-   pWiaDevice: IWiaItem2;
-   pWIA_DevMgr: WIA_LH.IWiaDevMgr2;
-   c, v: Integer;
+   c: Integer;
+   path: String;
 
 begin
   try
@@ -231,16 +228,13 @@ begin
              Memo2.Lines.Add('Item '+edSelItemName.Text+' NOT FOUND');
              exit;
            end;
-      try
-        v:= StrToInt(edDPI.Text);
-      except
-        v:= 100;
-      end;
 
-      curDev.SetProperty(WIA_IPS_XRES, VT_INT, v);
-      curDev.SetProperty(WIA_IPS_YRES, VT_INT, v);
-      c:= curDev.Download('', 'WiaTest', '.bmp');
-      Memo2.Lines.Add('Item Downloaded '+IntToStr(c)+' Files');
+      path:= ExtractFilePath(ParamStr(0))+'download';
+      c:= edDPI.Value;
+      curDev.SetProperty(WIA_IPS_XRES, VT_INT, c);
+      curDev.SetProperty(WIA_IPS_YRES, VT_INT, c);
+      c:= curDev.Download(path, 'WiaTest', '.bmp');
+      Memo2.Lines.Add('Item Downloaded '+IntToStr(c)+' Files'+#13#10+'  on '+path);
   finally
   end;
 end;

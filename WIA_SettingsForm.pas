@@ -3,14 +3,14 @@
 *                                                                             *
 *  FILE: WIA_SettingsForm.pas                                                 *
 *                                                                             *
-*  VERSION:     0.0.2                                                         *
+*  VERSION:     1.0.1                                                         *
 *                                                                             *
 *  DESCRIPTION:                                                               *
 *    WIA Property Settings for Device Dialog.                                 *
 *                                                                             *
 *******************************************************************************
 *                                                                             *
-*  (c) 2024 Massimo Magnano                                                   *
+*  (c) 2025 Massimo Magnano                                                   *
 *                                                                             *
 *  See changelog.txt for Change Log                                           *
 *                                                                             *

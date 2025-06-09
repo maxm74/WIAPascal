@@ -10,6 +10,7 @@ object WIASelectForm: TWIASelectForm
   ClientWidth = 600
   DesignTimePPI = 120
   Position = poScreenCenter
+  LCLVersion = '4.99.0.0'
   object panelButtons: TPanel
     Left = 0
     Height = 50

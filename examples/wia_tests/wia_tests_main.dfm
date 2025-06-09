@@ -2,8 +2,8 @@ object FormWIATests: TFormWIATests
   Left = 391
   Top = 158
   Caption = 'WIA Tests'
-  ClientHeight = 260
-  ClientWidth = 544
+  ClientHeight = 325
+  ClientWidth = 680
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -14,98 +14,102 @@ object FormWIATests: TFormWIATests
   OnDestroy = FormDestroy
   TextHeight = 15
   object Label1: TLabel
-    Left = 419
-    Top = 75
+    Left = 524
+    Top = 94
     Width = 74
     Height = 15
     Caption = 'Device to Use:'
   end
   object Label2: TLabel
-    Left = 419
-    Top = 128
+    Left = 524
+    Top = 160
     Width = 66
     Height = 15
     Caption = 'Item to Use :'
   end
   object Label3: TLabel
-    Left = 416
-    Top = 232
+    Left = 520
+    Top = 290
     Width = 17
     Height = 15
     Caption = 'dpi'
   end
   object Memo2: TMemo
     Left = 0
-    Top = 8
-    Width = 416
-    Height = 247
+    Top = 10
+    Width = 514
+    Height = 309
     TabOrder = 0
   end
   object edDevTest: TEdit
-    Left = 499
-    Top = 72
-    Width = 40
+    Left = 624
+    Top = 90
+    Width = 50
     Height = 23
     TabOrder = 1
     Text = '0'
   end
   object btIntList: TButton
-    Left = 416
-    Top = 8
-    Width = 123
-    Height = 25
+    Left = 520
+    Top = 10
+    Width = 154
+    Height = 31
     Caption = 'List Wia'
     TabOrder = 2
     OnClick = btIntListClick
   end
   object btIntCap: TButton
-    Left = 416
-    Top = 176
-    Width = 123
-    Height = 25
+    Left = 520
+    Top = 220
+    Width = 154
+    Height = 31
     Caption = 'List Capabilities'
     TabOrder = 3
     OnClick = btIntCapClick
   end
   object btDownload: TButton
-    Left = 416
-    Top = 208
-    Width = 123
-    Height = 25
-    Caption = 'Download'
+    Left = 520
+    Top = 260
+    Width = 154
+    Height = 31
+    Caption = 'Download/Acquire'
     TabOrder = 4
     OnClick = btDownloadClick
   end
   object btSelect: TButton
-    Left = 416
-    Top = 40
-    Width = 123
-    Height = 25
+    Left = 520
+    Top = 50
+    Width = 154
+    Height = 31
     Caption = 'Select Device'
     TabOrder = 5
     OnClick = btSelectClick
   end
   object edSelItemName: TEdit
-    Left = 419
-    Top = 144
-    Width = 123
+    Left = 524
+    Top = 180
+    Width = 154
     Height = 23
     TabOrder = 6
   end
   object btListChilds: TButton
-    Left = 416
-    Top = 96
-    Width = 123
-    Height = 25
+    Left = 520
+    Top = 120
+    Width = 154
+    Height = 31
     Caption = 'List Childs'
     TabOrder = 7
     OnClick = btListChildsClick
   end
-  object edDPI: TEdit
-    Left = 440
-    Top = 232
-    Width = 47
-    Height = 23
+  object edDPI: TSpinEdit
+    Left = 550
+    Top = 290
+    Width = 59
+    Height = 24
+    Increment = 50
+    MaxValue = 600
+    MinValue = 100
     TabOrder = 8
+    Value = 100
   end
 end

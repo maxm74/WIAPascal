@@ -3,7 +3,7 @@
 *
 *  FILE: WIA_PaperSizes.pas
 *
-*  VERSION:     0.0.2
+*  VERSION:     1.0.1
 *
 *  DESCRIPTION:
 *    WIA Paper Sizes consts in thousandths of an inch.

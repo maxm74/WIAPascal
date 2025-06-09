@@ -3,7 +3,7 @@
 *
 *  FILE: WIA.pas
 *
-*  VERSION:     0.0.2
+*  VERSION:     1.0.1
 *
 *  DESCRIPTION:
 *    WIA Base classes.
@@ -25,8 +25,8 @@ unit WIA;
 interface
 
 uses
-  Windows, DelphiCompatibility, Classes, SysUtils,
-  {$ifdef fpc} testutils, {$endif}
+  Windows, Classes, SysUtils,
+  {$ifdef fpc}testutils,{$else}DelphiCompatibility,{$endif}
   ComObj, ActiveX, WiaDef, WIA_LH, Wia_PaperSizes;
 
 type
@@ -599,7 +599,7 @@ type
   end;
 
 const
-  WIADeviceTypeDescr : array  [TWIADeviceType] of String = (
+  WIADeviceTypeDescr : array [TWIADeviceType] of String = (
     'Default', 'Scanner', 'Digital Camera', 'Streaming Video'
   );
 
@@ -695,6 +695,8 @@ function WIACopyCurrentValues(const WIACap: TWIAParamsCapabilities;
 function WIACopyDefaultValues(const WIACap: TWIAParamsCapabilities;
                               aHAlign: TWIAAlignHorizontal=waHLeft;
                               aVAlign: TWIAAlignVertical=waVTop): TWIAParams;
+
+function WIADeviceType(const AWIADeviceType: TWIADeviceType): String;
 
 function WIAImageFormat(const AGUID: TGUID; var Value: TWIAImageFormat): Boolean;
 
@@ -824,6 +826,13 @@ begin
     HAlign:= aHAlign;
     VAlign:= aVAlign;
   end;
+end;
+
+function WIADeviceType(const AWIADeviceType: TWIADeviceType): String;
+begin
+  if (AWIADeviceType in [Low(TWIADeviceType)..High(TWIADeviceType)])
+  then Result:= WIADeviceTypeDescr[AWIADeviceType]
+  else Result:= 'Undefined ('+IntToStr(Integer(AWIADeviceType))+')';
 end;
 
 function WIAImageFormat(const AGUID: TGUID; var Value: TWIAImageFormat): Boolean;
@@ -1265,7 +1274,7 @@ begin
     then rDownload_Path:= APath
     else rDownload_Path:= APath+DirectorySeparator;
 
-    if not(ForceDirectories(rDownload_Path)) then exit;
+    if (rDownload_Path<>'') and not(ForceDirectories(rDownload_Path)) then exit;
 
     rDownload_FileName:= AFileName;
     rDownload_Ext:= AExt;
