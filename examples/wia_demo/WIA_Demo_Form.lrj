@@ -5,5 +5,7 @@
 {"hash":5950131,"name":"tformwiademo.cbtest.caption","sourcebytes":[84,101,115,116,115],"value":"Tests"},
 {"hash":40953844,"name":"tformwiademo.cbenumlocal.caption","sourcebytes":[79,110,108,121,32,67,111,110,110,101,99,116,101,100],"value":"Only Connected"},
 {"hash":88649925,"name":"tformwiademo.btnative.caption","sourcebytes":[78,97,116,105,118,101],"value":"Native"},
-{"hash":108905834,"name":"tformwiademo.label1.caption","sourcebytes":[80,97,103,101,115,32,58],"value":"Pages :"}
+{"hash":108905834,"name":"tformwiademo.label1.caption","sourcebytes":[80,97,103,101,115,32,58],"value":"Pages :"},
+{"hash":5671610,"name":"tformwiademo.label2.caption","sourcebytes":[80,97,116,104,58],"value":"Path:"},
+{"hash":244566638,"name":"tformwiademo.btbrowse.caption","sourcebytes":[66,114,111,119,115,101,32,46,46,46],"value":"Browse ..."}
 ]}

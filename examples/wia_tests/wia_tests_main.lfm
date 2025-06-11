@@ -3,10 +3,12 @@ object FormWIATests: TFormWIATests
   Height = 325
   Top = 158
   Width = 680
+  BorderStyle = bsSingle
   Caption = 'WIA Tests'
   ClientHeight = 325
   ClientWidth = 680
   DesignTimePPI = 120
+  LCLVersion = '4.99.0.0'
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   object Memo2: TMemo

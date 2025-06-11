@@ -10,7 +10,7 @@
 *
 *****************************************************************************
 *
-*  (c) 2024 Massimo Magnano
+*  (c) 2025 Massimo Magnano
 *
 *  See changelog.txt for Change Log
 *
@@ -702,7 +702,7 @@ function WIAImageFormat(const AGUID: TGUID; var Value: TWIAImageFormat): Boolean
 
 implementation
 
-uses WIA_SelectForm;
+uses {$ifdef fpc}FileUtil, {$endif} WIA_SelectForm;
 
 procedure VersionStrToInt(const s: String; var Ver, VerSub: Integer);
 var
@@ -1082,7 +1082,7 @@ begin
   then Result:= S_OK
   else if rOwner.OnBeforeDeviceTransfer(rOwner, Self, lFlags, pWiaTransferParams)
        then Result:= S_OK
-       else Result:= S_FALSE;   { #todo 2 -oMaxM : Test if this value cancel the Download }
+       else Result:= S_FALSE;
 
   if (Result = S_OK) and (pWiaTransferParams <> nil) then
   Case pWiaTransferParams^.lMessage of
@@ -1090,12 +1090,18 @@ begin
     end;
     WIA_TRANSFER_MSG_END_OF_STREAM: begin
       if (pWiaTransferParams^.ulTransferredBytes > 0)
-      then Inc(rDownload_Count);
+      then Inc(rDownload_Count)
+      else try
+              //Some Scanner call GetNextStream even if there are no more pages
+              //so we end up with an extra file with size 0, delete it
+              DeleteFile(rDownload_Path+rDownload_FileName+
+                         '-'+IntToStr(rDownload_Count)+rDownload_Ext);
+           except
+           end;
 
       rDownloaded:= (rDownload_Count > 0);
     end;
     WIA_TRANSFER_MSG_END_OF_TRANSFER: begin
-      //rDownloaded:= True;
       pWiaTransferParams^.lPercentComplete:=100;
     end;
     WIA_TRANSFER_MSG_DEVICE_STATUS: begin
@@ -1110,7 +1116,7 @@ begin
   if Assigned(rOwner.OnAfterDeviceTransfer)
   then if rOwner.OnAfterDeviceTransfer(rOwner, Self, lFlags, pWiaTransferParams)
        then Result:= S_OK
-       else Result:= S_FALSE;   { #todo 2 -oMaxM : Test if this value cancel the Download }
+       else Result:= S_FALSE;
 end;
 
 function TWIADevice.GetNextStream(lFlags: LONG; bstrItemName, bstrFullItemName: BSTR; out ppDestination: IStream): HRESULT; stdcall;
@@ -1122,8 +1128,6 @@ begin
   then Result:= CreateDestinationStream(rDownload_Path+rDownload_FileName+rDownload_Ext, ppDestination)
   else Result:= CreateDestinationStream(rDownload_Path+rDownload_FileName+
                                         '-'+IntToStr(rDownload_Count)+rDownload_Ext, ppDestination);
-
-  //Inc(rDownload_Count);
 end;
 
 constructor TWIADevice.Create(AOwner: TWIAManager; AIndex: Integer; ADeviceID: String);

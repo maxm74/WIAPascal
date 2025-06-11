@@ -1,6 +1,7 @@
 object FormWIATests: TFormWIATests
   Left = 391
   Top = 158
+  BorderStyle = bsSingle
   Caption = 'WIA Tests'
   ClientHeight = 325
   ClientWidth = 680

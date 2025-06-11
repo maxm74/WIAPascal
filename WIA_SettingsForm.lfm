@@ -11,21 +11,20 @@ object WIASettingsSource: TWIASettingsSource
   ClientWidth = 679
   DesignTimePPI = 120
   Position = poScreenCenter
-  LCLVersion = '4.99.0.0'
   object panelButtons: TPanel
     Left = 0
     Height = 50
-    Top = 390
-    Width = 543
+    Top = 500
+    Width = 679
     Align = alBottom
     BevelOuter = bvSpace
     ClientHeight = 50
-    ClientWidth = 543
+    ClientWidth = 679
     TabOrder = 0
     object btCancel: TBitBtn
-      Left = 328
+      Left = 464
       Height = 42
-      Top = -7
+      Top = 2
       Width = 109
       Anchors = [akRight, akBottom]
       DefaultCaption = True
@@ -34,9 +33,9 @@ object WIASettingsSource: TWIASettingsSource
       TabOrder = 0
     end
     object btOk: TBitBtn
-      Left = 441
+      Left = 577
       Height = 42
-      Top = -7
+      Top = 2
       Width = 94
       Anchors = [akRight, akBottom]
       Default = True
@@ -471,58 +470,58 @@ object WIASettingsSource: TWIASettingsSource
   end
   object Panel1: TPanel
     Left = 0
-    Height = 400
+    Height = 500
     Top = 0
-    Width = 543
+    Width = 679
     Align = alClient
     BevelInner = bvRaised
-    ClientHeight = 400
-    ClientWidth = 543
+    ClientHeight = 500
+    ClientWidth = 679
     TabOrder = 1
     object PageSourceTypes: TPageControl
       Left = 2
       Height = 350
-      Top = 48
-      Width = 539
+      Top = 148
+      Width = 675
       ActivePage = tbSource_Scanner
       Align = alBottom
       TabIndex = 0
       TabOrder = 0
       object tbSource_Scanner: TTabSheet
         Caption = 'Scanner'
-        ClientHeight = 252
-        ClientWidth = 531
+        ClientHeight = 317
+        ClientWidth = 667
         TabVisible = False
         object Label2: TLabel
           Left = 281
-          Height = 15
+          Height = 20
           Top = 0
-          Width = 63
+          Width = 79
           Caption = 'Paper Type :'
         end
         object cbPaperType: TComboBox
           Left = 281
-          Height = 23
+          Height = 28
           Top = 21
           Width = 281
-          ItemHeight = 15
+          ItemHeight = 20
           Style = csDropDownList
           TabOrder = 0
           OnChange = cbPaperTypeChange
         end
         object Label3: TLabel
           Left = 2
-          Height = 15
+          Height = 20
           Top = 56
-          Width = 62
+          Width = 77
           Caption = 'Resolution :'
         end
         object cbResolution: TComboBox
           Left = 2
-          Height = 23
+          Height = 28
           Top = 78
           Width = 240
-          ItemHeight = 15
+          ItemHeight = 20
           Style = csDropDownList
           TabOrder = 1
         end
@@ -540,14 +539,14 @@ object WIASettingsSource: TWIASettingsSource
         end
         object Label4: TLabel
           Left = 2
-          Height = 15
+          Height = 20
           Top = 170
-          Width = 61
+          Width = 75
           Caption = 'Brightness :'
         end
         object edBrightness: TSpinEdit
           Left = 180
-          Height = 23
+          Height = 28
           Top = 191
           Width = 62
           MaxValue = 1000
@@ -569,7 +568,7 @@ object WIASettingsSource: TWIASettingsSource
         end
         object edContrast: TSpinEdit
           Left = 180
-          Height = 23
+          Height = 28
           Top = 248
           Width = 62
           MaxValue = 1000
@@ -579,9 +578,9 @@ object WIASettingsSource: TWIASettingsSource
         end
         object Label5: TLabel
           Left = 2
-          Height = 15
+          Height = 20
           Top = 226
-          Width = 51
+          Width = 62
           Caption = 'Contrast :'
         end
         object btPaperOrientation: TSpeedButton
@@ -602,35 +601,35 @@ object WIASettingsSource: TWIASettingsSource
         end
         object Label6: TLabel
           Left = 2
-          Height = 15
+          Height = 20
           Top = 114
-          Width = 55
+          Width = 70
           Caption = 'Bit Depth :'
           Visible = False
         end
         object cbBitDepth: TComboBox
           Left = 2
-          Height = 23
+          Height = 28
           Top = 135
           Width = 240
-          ItemHeight = 15
+          ItemHeight = 20
           Style = csDropDownList
           TabOrder = 6
           Visible = False
         end
         object Label7: TLabel
           Left = 2
-          Height = 15
+          Height = 20
           Top = 0
-          Width = 66
+          Width = 84
           Caption = 'Image Type :'
         end
         object cbDataType: TComboBox
           Left = 2
-          Height = 23
+          Height = 28
           Top = 21
           Width = 240
-          ItemHeight = 15
+          ItemHeight = 20
           Style = csDropDownList
           TabOrder = 7
         end
@@ -649,7 +648,7 @@ object WIASettingsSource: TWIASettingsSource
         end
         object edResolution: TSpinEdit
           Left = 180
-          Height = 23
+          Height = 28
           Top = 78
           Width = 62
           MaxValue = 1000
@@ -714,7 +713,7 @@ object WIASettingsSource: TWIASettingsSource
           Top = 56
           Width = 150
           Caption = 'Paper Align'
-          ClientHeight = 92
+          ClientHeight = 87
           ClientWidth = 146
           TabOrder = 10
           object trHAlign: TTrackBar
@@ -762,13 +761,13 @@ object WIASettingsSource: TWIASettingsSource
           Top = 56
           Width = 150
           Caption = 'Dimensione Carta'
-          ClientHeight = 92
+          ClientHeight = 87
           ClientWidth = 146
           Enabled = False
           TabOrder = 11
           object edPaperW: TFloatSpinEdit
             Left = 10
-            Height = 23
+            Height = 28
             Top = 5
             Width = 100
             MaxValue = 100
@@ -776,7 +775,7 @@ object WIASettingsSource: TWIASettingsSource
           end
           object edPaperH: TFloatSpinEdit
             Left = 10
-            Height = 23
+            Height = 28
             Top = 50
             Width = 100
             MaxValue = 100
@@ -799,39 +798,39 @@ object WIASettingsSource: TWIASettingsSource
           Top = 170
           Width = 150
           Caption = 'Feeder'
-          ClientHeight = 120
+          ClientHeight = 115
           ClientWidth = 146
           TabOrder = 12
           Visible = False
           object rbFrontOnly: TRadioButton
             Left = 5
-            Height = 19
+            Height = 24
             Top = 0
-            Width = 74
+            Width = 89
             Caption = 'Front Only'
             TabOrder = 0
           end
           object rbFrontBack: TRadioButton
             Left = 5
-            Height = 19
+            Height = 24
             Top = 28
-            Width = 76
+            Width = 92
             Caption = 'Front/Back'
             TabOrder = 1
           end
           object rbBackOnly: TRadioButton
             Left = 5
-            Height = 19
+            Height = 24
             Top = 80
-            Width = 71
+            Width = 86
             Caption = 'Back Only'
             TabOrder = 2
           end
           object cbBackFirst: TCheckBox
             Left = 25
-            Height = 19
+            Height = 24
             Top = 52
-            Width = 68
+            Width = 83
             Caption = 'Back First'
             Enabled = False
             TabOrder = 3
@@ -844,7 +843,7 @@ object WIASettingsSource: TWIASettingsSource
       Left = 2
       Height = 100
       Top = 2
-      Width = 539
+      Width = 675
       Align = alTop
       AutoSort = False
       Columns = <>
@@ -861,19 +860,19 @@ object WIASettingsSource: TWIASettingsSource
     end
     object panelCenter: TPanel
       Left = 2
-      Height = 36
-      Top = 82
-      Width = 539
+      Height = 46
+      Top = 102
+      Width = 675
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 36
-      ClientWidth = 539
+      ClientHeight = 46
+      ClientWidth = 675
       TabOrder = 2
       object cbUseNativeUI: TCheckBox
         Left = 10
-        Height = 19
+        Height = 24
         Top = 10
-        Width = 88
+        Width = 110
         Caption = 'Use Native UI'
         TabOrder = 0
         OnClick = cbUseNativeUIChange

@@ -1,3 +1,22 @@
+(******************************************************************************
+*                FreePascal \ Delphi WIA Implementation                       *
+*                                                                             *
+*  FILE: WIA_Demo_Form.pas                                                    *
+*                                                                             *
+*  VERSION:     1.0.1                                                         *
+*                                                                             *
+*  DESCRIPTION:                                                               *
+*    WIA Demo Form.                                                           *
+*    This is a Package demo not a full scanning application,                  *
+*    see the DigIt project on my GitHub repository for that.                  *
+*                                                                             *
+*******************************************************************************
+*                                                                             *
+*  (c) 2025 Massimo Magnano                                                   *
+*                                                                             *
+*  See changelog.txt for Change Log                                           *
+*                                                                             *
+*******************************************************************************)
 unit WIA_Demo_Form;
 
 {$ifdef fpc}
@@ -20,16 +39,20 @@ type
     btAcquire: TButton;
     btSelect: TButton;
     btNative: TButton;
+    btBrowse: TButton;
     cbTest: TCheckBox;
     cbEnumLocal: TCheckBox;
+    edPath: TEdit;
     edTests: TEdit;
     ImageHolder: TImage;
     Label1: TLabel;
+    Label2: TLabel;
     lbSelected: TLabel;
     lbProgress: TLabel;
     Panel1: TPanel;
     progressBar: TProgressBar;
     edPages: TSpinEdit;
+    procedure btBrowseClick(Sender: TObject);
     procedure btNativeClick(Sender: TObject);
     procedure btSelectClick(Sender: TObject);
     procedure btAcquireClick(Sender: TObject);
@@ -57,9 +80,33 @@ implementation
 
 {$ifdef fpc}
   {$R *.lfm}
+
+function SelectPath(var ADir: String): Boolean;
+var
+   selDir: TSelectDirectoryDialog;
+
+begin
+  try
+     selDir:= TSelectDirectoryDialog.Create(FormWIADemo);
+     Result:= selDir.Execute;
+     if Result then ADir:= selDir.FileName;
+
+  finally
+    selDir.Free;
+  end;
+end;
+
 {$else}
   {$R *.dfm}
+
+uses FileCtrl;
+
+function SelectPath(var ADir: String): Boolean;
+begin
+  Result:= SelectDirectory(ADir, [sdAllowCreate], 0);
+end;
 {$endif}
+
 
 
 { TFormWIADemo }
@@ -68,6 +115,7 @@ procedure TFormWIADemo.FormCreate(Sender: TObject);
 begin
     FWia :=TWIAManager.Create;
     FWia.OnAfterDeviceTransfer:= DeviceTransferEvent;
+    edPath.Text:= ExtractFilePath(ParamStr(0));
 end;
 
 procedure TFormWIADemo.FormDestroy(Sender: TObject);
@@ -91,6 +139,7 @@ begin
     lbProgress.Caption:= 'Downloaded '+AWiaDevice.Download_FileName+AWiaDevice.Download_Ext+'  : '+IntToStr(AWiaDevice.Download_Count)+' file';
   end;
   WIA_TRANSFER_MSG_END_OF_TRANSFER: begin
+    progressBar.Position:= 100;
   end;
   WIA_TRANSFER_MSG_DEVICE_STATUS: begin
   end;
@@ -127,7 +176,7 @@ begin
       WIASource:= FWia.SelectedDevice;
       if (WIASource <> nil) then
       begin
-        btAcquire.Enabled := True; ///WiaSource.GetParamsCapabilities(WIACap);
+        btAcquire.Enabled := True;
         lbSelected.Caption:= 'Selected : '+WIASource.Name;
 
         //SetLength(WIAParams, 1);
@@ -162,7 +211,7 @@ begin
   WIASource:= FWia.SelectedDevice;
   if (Sender <> nil) then WIASource.SelectedItemIndex:= 0;
   aPath:= ExtractFilePath(ParamStr(0));
-  c:= WiaSource.DownloadNativeUI(Self.Handle, False, aPath, 'test_wia', DownloadedFiles);
+  c:= WiaSource.DownloadNativeUI(Self.Handle, False, aPath, 'wia_demo', DownloadedFiles);
   if (c>0)
   then begin
            MessageDlg('Downloaded '+IntToStr(c)+' Files', mtInformation, [mbOk], 0);
@@ -171,6 +220,14 @@ begin
          end
     else MessageDlg('NO Files Downloaded ', mtError, [mbOk], 0);
   DownloadedFiles:= nil;
+end;
+
+procedure TFormWIADemo.btBrowseClick(Sender: TObject);
+var
+   ADir: String;
+
+begin
+  if SelectPath(ADir) then edPath.Text:= ADir;
 end;
 
 procedure TFormWIADemo.btAcquireClick(Sender: TObject);
@@ -187,11 +244,9 @@ var
 
 begin
   WIASource:= FWia.SelectedDevice;
-//  WIASource:= FWia.Devices[0];
 
   if (WIASource <> nil) then
   try
-   //WIASource.SelectItem('Feeder');
     SelectedItemIndex:= WIASource.SelectedItemIndex;
     NewItemIndex:= SelectedItemIndex;
 
@@ -206,7 +261,7 @@ begin
       end;
       WIASource.SelectedItemIndex:= SelectedItemIndex;
 
-      aPath:= ExtractFilePath(ParamStr(0));
+      aPath:= edPath.Text;
 
       if WIAParams[SelectedItemIndex].NativeUI
       then begin
@@ -258,12 +313,6 @@ begin
                end;
              end;
 
-             { #todo 5 -oMaxM : Move To Download? }
-             if WIAParams[SelectedItemIndex].DataType in [wdtRAW_RGB..wdtRAW_CMYK]
-             then capRet:= WIASource.SetImageFormat(wifRAW)
-             else capRet:= WIASource.SetImageFormat(wifBMP);
-             if not(capRet) then raise Exception.Create('SetImageFormat');
-
              if WIAParams[SelectedItemIndex].DataType in [wdtRAW_RGB..wdtRAW_CMYK]
              then begin
                     aFormat:= wifRAW;
@@ -274,8 +323,7 @@ begin
                     aExt:= '.bmp';
                   end;
 
-             c:= WIASource.Download(aPath, 'test_wia', aExt,
-                                    aFormat (*, WIAParams[SelectedItemIndex].DocHandling*));
+             c:= WIASource.Download(aPath, 'wia_demo', aExt, aFormat);
 
              if cbTest.Checked then
              begin
@@ -294,8 +342,8 @@ begin
 
              if (c>0)
              then begin
-                    MessageDlg('Downloaded '+IntToStr(c)+' Files', mtInformation, [mbOk], 0);
-                    ImageHolder.Picture.Bitmap.LoadFromFile(aPath+'test_wia'+aExt);
+                    MessageDlg('Downloaded '+IntToStr(c)+' Files on'#13#10+aPath, mtInformation, [mbOk], 0);
+                    ImageHolder.Picture.Bitmap.LoadFromFile(aPath+'wia_demo'+aExt);
                   end
              else MessageDlg('NO Files Downloaded ', mtError, [mbOk], 0);
           end;

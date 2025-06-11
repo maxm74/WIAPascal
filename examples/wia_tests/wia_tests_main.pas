@@ -1,3 +1,23 @@
+(******************************************************************************
+*                FreePascal \ Delphi WIA Implementation                       *
+*                                                                             *
+*  FILE: wia_tests_main.pas                                                   *
+*                                                                             *
+*  VERSION:     1.0.1                                                         *
+*                                                                             *
+*  DESCRIPTION:                                                               *
+*    WIA Test Form.                                                           *
+*    This is a form to do internal tests on the scanner's response            *
+*    not a full scanning application, see the DigIt project on my             *
+*    GitHub repository for that.                                              *
+*                                                                             *
+*******************************************************************************
+*                                                                             *
+*  (c) 2025 Massimo Magnano                                                   *
+*                                                                             *
+*  See changelog.txt for Change Log                                           *
+*                                                                             *
+*******************************************************************************)
 unit wia_tests_main;
 
 {$ifdef fpc}
@@ -12,7 +32,7 @@ interface
 uses
   Windows, Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls,
   Spin, Variants,
-  //ComObj, ActiveX, WIA_LH, WiaDef, WIA_TLB
+  //WIA_TLB,
   ComObj, ActiveX, WIA_LH, WiaDef, WIA;
 
 type
