@@ -1,6 +1,10 @@
 WIAPASCAL CHANGE LOG
 ======================
-2025/06/
+2025/06/11 Release 1.0.1;
+	   Solved extra File with size=0 in some scanners;
+	   Fix Settings Form Ok,Cancel Button Negative Top;
+	   Added Select Path and other Fix to Demo;
+
         09 Added WIADeviceType function to avoid undefined scanner type exception;
            Patch to avoid nil Download Path ForceDirectories;
            Added WiaWSDsc Unit;
