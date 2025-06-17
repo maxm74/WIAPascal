@@ -17,6 +17,7 @@
       </CodeGeneration>
     </CompilerOptions>
     <Description Value="WIA Scanner features for Free Pascal and Delphi"/>
+    <License Value="GPL 3.0"/>
     <Version Major="1" Release="1"/>
     <Files>
       <Item>
