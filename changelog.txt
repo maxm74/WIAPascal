@@ -1,5 +1,7 @@
 WIAPASCAL CHANGE LOG
 ======================
+2025/08/29 Added Preserve Selected Device in RefreshDeviceList
+
 2025/06/11 Release 1.0.1;
 	   Solved extra File with size=0 in some scanners;
 	   Fix Settings Form Ok,Cancel Button Negative Top;

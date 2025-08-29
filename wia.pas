@@ -542,7 +542,6 @@ type
     rOnBeforeDeviceTransfer: TOnDeviceTransfer;
 
     function GetDevMgrIntf: WIA_LH.IWiaDevMgr2;
-    procedure SetEnumAll(AValue: Boolean);
     function GetSelectedDevice: TWIADevice;
     procedure SetSelectedDeviceIndex(AValue: Integer);
     function GetDevice(Index: Integer): TWIADevice;
@@ -550,10 +549,10 @@ type
 
     function CreateDevManager: IUnknown; virtual;
 
-    procedure EmptyDeviceList(setZeroLength:Boolean);
+    procedure EmptyDeviceList(PreserveSelected: Boolean);
 
     //Enumerate the avaliable devices
-    function EnumerateDevices: Boolean;
+    function EnumerateDevices(PreserveSelected: Boolean): Boolean;
 
   public
     constructor Create(AEnumAll: Boolean = True);
@@ -563,7 +562,7 @@ type
     procedure ClearDeviceList;
 
     //Refresh the list of sources
-    procedure RefreshDeviceList;
+    procedure RefreshDeviceList(PreserveSelected: Boolean=True);
 
     //Display a dialog to let the user choose a Device and returns it's index
     function SelectDeviceDialog: Integer; virtual;
@@ -579,7 +578,7 @@ type
     property DevMgrIntf: WIA_LH.IWiaDevMgr2 read GetDevMgrIntf;
 
     //Kind of Enum, if True Enum even disconnected Devices
-    property EnumAll: Boolean read rEnumAll write SetEnumAll;
+    property EnumAll: Boolean read rEnumAll write rEnumAll;
 
     //Returns a Device
     property Devices[Index: Integer]: TWIADevice read GetDevice;
@@ -2963,15 +2962,6 @@ begin
   Result:=pDevMgr;
 end;
 
-procedure TWIAManager.SetEnumAll(AValue: Boolean);
-begin
-  if (rEnumAll <> AValue) then
-  begin
-    rEnumAll:= AValue;
-    HasEnumerated:= EnumerateDevices;
-  end;
-end;
-
 function TWIAManager.GetSelectedDevice: TWIADevice;
 begin
   if (rSelectedDeviceIndex >= 0) and (rSelectedDeviceIndex < Length(rDeviceList))
@@ -2994,7 +2984,7 @@ function TWIAManager.GetDevice(Index: Integer): TWIADevice;
 begin
   //Enumerate devices if needed
   if not(HasEnumerated)
-  then HasEnumerated:= EnumerateDevices;
+  then HasEnumerated:= EnumerateDevices(False);
 
   if (Index >= 0) and (Index < Length(rDeviceList))
   then Result:= rDeviceList[Index]
@@ -3005,7 +2995,7 @@ function TWIAManager.GetDevicesCount: Integer;
 begin
   //Enumerate devices if needed
   if not(HasEnumerated)
-  then HasEnumerated:= EnumerateDevices;
+  then HasEnumerated:= EnumerateDevices(False);
 
   Result:= Length(rDeviceList);
 end;
@@ -3015,17 +3005,22 @@ begin
   lres:= CoCreateInstance(CLSID_WiaDevMgr2, nil, CLSCTX_LOCAL_SERVER, IID_IWiaDevMgr2, Result);
 end;
 
-procedure TWIAManager.EmptyDeviceList(setZeroLength:Boolean);
+procedure TWIAManager.EmptyDeviceList(PreserveSelected: Boolean);
 var
    i:Integer;
 
 begin
   for i:=Low(rDeviceList) to High(rDeviceList) do
-    if (rDeviceList[i]<>nil) then FreeAndNil(rDeviceList[i]);
-  if setZeroLength then SetLength(rDeviceList, 0);
+    if (rDeviceList[i] <> nil) then
+    begin
+      if not(PreserveSelected and (i = rSelectedDeviceIndex))
+      then FreeAndNil(rDeviceList[i]);
+    end;
+
+  rDeviceList:= nil;
 end;
 
-function TWIAManager.EnumerateDevices: Boolean;
+function TWIAManager.EnumerateDevices(PreserveSelected: Boolean): Boolean;
 var
   i:integer;
   ppIEnum: IEnumWIA_DEV_INFO;
@@ -3036,11 +3031,16 @@ var
   //pPropNames: array [0..3] of LPOLESTR;
   pPropSpec: array [0..4] of PROPSPEC;
   pPropVar: array [0..4] of PROPVARIANT;
+  lastSelected: TWIADevice;
 
 begin
   Result :=False;
-  //SetLength(rDeviceList, 0);
-  EmptyDeviceList(True);
+
+  if PreserveSelected
+  then lastSelected:= GetSelectedDevice
+  else lastSelected:= nil;
+
+  EmptyDeviceList(PreserveSelected);
 
   try
     if (pDevMgr = nil)
@@ -3059,12 +3059,9 @@ begin
         if (lres<>S_OK)
         then Exception.Create('Number of WIA Devices not available');
 
-        EmptyDeviceList(True);
-
         if (devCount > 0) then
         begin
           SetLength(rDeviceList, devCount);
-          //EmptyDeviceList(False);
 
           // Define which properties you want to read:
           // Device ID.  This is what you would use to create
@@ -3111,7 +3108,15 @@ begin
             // lres := pWiaPropertyStorage.ReadPropertyNames(Length(pPropIDS), @pPropIDS, @pPropNames);
 
             if (VT_BSTR = pPropVar[0].vt)
-            then rDeviceList[i] :=TWIADevice.Create(Self, i, pPropVar[0].bstrVal)
+            then begin
+                   if (lastSelected <> nil) and (lastSelected.ID = pPropVar[0].bstrVal)
+                   then begin
+                          rDeviceList[i]:= lastSelected;
+                          rSelectedDeviceIndex:= i;
+                          lastSelected.rIndex:= i;  //Update Index because can be different (Actually not used)
+                        end
+                   else rDeviceList[i] :=TWIADevice.Create(Self, i, pPropVar[0].bstrVal);
+                 end
             else Exception.Create('ID of Device '+IntToStr(i)+' not String');
 
             if (VT_BSTR = pPropVar[1].vt)
@@ -3146,7 +3151,7 @@ begin
     end;
 
   except
-    EmptyDeviceList(True);
+    EmptyDeviceList(PreserveSelected);
     Result :=False;
   end;
 end;
@@ -3174,7 +3179,7 @@ end;
 
 destructor TWIAManager.Destroy;
 begin
-  EmptyDeviceList(True);
+  EmptyDeviceList(False);
   if (pDevMgr<>nil) then pDevMgr :=nil; //Free the Interface
 
   inherited Destroy;
@@ -3182,12 +3187,12 @@ end;
 
 procedure TWIAManager.ClearDeviceList;
 begin
-  EmptyDeviceList(True);
+  EmptyDeviceList(False);
 end;
 
-procedure TWIAManager.RefreshDeviceList;
+procedure TWIAManager.RefreshDeviceList(PreserveSelected: Boolean);
 begin
-  HasEnumerated:= EnumerateDevices;
+  HasEnumerated:= EnumerateDevices(PreserveSelected);
 end;
 
 function TWIAManager.FindDevice(AID: String): Integer;
