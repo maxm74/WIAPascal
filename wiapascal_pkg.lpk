@@ -18,7 +18,7 @@
     </CompilerOptions>
     <Description Value="WIA Scanner features for Free Pascal and Delphi"/>
     <License Value="GPL 3.0"/>
-    <Version Major="1" Release="1"/>
+    <Version Major="1" Release="2"/>
     <Files>
       <Item>
         <Filename Value="WIA_LH.pas"/>

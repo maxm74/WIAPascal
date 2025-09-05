@@ -687,7 +687,7 @@ type
                          bstrFilename: BSTR;
                          out plNumFiles: LONG;
                          out ppbstrFilePaths: PBSTR;
-                         var ppItem: IWiaItem2): HRESULT; stdcall;
+                         var ppItem: PIWiaItem2): HRESULT; stdcall;
   end;
 
 implementation

@@ -573,7 +573,7 @@ type
     function FindDevice(AName: String; AManufacturer: String=''): Integer; overload;
 
     //Find a Device by it's ID and Select the given Item
-    procedure SelectDeviceItem(ADeviceID, ADeviceItem: String; var ADevice: TWIADevice; var AIndex: Integer);
+    procedure SelectDeviceItem(ADeviceID, ADeviceItem: String; var ADevice: TWIADevice; var ADeviceItemIndex: Integer);
 
     property DevMgrIntf: WIA_LH.IWiaDevMgr2 read GetDevMgrIntf;
 
@@ -1381,22 +1381,23 @@ begin
     filePaths:= nil;
     itemArray:= nil;
 
-           //Maybe pSelectedItem. but does not works
+(*
+    //  Alternative but this works only with usb connected devices
     lres:= pRootItem.DeviceDlg(dlgFlags, hwndParent,
                                StringToOleStr(rDownload_Path), StringToOleStr(rDownload_FileName),
                                rDownload_Count, filePaths, itemArray);
-(*  Alternative
-    lres:= rOwner.pDevMgr.GetImageDlg(0, StringToOleStr(Self.ID), hwndParent,
-                                StringToOleStr(rDownload_Path), StringToOleStr(rDownload_FileName),
-                                rDownload_Count, filePaths, itemArray);
 *)
+    lres:= rOwner.pDevMgr.GetImageDlg(dlgFlags, StringToOleStr(Self.ID), hwndParent,
+                               StringToOleStr(rDownload_Path), StringToOleStr(rDownload_FileName),
+                               rDownload_Count, filePaths, itemArray);
+
      if (lres = S_OK) then
      begin
        //Copy filePaths to DownloadedFiles and Free elements
        SetLength(DownloadedFiles, rDownload_Count);
        for i:=0 to rDownload_Count-1 do
        begin
-         DownloadedFiles[i]:= filePaths^[i];
+         DownloadedFiles[i]:= filePaths^[i];  { #todo 2 -oMaxM : Test if OleStrToString is necessary }
 
          if UseRelativePath
          then FullPathToRelativePath(rDownload_Path, DownloadedFiles[i]);
@@ -1408,6 +1409,7 @@ begin
      end;
 
      if (filePaths <> nil) then CoTaskMemFree(filePaths);
+     //if (itemArray <> nil) then CoTaskMemFree(itemArray); //the documentation says to release it but we always have Exception
   end;
 end;
 
@@ -3198,15 +3200,13 @@ end;
 function TWIAManager.FindDevice(AID: String): Integer;
 var
    i      :Integer;
-   curDev :TWIADevice;
 
 begin
     Result :=-1;
     for i:=0 to DevicesCount-1 do
     begin
-      curDev :=Devices[i];
-      if (curDev <> nil) and
-         (curDev.ID = AID)
+      if (rDeviceList[i] <> nil) and
+         (rDeviceList[i].ID = AID)
       then begin Result:=i; break; end;
     end;
 end;
@@ -3219,49 +3219,47 @@ begin
   Result :=-1;
   if (Value <> nil)
   then for i:=0 to DevicesCount-1 do
-         if (Devices[i] = Value) then begin Result:=i; break; end;
+         if (rDeviceList[i] = Value) then begin Result:=i; break; end;
 end;
 
 function TWIAManager.FindDevice(AName: String; AManufacturer: String): Integer;
 var
    i      :Integer;
-   curDev :TWIADevice;
 
 begin
     Result :=-1;
     for i:=0 to DevicesCount-1 do
     begin
-      curDev:=Devices[i];
       { #todo -oMaxM : if there is more identical device? }
-      if (curDev <> nil) and
-         (curDev.Name = AName) and
-         ((AManufacturer <> '') and (curDev.Manufacturer = AManufacturer))
+      if (rDeviceList[i] <> nil) and
+         (rDeviceList[i].Name = AName) and
+         ((AManufacturer <> '') and (rDeviceList[i].Manufacturer = AManufacturer))
       then begin Result:=i; break; end;
     end;
 end;
 
-procedure TWIAManager.SelectDeviceItem(ADeviceID, ADeviceItem: String; var ADevice: TWIADevice; var AIndex: Integer);
+procedure TWIAManager.SelectDeviceItem(ADeviceID, ADeviceItem: String; var ADevice: TWIADevice; var ADeviceItemIndex: Integer);
 var
    i      :Integer;
-   curDev :TWIADevice;
 
 begin
   ADevice:= nil;
-  AIndex:= -1;
+  ADeviceItemIndex:= -1;
 
   try
     for i:=0 to DevicesCount-1 do
     begin
-      curDev:= Devices[i];
-
-      if (curDev <> nil) and
-         (curDev.ID = ADeviceID) then
+      if (rDeviceList[i] <> nil) and
+         (rDeviceList[i].ID = ADeviceID) then
       begin
-        ADevice:= curDev;
+        ADevice:= rDeviceList[i];
 
-        if curDev.SelectItem(ADeviceItem)
-        then AIndex:= ADevice.SelectedItemIndex
-        else AIndex:= -1;
+        if ADevice.SelectItem(ADeviceItem)
+        then begin
+               rSelectedDeviceIndex:= i;
+               ADeviceItemIndex:= ADevice.SelectedItemIndex;
+             end
+        else ADeviceItemIndex:= -1;
 
         break;
       end;
@@ -3269,7 +3267,7 @@ begin
 
   except
     ADevice:= nil;
-    AIndex:= -1;
+    ADeviceItemIndex:= -1;
   end;
 end;
 

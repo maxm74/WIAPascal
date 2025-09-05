@@ -1,5 +1,10 @@
 WIAPASCAL CHANGE LOG
 ======================
+2025/09/05 WIAManager.SelectDeviceItem set the Selected Device if finded;
+           Optimized the WIAManager.Find methods;
+           DownloadNativeUI use alternative method GetImageDlg (works with network scanners);
+           Fixed IWiaDevMgr2.GetImageDlg ppItem param type;
+
 2025/08/29 Added Preserve Selected Device in RefreshDeviceList
 
 2025/06/11 Release 1.0.1;

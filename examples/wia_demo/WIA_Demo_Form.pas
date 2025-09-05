@@ -210,7 +210,7 @@ var
 begin
   WIASource:= FWia.SelectedDevice;
   if (Sender <> nil) then WIASource.SelectedItemIndex:= 0;
-  aPath:= ExtractFilePath(ParamStr(0));
+  aPath:= edPath.Text;
   c:= WiaSource.DownloadNativeUI(Self.Handle, False, aPath, 'wia_demo', DownloadedFiles);
   if (c>0)
   then begin
