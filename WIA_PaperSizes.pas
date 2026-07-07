@@ -23,6 +23,11 @@ interface
 
 uses WIADef;
 
+resourcestring
+  rsFullsize = 'Full size';
+  rsCustomsize = 'Custom size';
+  rsAutosize = 'Auto size';
+
 type
   {Paper size}
   TPaperSize = packed record
@@ -217,6 +222,7 @@ function THInchToCmStr(ASize: Integer): String;
 function THInchToInch(ASize: Integer): Single;
 function THInchToInchStr(ASize: Integer): String;
 function SizeToTHInch(Unit_cm: Boolean; ASize: Double): Integer;
+function PaperTypeNameAndSize(Unit_cm: Boolean; APaperType: TWIAPaperType): String;
 
 implementation
 
@@ -300,6 +306,24 @@ begin
   if Unit_cm
   then Result:= Trunc((ASize / 2.54) * 1000)
   else Result:= Trunc(ASize * 1000);
+end;
+
+function PaperTypeNameAndSize(Unit_cm: Boolean; APaperType: TWIAPaperType): String;
+begin
+  Case APaperType of
+  wptMAX: Result:= rsFullsize;
+  wptCUSTOM: Result:= rsCustomsize;
+  wptAUTO: Result:= rsAutosize;
+  else begin
+         if Unit_cm
+         then Result:= PaperSizesWIA[APaperType].name+' ('+
+                       THInchToCmStr(PaperSizesWIA[APaperType].w)+' x '+
+                       THInchToCmStr(PaperSizesWIA[APaperType].h)+' cm)'
+         else Result:= PaperSizesWIA[APaperType].name+' ('+
+                       THInchToInchStr(PaperSizesWIA[APaperType].w)+' x '+
+                       THInchToInchStr(PaperSizesWIA[APaperType].h)+' in)';
+       end;
+  end;
 end;
 
 end.

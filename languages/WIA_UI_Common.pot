@@ -1,0 +1,15 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8"
+
+#: wia_ui_common.rsautotype
+msgid "Auto type"
+msgstr ""
+
+#: wia_ui_common.rslandscape
+msgid "Landscape"
+msgstr ""
+
+#: wia_ui_common.rsportrait
+msgid "Portrait"
+msgstr ""
+

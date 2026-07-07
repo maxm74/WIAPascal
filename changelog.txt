@@ -1,9 +1,17 @@
 WIAPASCAL CHANGE LOG
 ======================
-2025/09/05 WIAManager.SelectDeviceItem set the Selected Device if finded;
-           Optimized the WIAManager.Find methods;
-           DownloadNativeUI use alternative method GetImageDlg (works with network scanners);
-           Fixed IWiaDevMgr2.GetImageDlg ppItem param type;
+2026/07/07 Release 1.0.3;
+       Separated the graphics part from the package;
+	   Added NO_UI package with no graphical dependencies;
+	   Added Console Demo;
+	   EnumerateItems if needed also in TWIADevice.GetItem GetSelectedItem;
+	   Added PaperTypeNameAndSize function and use it in SettingForm;
+	   
+2025/09/05 Release 1.0.2;
+       WIAManager.SelectDeviceItem set the Selected Device if finded;
+       Optimized the WIAManager.Find methods;
+       DownloadNativeUI use alternative method GetImageDlg (works with network scanners);
+       Fixed IWiaDevMgr2.GetImageDlg ppItem param type;
 
 2025/08/29 Added Preserve Selected Device in RefreshDeviceList
 

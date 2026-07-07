@@ -1,62 +1,62 @@
 object FormWIADemo: TFormWIADemo
   Left = 264
-  Height = 750
+  Height = 600
   Top = 97
-  Width = 1000
+  Width = 800
   Caption = 'WIA Demo'
-  ClientHeight = 750
-  ClientWidth = 1000
-  DesignTimePPI = 120
+  ClientHeight = 600
+  ClientWidth = 800
+  LCLVersion = '4.99.0.0'
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   object ImageHolder: TImage
     Left = 0
-    Height = 620
-    Top = 130
-    Width = 1000
+    Height = 496
+    Top = 104
+    Width = 800
     Align = alClient
     Proportional = True
     Stretch = True
   end
   object Panel1: TPanel
     Left = 0
-    Height = 130
+    Height = 104
     Top = 0
-    Width = 1000
+    Width = 800
     Align = alTop
     BevelOuter = bvNone
-    ClientHeight = 130
-    ClientWidth = 1000
+    ClientHeight = 104
+    ClientWidth = 800
     TabOrder = 0
     object btAcquire: TButton
-      Left = 10
-      Height = 40
-      Top = 80
-      Width = 60
+      Left = 8
+      Height = 32
+      Top = 64
+      Width = 48
       Caption = 'Acquire'
       Enabled = False
       TabOrder = 0
       OnClick = btAcquireClick
     end
     object btSelect: TButton
-      Left = 10
-      Height = 40
+      Left = 8
+      Height = 32
       Top = 0
-      Width = 126
+      Width = 101
       Caption = 'Select Source'
       TabOrder = 1
       OnClick = btSelectClick
     end
     object progressBar: TProgressBar
-      Left = 290
-      Height = 30
-      Top = 24
-      Width = 570
+      Left = 232
+      Height = 24
+      Top = 19
+      Width = 456
       Anchors = [akTop, akLeft, akRight]
       TabOrder = 2
     end
     object cbTest: TCheckBox
-      Left = 880
+      Left = 693
       Height = 24
       Top = 0
       Width = 54
@@ -65,17 +65,17 @@ object FormWIADemo: TFormWIADemo
       TabOrder = 3
     end
     object edTests: TEdit
-      Left = 942
+      Left = 754
       Height = 28
       Top = 0
-      Width = 46
+      Width = 36
       Anchors = [akTop, akRight]
       TabOrder = 4
     end
     object cbEnumLocal: TCheckBox
-      Left = 144
+      Left = 115
       Height = 24
-      Top = 16
+      Top = 13
       Width = 126
       Caption = 'Only Connected'
       Checked = True
@@ -83,62 +83,62 @@ object FormWIADemo: TFormWIADemo
       TabOrder = 5
     end
     object lbProgress: TLabel
-      Left = 290
+      Left = 232
       Height = 1
       Top = 0
       Width = 1
     end
     object lbSelected: TLabel
-      Left = 15
+      Left = 12
       Height = 1
-      Top = 48
+      Top = 38
       Width = 1
     end
     object btNative: TButton
-      Left = 75
-      Height = 40
-      Top = 80
-      Width = 61
+      Left = 60
+      Height = 32
+      Top = 64
+      Width = 49
       Caption = 'Native'
       Enabled = False
       TabOrder = 6
       OnClick = btNativeClick
     end
     object edPages: TSpinEdit
-      Left = 145
+      Left = 116
       Height = 28
-      Top = 88
-      Width = 62
+      Top = 70
+      Width = 50
       MaxValue = 255
       TabOrder = 7
     end
     object Label1: TLabel
-      Left = 144
+      Left = 115
       Height = 20
-      Top = 67
+      Top = 54
       Width = 45
       Caption = 'Pages :'
     end
     object Label2: TLabel
-      Left = 290
+      Left = 232
       Height = 20
-      Top = 96
+      Top = 77
       Width = 31
       Caption = 'Path:'
     end
     object edPath: TEdit
-      Left = 331
+      Left = 265
       Height = 28
-      Top = 92
-      Width = 432
+      Top = 74
+      Width = 345
       Anchors = [akTop, akLeft, akRight]
       TabOrder = 8
     end
     object btBrowse: TButton
-      Left = 772
-      Height = 31
-      Top = 89
-      Width = 86
+      Left = 618
+      Height = 25
+      Top = 71
+      Width = 68
       Anchors = [akTop, akRight]
       Caption = 'Browse ...'
       TabOrder = 9

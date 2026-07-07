@@ -233,6 +233,10 @@ type
 
   { TWIADevice }
 
+  // WIA UI Settings of Source Device
+  TInitialItemValues = (initDefault, initParams, initCurrent);
+  TInitDefaultValuesEvent = procedure (var ACap: TWIAParamsCapabilities) of object;
+
   TWIADevice = class(TNoRefCountObject, IWiaTransferCallback)
   protected
     rOwner: TWIAManager;
@@ -489,6 +493,13 @@ type
     //Get Sub Items of Selected Item if any
     function GetSelectedItemSubItems(var AItemArray: TArrayWIAItem): Boolean;
 
+    //Display a dialog to let the user choose Settings of the Device
+    function SettingsDeviceDialog(var ASelectedItemIndex: Integer;
+                                  { #todo -oMaxM : Possibly Filters for which Items Kinds to Show? How manage AParams without Indexes? }
+                                  AInitItemValues: TInitialItemValues;
+                                  var AParams: TArrayWIAParams;
+                                  AOnInitDefaultValues: TInitDefaultValuesEvent=nil): Boolean; virtual;
+
     property ID: String read rID;
     property Manufacturer: String read rManufacturer;
     property Name: String read rName;
@@ -667,6 +678,24 @@ const
     '{3b86c1ec-71bc-4645-b4d5-1b19da2be978}'
   );
 
+  WiaItemCategoryDescr : array[TWIAItemCategory] of String = (
+     '<NULL>',
+     'Finished File',
+     'Flatbed',
+     'Feeder',
+     'Film',
+     'Root',
+     'Folder',
+     'Feeder Front',
+     'Feeder Back',
+     'Auto',
+     'Imprinter',
+     'Endoser',
+     'Bar Code Reader',
+     'Patch Code Reader',
+     'Micr  Reader'
+  );
+
   WIADataTypeDescr: array [wdtBN..wdtRAW_CMYK] of String = (
     'Black & White',
     'Gray scale (Dither)',
@@ -701,7 +730,7 @@ function WIAImageFormat(const AGUID: TGUID; var Value: TWIAImageFormat): Boolean
 
 implementation
 
-uses {$ifdef fpc}FileUtil, {$endif} WIA_SelectForm;
+uses {$ifdef fpc}FileUtil, {$endif} WIA_UI_Common;
 
 procedure VersionStrToInt(const s: String; var Ver, VerSub: Integer);
 var
@@ -794,6 +823,7 @@ function WIACopyCurrentValues(const WIACap: TWIAParamsCapabilities;
                               aHAlign: TWIAAlignHorizontal=waHLeft;
                               aVAlign: TWIAAlignVertical=waVTop): TWIAParams;
 begin
+  FillChar(Result, Sizeof(Result), 0);
   with Result do
   begin
     PaperType:= WIACap.PaperTypeCurrent;
@@ -939,6 +969,10 @@ end;
 
 function TWIADevice.GetItem(Index: Integer): PWIAItem;
 begin
+  //Enumerate Items if needed
+  if not(HasEnumerated)
+  then HasEnumerated:= EnumerateItems;
+
   if (Index >= 0) and (Index < Length(rItemList))
   then Result:= @rItemList[Index]
   else Result:= nil;
@@ -969,6 +1003,10 @@ end;
 
 function TWIADevice.GetSelectedItem: PWIAItem;
 begin
+  //Enumerate Items if needed
+  if not(HasEnumerated)
+  then HasEnumerated:= EnumerateItems;
+
   Result:= GetItem(rSelectedItemIndex);
 end;
 
@@ -2863,6 +2901,21 @@ begin
   end;
 end;
 
+function TWIADevice.SettingsDeviceDialog(var ASelectedItemIndex: Integer;
+                                         AInitItemValues: TInitialItemValues; var AParams: TArrayWIAParams;
+                                         AOnInitDefaultValues: TInitDefaultValuesEvent): Boolean;
+begin
+  Result:= False;
+  try
+    if Assigned(WIASettingsDialogFunc)
+    then Result:= WIASettingsDialogFunc(Self, ASelectedItemIndex,
+                                        AInitItemValues, AParams, AOnInitDefaultValues);
+
+  except
+  end;
+end;
+
+
 (*
 function TWIADevice.SetProperty(APropId: PROPID; APropValue: Smallint; useRoot: Boolean): Boolean;
 begin
@@ -3160,12 +3213,11 @@ end;
 
 function TWIAManager.SelectDeviceDialog: Integer;
 begin
+  Result:= -1;
   try
-     Result:= TWIASelectForm.Execute(Self);
-     FreeAndNil(WIASelectForm);
+    if Assigned(WIASelectDialogFunc) then Result:= WIASelectDialogFunc(Self);
 
   except
-    Result:= -1;
   end;
 end;
 

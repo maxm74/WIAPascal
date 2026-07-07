@@ -6,18 +6,6 @@ msgstr "Content-Type: text/plain; charset=UTF-8"
 msgid "Apply Changes to Item %s of %s"
 msgstr ""
 
-#: wia_settingsform.rsautosize
-msgid "Auto size"
-msgstr ""
-
-#: wia_settingsform.rsautotype
-msgid "Auto type"
-msgstr ""
-
-#: wia_settingsform.rscustomsize
-msgid "Custom size"
-msgstr ""
-
 #: wia_settingsform.rserrorselecting
 #, object-pascal-format
 msgid ""
@@ -41,17 +29,5 @@ msgstr ""
 #: wia_settingsform.rsexccannotgetsourceitem
 #, object-pascal-format
 msgid "Cannot Get Source Item %d"
-msgstr ""
-
-#: wia_settingsform.rsfullsize
-msgid "Full size"
-msgstr ""
-
-#: wia_settingsform.rslandscape
-msgid "Landscape"
-msgstr ""
-
-#: wia_settingsform.rsportrait
-msgid "Portrait"
 msgstr ""
 

@@ -30,7 +30,7 @@ interface
 uses
   Windows, Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls,
   ExtCtrls, ComCtrls, Spin,
-  WIA, WIA_LH, WiaDef, WIA_PaperSizes, WIA_SettingsForm;
+  WIA, WIA_LH, WiaDef, WIA_PaperSizes, WIA_SelectForm, WIA_SettingsForm;
 
 type
   { TFormWIADemo }
@@ -251,7 +251,7 @@ begin
     NewItemIndex:= SelectedItemIndex;
 
     //Select Scanner Setting to use
-    if TWIASettingsSource.Execute(WIASource, NewItemIndex, initParams, WIAParams) then
+    if WIASource.SettingsDeviceDialog(NewItemIndex, initParams, WIAParams) then
     begin
       if (NewItemIndex <> SelectedItemIndex) then
       begin
@@ -350,7 +350,6 @@ begin
      end;
 
   finally
-    WIASettingsSource.Free; WIASettingsSource:= Nil;
   end;
 end;
 

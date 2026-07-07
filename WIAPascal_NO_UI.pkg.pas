@@ -2,15 +2,14 @@
   This source is only used to compile and install the package.
  }
 
-unit WIAPascal_pkg;
+unit WIAPascal_NO_UI.pkg;
 
 {$warn 5023 off : no warning about unused units}
 interface
 
 uses
   WIA_LH, WIA_TLB, WiaDef, WiaDevD, WIA_ScanProfiles_TLB, STI, WIA, 
-  WIA_SelectForm, WIA_SettingsForm, WIA_PaperSizes, DelphiCompatibility, 
-  WiaWSDsc, WIA_UI_Common;
+  WIA_PaperSizes, DelphiCompatibility, WiaWSDsc, WIA_UI_Common;
 
 implementation
 

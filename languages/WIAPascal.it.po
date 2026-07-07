@@ -167,15 +167,15 @@ msgstr "Nessun Dispositivo Wia presente..."
 msgid "Apply Changes to Item %s of %s"
 msgstr "Applicare le Modifiche all'Elemento %s di %s"
 
-#: wia_settingsform.rsautosize
+#: wia_papersizes.rsautosize
 msgid "Auto size"
 msgstr "Dimensione Automatica"
 
-#: wia_settingsform.rsautotype
+#: wia_ui_common.rsautotype
 msgid "Auto type"
 msgstr "Tipo Automatico"
 
-#: wia_settingsform.rscustomsize
+#: wia_papersizes.rscustomsize
 msgid "Custom size"
 msgstr "Dimensione Personalizzata"
 
@@ -209,14 +209,14 @@ msgstr "Impossibile ottenere le Capacità per l'Elemento %d della Sorgente"
 msgid "Cannot Get Source Item %d"
 msgstr "Impossibile ottenere l'Elemento %d della Sorgente"
 
-#: wia_settingsform.rsfullsize
+#: wia_papersizes.rsfullsize
 msgid "Full size"
 msgstr "Dimensione Intera"
 
-#: wia_settingsform.rslandscape
+#: wia_ui_common.rslandscape
 msgid "Landscape"
 msgstr "Orizzontale"
 
-#: wia_settingsform.rsportrait
+#: wia_ui_common.rsportrait
 msgid "Portrait"
 msgstr "Verticale"

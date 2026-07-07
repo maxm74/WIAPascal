@@ -2,7 +2,7 @@
 <CONFIG>
   <Package Version="5">
     <PathDelim Value="\"/>
-    <Name Value="WIAPascal_pkg"/>
+    <Name Value="WIAPascal_NO_UI_pkg"/>
     <Author Value="Massimo Magnano"/>
     <CompilerOptions>
       <Version Value="11"/>
@@ -49,14 +49,6 @@
         <UnitName Value="WIA"/>
       </Item>
       <Item>
-        <Filename Value="WIA_SelectForm.pas"/>
-        <UnitName Value="WIA_SelectForm"/>
-      </Item>
-      <Item>
-        <Filename Value="WIA_SettingsForm.pas"/>
-        <UnitName Value="WIA_SettingsForm"/>
-      </Item>
-      <Item>
         <Filename Value="WIA_PaperSizes.pas"/>
         <UnitName Value="WIA_PaperSizes"/>
       </Item>
@@ -80,10 +72,7 @@
     </i18n>
     <RequiredPkgs>
       <Item>
-        <PackageName Value="LCL"/>
-      </Item>
-      <Item>
-        <PackageName Value="LCLBase"/>
+        <PackageName Value="LazUtils"/>
       </Item>
       <Item>
         <PackageName Value="FCL"/>

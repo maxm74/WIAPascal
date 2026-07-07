@@ -45,7 +45,7 @@ type
     procedure FillList;
 
   public
-     class function Execute(AWIAManager: TWIAManager): Integer;
+     class function Execute(AWIAManager: TWIAManager): Integer; deprecated 'use TWIAManager.SelectDeviceDialog intestead';
   end;
 
 var
@@ -59,6 +59,27 @@ implementation
   {$R *.dfm}
 {$endif}
 
+uses WIA_UI_Common;
+
+function WIASelectForm_Execute(AWIAManager: TWIAManager): Integer;
+begin
+  Result :=-1;
+  if (WIASelectForm = nil)
+  then WIASelectForm :=TWIASelectForm.Create(nil);
+
+  if (WIASelectForm <> nil) then
+  with WIASelectForm do
+  try
+    WIAManager:= AWIAManager;
+    FillList;
+
+    if (ShowModal = mrOk)
+    then Result:= lvSources.ItemIndex;
+
+  finally
+     WIASelectForm.Free; WIASelectForm:= nil;
+  end;
+end;
 
 { TWIASelectForm }
 
@@ -120,23 +141,11 @@ end;
 
 class function TWIASelectForm.Execute(AWIAManager: TWIAManager): Integer;
 begin
-  Result :=-1;
-  if (WIASelectForm = nil)
-  then WIASelectForm :=TWIASelectForm.Create(nil);
-
-  if (WIASelectForm <> nil) then
-  with WIASelectForm do
-  try
-    WIAManager:= AWIAManager;
-    FillList;
-
-    if (ShowModal = mrOk)
-    then Result:= lvSources.ItemIndex;
-
-  finally
-     WIASelectForm.Free; WIASelectForm:= nil;
-  end;
+  Result:= WIASelectForm_Execute(AWIAManager);
 end;
+
+initialization
+  WIASelectDialogFunc:= @WIASelectForm_Execute;
 
 end.
 

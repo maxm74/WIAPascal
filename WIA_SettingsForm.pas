@@ -30,29 +30,15 @@ uses
   WIA, WIA_PaperSizes,
   ImgList {$ifndef fpc}, ImageList, NumberBox{$endif};
 
-const
-  //False to display then measurement in Inchs
-  WIASettings_Unit_cm: Boolean = True; //fucks inch
-
 resourcestring
-  rsLandscape = 'Landscape';
-  rsPortrait = 'Portrait';
   rsApplyChanges = 'Apply Changes to Item %s of %s';
-  rsFullsize = 'Full size';
-  rsCustomsize = 'Custom size';
-  rsAutosize = 'Auto size';
-  rsAutotype = 'Auto type';
   rsExcCannotGetSourceItem = 'Cannot Get Source Item %d';
   rsExcCannotGetCapabilities = 'Cannot Get Capabilities for Source Item %d';
   rsErrorSelecting = 'Error Selecting Item %s of %s'#13#10'Try to Select another Source Item';
   rsErrorSelectingInt = 'Error Selecting Item [%d] of %s'#13#10'%s'#13#10'Try to Select another Source Item';
 
 type
-  TInitialItemValues = (initDefault, initParams, initCurrent);
-
   { TWIASettingsSource }
-  TInitDefaultValuesEvent = procedure (var ACap: TWIAParamsCapabilities) of object;
-
   TWIASettingsSource = class(TForm)
     btContrast0: TSpeedButton;
     btContrastD: TSpeedButton;
@@ -145,7 +131,7 @@ type
                             { #todo -oMaxM : Possibly Filters for which Items Kinds to Show? How manage AParams without Indexes? }
                             AInitItemValues: TInitialItemValues;
                             var AParams: TArrayWIAParams;
-                            AOnInitDefaultValues: TInitDefaultValuesEvent=nil): Boolean;
+                            AOnInitDefaultValues: TInitDefaultValuesEvent=nil): Boolean; deprecated 'use TWIADevice.SettingsDeviceDialog intestead';
   end;
 
 var
@@ -159,7 +145,138 @@ implementation
   {$R *.dfm}
 {$endif}
 
-uses WiaDef;
+uses WiaDef, WIA_UI_Common;
+
+function WIASettingsSource_Execute(AWIASource: TWIADevice; var ASelectedItemIndex: Integer;
+                                   AInitItemValues: TInitialItemValues; var AParams: TArrayWIAParams;
+                                   AOnInitDefaultValues: TInitDefaultValuesEvent): Boolean;
+var
+  i,
+  itemCount,
+  lenAParams: Integer;
+  curListItem: TListItem;
+  curItem: PWIAItem;
+
+begin
+  Result:= False;
+  if (AWIASource = nil) then exit;
+
+  if (WIASettingsSource=nil)
+  then WIASettingsSource :=TWIASettingsSource.Create(nil);
+
+  if (WIASettingsSource <> nil) then
+  with WIASettingsSource do
+  try
+    WIASource:= AWIASource;
+    itemCount:= WIASource.ItemCount;
+    initItemValues:= AInitItemValues;
+    OnInitDefaultValues:= AOnInitDefaultValues;
+
+    //Do A Copy of Params Array so if the user cancels the Dialog we don't modify the starting array
+    WIAParams:= Copy(AParams);
+
+    //If WiaSource Item Count is greater then our Array enlarge it
+    lenAParams:= Length(AParams);
+    if (lenAParams < itemCount)
+    then SetLength(WIAParams, itemCount);
+
+    SetLength(WiaCaps, itemCount);
+
+    //Get Capabilities and Fill ListView of Source Items
+    lvSourceItems.Clear;
+    for i:=0 to itemCount-1 do
+    begin
+      //Get Item[i] Default Values
+      WIASource.SelectedItemIndex:= i;
+      curItem:= WIASource.Items[i];
+
+      if (curItem = nil)
+      then raise Exception.Create(Format(rsExcCannotGetSourceItem, [i]));
+
+      if not(WIASource.GetParamsCapabilities(WiaCaps[i]))
+      then raise Exception.Create(Format(rsExcCannotGetCapabilities, [i]));
+
+      Case initItemValues of
+      initDefault:  if (curItem^.ItemCategory = wicFEEDER)
+                    then WIAParams[i]:= WIACopyDefaultValues(WiaCaps[i], waHCenter)
+                    else WIAParams[i]:= WIACopyDefaultValues(WiaCaps[i]);
+      initParams : if (i >= lenAParams) then //if is a new Item then Assign Default Values
+                   begin
+                     if (curItem^.ItemCategory = wicFEEDER)
+                     then WIAParams[i]:= WIACopyDefaultValues(WiaCaps[i], waHCenter)
+                     else WIAParams[i]:= WIACopyDefaultValues(WiaCaps[i]);
+                   end;
+      initCurrent: if (curItem^.ItemCategory = wicFEEDER)
+                   then WIAParams[i]:= WIACopyCurrentValues(WiaCaps[i], waHCenter)
+                   else WIAParams[i]:= WIACopyCurrentValues(WiaCaps[i]);
+      end;
+
+      curListItem:= lvSourceItems.Items.Add;
+      curListItem.Caption :=WIASource.Items[i]^.Name;
+      curListItem.Data:= Pointer(i);
+
+      Case curItem^.ItemCategory of
+      wicFLATBED: curListItem.ImageIndex:= 1;
+      wicFEEDER,
+      wicFEEDER_FRONT,
+      wicFEEDER_BACK:  curListItem.ImageIndex:= 2;
+      wicFILM:  curListItem.ImageIndex:= 3;
+      wicROOT,
+      wicFOLDER:  curListItem.ImageIndex:= 5;
+      wicBARCODE_READER: curListItem.ImageIndex:= 6;
+      else  curListItem.ImageIndex:= 0;
+      end;
+    end;
+
+    try
+      //Select the Initial Item to ASelectedItemIndex
+      if (ASelectedItemIndex < 0)
+      then WIASelectedItemIndex:= 0
+      else WIASelectedItemIndex:= ASelectedItemIndex;
+      try
+         WIASource.SelectedItemIndex:= WIASelectedItemIndex;
+      except
+         WIASource.SelectedItemIndex:= 0;
+      end;
+      WIASelectedItemIndex:= WIASource.SelectedItemIndex;
+
+      PageSourceTypes.Enabled:= (WIASource.SelectedItemIntf <> nil);
+      if (PageSourceTypes.Enabled)
+      then SelectCurrentItem(WIASelectedItemIndex)
+      else MessageDlg(Format(rsErrorSelecting, [WIASource.Items[WIASelectedItemIndex]^.Name, WIASource.Name]),
+                      mtError, [mbOk], 0);
+    except
+       on E: Exception do
+       MessageDlg(Format(rsErrorSelectingInt, [WIASelectedItemIndex, WIASource.Name, E.Message]),
+                  mtError, [mbOk], 0);
+    end;
+    //cbSourceItem.ItemIndex:= WIASelectedItemIndex;
+    lvSourceItems.ItemIndex:= WIASelectedItemIndex;
+    SelectCurrentItem(WIASelectedItemIndex);
+
+    Caption:= Caption+' : '+WIASource.Manufacturer+' '+WIASource.Name;
+
+    Result := (ShowModal=mrOk);
+
+    if Result then
+    begin
+      ASelectedItemIndex:= WIASelectedItemIndex;
+
+      StoreCurrentItemParams;
+
+      //Do A Copy of WIAParams to AParams Array and stretch it if needed
+      if (Length(AParams) < Length(WIAParams)) then SetLength(AParams, Length(WIAParams));
+      //Move(WIAParams, AParams, Length(AParams));
+      //AParams:= Copy(WIAParams);
+      for i:=0 to Length(AParams)-1 do AParams[i]:= WIAParams[i];
+    end;
+
+  finally
+    WIAParams:= nil;
+    WIACaps:= nil;
+    WIASettingsSource.Free; WIASettingsSource:= nil;
+  end;
+end;
 
 { TWIASettingsSource }
 
@@ -324,22 +441,9 @@ begin
     cbPaperType.Items.AddObject(rsFullsize, TObject(PtrUInt(wptMAX)));
     for paperI in PaperTypeSet do
     begin
-      Case paperI of
-      wptMAX:begin end;
-      wptCUSTOM: cbPaperType.Items.AddObject(rsCustomsize, TObject(PtrUInt(wptCUSTOM)));
-      wptAUTO: cbPaperType.Items.AddObject(rsAutosize, TObject(PtrUInt(wptAUTO)));
-      else begin
-             if WIASettings_Unit_cm
-             then cbPaperType.Items.AddObject(PaperSizesWIA[paperI].name+' ('+
-                                              THInchToCmStr(PaperSizesWIA[paperI].w)+' x '+
-                                              THInchToCmStr(PaperSizesWIA[paperI].h)+' cm)',
-                                              TObject(PtrUInt(paperI)))
-             else cbPaperType.Items.AddObject(PaperSizesWIA[paperI].name+' ('+
-                                              THInchToInchStr(PaperSizesWIA[paperI].w)+' x '+
-                                              THInchToInchStr(PaperSizesWIA[paperI].h)+' in)',
-                                              TObject(PtrUInt(paperI)))
-           end;
-      end;
+      if (paperI <> wptMAX)
+      then cbPaperType.Items.AddObject(PaperTypeNameAndSize(WIASettings_Unit_cm, paperI),
+                                       TObject(PtrUInt(paperI)));
 
       if (paperI = AParams.PaperType) then cbSelected :=cbPaperType.Items.Count-1;
     end;
@@ -582,136 +686,17 @@ begin
   WIAParams[WIASelectedItemIndex]:= curParams;
 end;
 
-class function TWIASettingsSource.Execute(AWIASource: TWIADevice; var ASelectedItemIndex: Integer;
-                                          AInitItemValues: TInitialItemValues; var AParams: TArrayWIAParams;
-                                          AOnInitDefaultValues: TInitDefaultValuesEvent): Boolean;
-var
-  i,
-  itemCount,
-  lenAParams: Integer;
-  curListItem: TListItem;
-  curItem: PWIAItem;
-
+class function TWIASettingsSource.Execute(AWIASource: TWIADevice;
+                                          var ASelectedItemIndex: Integer; AInitItemValues: TInitialItemValues;
+                                          var AParams: TArrayWIAParams; AOnInitDefaultValues: TInitDefaultValuesEvent): Boolean;
 begin
-  Result:= False;
-  if (AWIASource = nil) then exit;
-
-  if (WIASettingsSource=nil)
-  then WIASettingsSource :=TWIASettingsSource.Create(nil);
-
-  if (WIASettingsSource <> nil) then
-  with WIASettingsSource do
-  try
-    WIASource:= AWIASource;
-    itemCount:= WIASource.ItemCount;
-    initItemValues:= AInitItemValues;
-    OnInitDefaultValues:= AOnInitDefaultValues;
-
-    //Do A Copy of Params Array so if the user cancels the Dialog we don't modify the starting array
-    WIAParams:= Copy(AParams);
-
-    //If WiaSource Item Count is greater then our Array enlarge it
-    lenAParams:= Length(AParams);
-    if (lenAParams < itemCount)
-    then SetLength(WIAParams, itemCount);
-
-    SetLength(WiaCaps, itemCount);
-
-    //Get Capabilities and Fill ListView of Source Items
-    lvSourceItems.Clear;
-    for i:=0 to itemCount-1 do
-    begin
-      //Get Item[i] Default Values
-      WIASource.SelectedItemIndex:= i;
-      curItem:= WIASource.Items[i];
-
-      if (curItem = nil)
-      then raise Exception.Create(Format(rsExcCannotGetSourceItem, [i]));
-
-      if not(WIASource.GetParamsCapabilities(WiaCaps[i]))
-      then raise Exception.Create(Format(rsExcCannotGetCapabilities, [i]));
-
-      Case initItemValues of
-      initDefault:  if (curItem^.ItemCategory = wicFEEDER)
-                    then WIAParams[i]:= WIACopyDefaultValues(WiaCaps[i], waHCenter)
-                    else WIAParams[i]:= WIACopyDefaultValues(WiaCaps[i]);
-      initParams : if (i >= lenAParams) then //if is a new Item then Assign Default Values
-                   begin
-                     if (curItem^.ItemCategory = wicFEEDER)
-                     then WIAParams[i]:= WIACopyDefaultValues(WiaCaps[i], waHCenter)
-                     else WIAParams[i]:= WIACopyDefaultValues(WiaCaps[i]);
-                   end;
-      initCurrent: if (curItem^.ItemCategory = wicFEEDER)
-                   then WIAParams[i]:= WIACopyCurrentValues(WiaCaps[i], waHCenter)
-                   else WIAParams[i]:= WIACopyCurrentValues(WiaCaps[i]);
-      end;
-
-      curListItem:= lvSourceItems.Items.Add;
-      curListItem.Caption :=WIASource.Items[i]^.Name;
-      curListItem.Data:= Pointer(i);
-
-      Case curItem^.ItemCategory of
-      wicFLATBED: curListItem.ImageIndex:= 1;
-      wicFEEDER,
-      wicFEEDER_FRONT,
-      wicFEEDER_BACK:  curListItem.ImageIndex:= 2;
-      wicFILM:  curListItem.ImageIndex:= 3;
-      wicROOT,
-      wicFOLDER:  curListItem.ImageIndex:= 5;
-      wicBARCODE_READER: curListItem.ImageIndex:= 6;
-      else  curListItem.ImageIndex:= 0;
-      end;
-    end;
-
-    try
-      //Select the Initial Item to ASelectedItemIndex
-      if (ASelectedItemIndex < 0)
-      then WIASelectedItemIndex:= 0
-      else WIASelectedItemIndex:= ASelectedItemIndex;
-      try
-         WIASource.SelectedItemIndex:= WIASelectedItemIndex;
-      except
-         WIASource.SelectedItemIndex:= 0;
-      end;
-      WIASelectedItemIndex:= WIASource.SelectedItemIndex;
-
-      PageSourceTypes.Enabled:= (WIASource.SelectedItemIntf <> nil);
-      if (PageSourceTypes.Enabled)
-      then SelectCurrentItem(WIASelectedItemIndex)
-      else MessageDlg(Format(rsErrorSelecting, [WIASource.Items[WIASelectedItemIndex]^.Name, WIASource.Name]),
-                      mtError, [mbOk], 0);
-    except
-       on E: Exception do
-       MessageDlg(Format(rsErrorSelectingInt, [WIASelectedItemIndex, WIASource.Name, E.Message]),
-                  mtError, [mbOk], 0);
-    end;
-    //cbSourceItem.ItemIndex:= WIASelectedItemIndex;
-    lvSourceItems.ItemIndex:= WIASelectedItemIndex;
-    SelectCurrentItem(WIASelectedItemIndex);
-
-    Caption:= Caption+' : '+WIASource.Manufacturer+' '+WIASource.Name;
-
-    Result := (ShowModal=mrOk);
-
-    if Result then
-    begin
-      ASelectedItemIndex:= WIASelectedItemIndex;
-
-      StoreCurrentItemParams;
-
-      //Do A Copy of WIAParams to AParams Array and stretch it if needed
-      if (Length(AParams) < Length(WIAParams)) then SetLength(AParams, Length(WIAParams));
-      //Move(WIAParams, AParams, Length(AParams));
-      //AParams:= Copy(WIAParams);
-      for i:=0 to Length(AParams)-1 do AParams[i]:= WIAParams[i];
-    end;
-
-  finally
-    WIAParams:= nil;
-    WIACaps:= nil;
-    WIASettingsSource.Free; WIASettingsSource:= nil;
-  end;
+  Result:= WIASettingsSource_Execute(AWIASource, ASelectedItemIndex, AInitItemValues,
+                                     AParams, AOnInitDefaultValues);
 end;
+
+initialization
+  WIASettingsDialogFunc:= @WIASettingsSource_Execute;
+
 
 end.
 

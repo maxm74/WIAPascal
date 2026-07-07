@@ -1,0 +1,15 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8"
+
+#: wia_papersizes.rsautosize
+msgid "Auto size"
+msgstr ""
+
+#: wia_papersizes.rscustomsize
+msgid "Custom size"
+msgstr ""
+
+#: wia_papersizes.rsfullsize
+msgid "Full size"
+msgstr ""
+
